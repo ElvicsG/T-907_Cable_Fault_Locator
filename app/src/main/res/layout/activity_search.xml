@@ -1,0 +1,368 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/bg_splash"
+    tools:context=".view.SearchActivity">
+
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/guideline"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_constraintGuide_percent="0.11" />
+
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/guideline2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_constraintGuide_percent="0.89" />
+
+    <androidx.gridlayout.widget.GridLayout
+        android:id="@+id/gridLayout"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        app:columnCount="10"
+        app:layout_constraintBottom_toTopOf="@+id/guideline4"
+        app:layout_constraintEnd_toStartOf="@+id/guideline2"
+        app:layout_constraintStart_toStartOf="@+id/guideline"
+        app:layout_constraintTop_toTopOf="@+id/guideline3"
+        app:rowCount="8">
+
+        <Space
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:layout_column="0"
+            app:layout_columnWeight="2"
+            app:layout_row="0"
+            app:layout_rowSpan="8" />
+
+        <TextView
+            android:id="@+id/tv_testdate"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical|end"
+            android:text="@string/tv_testdate"
+            app:layout_column="1"
+            app:layout_columnSpan="2"
+            app:layout_columnWeight="2"
+            app:layout_row="0"
+            app:layout_rowWeight="1" />
+
+        <TextView
+            android:id="@+id/tv_tesetime"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical|end"
+            android:text="@string/tv_testtime"
+            android:visibility="gone"
+            app:layout_column="1"
+            app:layout_columnSpan="2"
+            app:layout_columnWeight="2"
+            app:layout_row="1"
+            app:layout_rowWeight="1" />
+
+        <TextView
+            android:id="@+id/tv_testmode"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical|end"
+            android:text="@string/tv_testmode"
+            app:layout_column="1"
+            app:layout_columnSpan="2"
+            app:layout_columnWeight="2"
+            app:layout_row="2"
+            app:layout_rowWeight="1" />
+
+        <TextView
+            android:id="@+id/tv_testrange"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical|end"
+            android:text="@string/tv_testrange"
+            app:layout_column="1"
+            app:layout_columnSpan="2"
+            app:layout_columnWeight="2"
+            app:layout_row="3"
+            app:layout_rowWeight="1" />
+
+        <TextView
+            android:id="@+id/tv_testline"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical|end"
+            android:text="@string/tv_testline"
+            app:layout_column="1"
+            app:layout_columnSpan="2"
+            app:layout_columnWeight="2"
+            app:layout_row="4"
+            app:layout_rowWeight="1" />
+
+        <TextView
+            android:id="@+id/tv_testphase"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical|end"
+            android:text="@string/tv_testphase"
+            app:layout_column="1"
+            app:layout_columnSpan="2"
+            app:layout_columnWeight="2"
+            app:layout_row="5"
+            app:layout_rowWeight="1" />
+
+        <TextView
+            android:id="@+id/tv_tester"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical|end"
+            android:text="@string/tv_tester"
+            app:layout_column="1"
+            app:layout_columnSpan="2"
+            app:layout_columnWeight="2"
+            app:layout_row="6"
+            app:layout_rowWeight="1" />
+
+        <TextView
+            android:id="@+id/tv_testlocation"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical|end"
+            android:text="@string/tv_testlocation"
+            app:layout_column="1"
+            app:layout_columnSpan="2"
+            app:layout_columnWeight="2"
+            app:layout_row="7"
+            app:layout_rowWeight="1" />
+
+        <Space
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            app:layout_column="3"
+            app:layout_columnWeight="1"
+            app:layout_row="0"
+            app:layout_rowSpan="8" />
+
+        <EditText
+            android:id="@+id/et_date"
+            android:layout_width="wrap_content"
+            android:layout_height="35dp"
+            app:layout_column="4"
+            app:layout_columnSpan="5"
+            app:layout_columnWeight="5"
+            app:layout_row="0"
+            app:layout_rowWeight="1" />
+
+        <Spinner
+            android:id="@+id/sp_date"
+            android:layout_width="wrap_content"
+            android:layout_height="35dp"
+            app:layout_column="4"
+            app:layout_columnSpan="5"
+            app:layout_columnWeight="5"
+            app:layout_row="0"
+            app:layout_rowWeight="1" />
+
+        <EditText
+            android:id="@+id/et_time"
+            android:layout_width="wrap_content"
+            android:layout_height="35dp"
+            android:ems="10"
+            android:gravity="start"
+            android:inputType="time"
+            android:visibility="gone"
+            app:layout_column="4"
+            app:layout_columnSpan="5"
+            app:layout_columnWeight="5"
+            app:layout_row="1"
+            app:layout_rowWeight="1" />
+
+        <EditText
+            android:id="@+id/et_mode"
+            android:layout_width="wrap_content"
+            android:layout_height="35dp"
+            android:gravity="start"
+            app:layout_column="4"
+            app:layout_columnSpan="5"
+            app:layout_columnWeight="6"
+            app:layout_row="2"
+            app:layout_rowWeight="1" />
+
+        <Spinner
+            android:id="@+id/sp_mode"
+            android:layout_width="wrap_content"
+            android:layout_height="35dp"
+            app:layout_column="8"
+            app:layout_columnSpan="1"
+            app:layout_columnWeight="1"
+            app:layout_row="2"
+            app:layout_rowWeight="1" />
+
+
+        <EditText
+            android:id="@+id/et_range"
+            android:layout_width="wrap_content"
+            android:layout_height="35dp"
+            android:gravity="start"
+            app:layout_column="4"
+            app:layout_columnSpan="5"
+            app:layout_columnWeight="3"
+            app:layout_row="3"
+            app:layout_rowWeight="1" />
+
+        <Spinner
+            android:id="@+id/sp_range"
+            android:layout_width="wrap_content"
+            android:layout_height="35dp"
+            app:layout_column="8"
+            app:layout_columnSpan="1"
+            app:layout_columnWeight="1"
+            app:layout_row="3"
+            app:layout_rowWeight="1" />
+
+
+        <EditText
+            android:id="@+id/et_line"
+            android:layout_width="wrap_content"
+            android:layout_height="35dp"
+            android:gravity="start"
+            app:layout_column="4"
+            app:layout_columnSpan="5"
+            app:layout_columnWeight="5"
+            app:layout_row="4"
+            app:layout_rowWeight="1" />
+
+        <Spinner
+            android:id="@+id/sp_line"
+            android:layout_width="wrap_content"
+            android:layout_height="35dp"
+            app:layout_column="8"
+            app:layout_columnSpan="1"
+            app:layout_columnWeight="1"
+            app:layout_row="4"
+            app:layout_rowWeight="1" />
+
+
+        <EditText
+            android:id="@+id/et_phase"
+            android:layout_width="wrap_content"
+            android:layout_height="35dp"
+            app:layout_column="4"
+            app:layout_columnSpan="5"
+            app:layout_columnWeight="5"
+            app:layout_row="5"
+            app:layout_rowWeight="1" />
+
+        <Spinner
+            android:id="@+id/sp_phase"
+            android:layout_width="wrap_content"
+            android:layout_height="35dp"
+            app:layout_column="8"
+            app:layout_columnSpan="1"
+            app:layout_columnWeight="1"
+            app:layout_row="5"
+            app:layout_rowWeight="1" />
+
+        <EditText
+            android:id="@+id/et_tester"
+            android:layout_width="wrap_content"
+            android:layout_height="35dp"
+            android:gravity="start"
+            app:layout_column="4"
+            app:layout_columnSpan="5"
+            app:layout_columnWeight="5"
+            app:layout_row="6"
+            app:layout_rowWeight="1" />
+
+        <Spinner
+            android:id="@+id/sp_tester"
+            android:layout_width="wrap_content"
+            android:layout_height="35dp"
+            app:layout_column="8"
+            app:layout_columnSpan="1"
+            app:layout_columnWeight="1"
+            app:layout_row="6"
+            app:layout_rowWeight="1" />
+
+
+        <EditText
+            android:id="@+id/et_location"
+            android:layout_width="wrap_content"
+            android:layout_height="35dp"
+            android:gravity="start"
+            app:layout_column="4"
+            app:layout_columnSpan="5"
+            app:layout_columnWeight="5"
+            app:layout_row="7"
+            app:layout_rowWeight="1" />
+
+        <Spinner
+            android:id="@+id/sp_location"
+            android:layout_width="wrap_content"
+            android:layout_height="35dp"
+            app:layout_column="8"
+            app:layout_columnSpan="1"
+            app:layout_columnWeight="1"
+            app:layout_row="7"
+            app:layout_rowWeight="1" />
+
+        <Space
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:layout_column="9"
+            app:layout_columnWeight="4"
+            app:layout_row="0"
+            app:layout_rowSpan="8" />
+
+    </androidx.gridlayout.widget.GridLayout>
+
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/guideline3"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        app:layout_constraintGuide_percent="0.12" />
+
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/guideline4"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        app:layout_constraintGuide_percent="0.88" />
+
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/guideline7"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_constraintGuide_percent="0.5" />
+
+    <Button
+        android:id="@+id/btn_Confirm_Search"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="8dp"
+        android:text="@string/btn_view"
+        app:layout_constraintEnd_toStartOf="@+id/guideline7"
+        app:layout_constraintStart_toStartOf="@+id/guideline7"
+        app:layout_constraintTop_toBottomOf="@+id/gridLayout" />
+
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/guideline5"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_constraintGuide_percent="0.3" />
+
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/guideline8"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_constraintGuide_percent="0.7" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

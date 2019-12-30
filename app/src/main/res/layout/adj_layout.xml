@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                xmlns:tools="http://schemas.android.com/tools"
+                android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <LinearLayout
+        android:id="@+id/adj_sidebar"
+        android:layout_width="88dp"
+        android:layout_height="wrap_content"
+        android:layout_alignParentEnd="true"
+        android:orientation="vertical">
+
+        <Button
+            android:id="@+id/btn_gain_plus"
+            style="@style/Widget.AppCompat.Button.Colored"
+            android:layout_width="match_parent"
+            android:layout_height="45dp"
+            android:text="@string/btn_gain_plus"
+            android:textColor="@android:color/black"/>
+
+        <Button
+            android:id="@+id/btn_gain_minus"
+            style="@style/Widget.AppCompat.Button.Colored"
+            android:layout_width="match_parent"
+            android:layout_height="45dp"
+            android:text="@string/btn_gain_minus"
+            android:textColor="@android:color/black"/>
+
+        <Button
+            android:id="@+id/btn_balance_plus"
+            style="@style/Widget.AppCompat.Button.Colored"
+            android:layout_width="match_parent"
+            android:layout_height="45dp"
+            android:text="@string/btn_balance_plus"
+            android:textColor="@android:color/black"/>
+
+        <Button
+            android:id="@+id/btn_balance_minus"
+            style="@style/Widget.AppCompat.Button.Colored"
+            android:layout_width="match_parent"
+            android:layout_height="45dp"
+            android:text="@string/btn_balance_minus"
+            android:textColor="@android:color/black"/>
+
+        <Button
+            android:id="@+id/btn_delay_plus"
+            style="@style/Widget.AppCompat.Button.Colored"
+            android:layout_width="match_parent"
+            android:layout_height="45dp"
+            android:text="@string/btn_delay_plus"
+            android:textColor="@android:color/black"
+            tools:visibility="gone"/>
+
+        <Button
+            android:id="@+id/btn_delay_minus"
+            style="@style/Widget.AppCompat.Button.Colored"
+            android:layout_width="match_parent"
+            android:layout_height="45dp"
+            android:text="@string/btn_delay_minus"
+            android:textColor="@android:color/black"
+            tools:visibility="gone"/>
+
+        <Button
+            android:id="@+id/btn_vel_plus"
+            style="@style/Widget.AppCompat.Button.Colored"
+            android:layout_width="match_parent"
+            android:layout_height="45dp"
+            android:text="@string/btn_vel_plus"
+            android:textColor="@android:color/black"/>
+
+        <Button
+            android:id="@+id/btn_vel_minus"
+            style="@style/Widget.AppCompat.Button.Colored"
+            android:layout_width="match_parent"
+            android:layout_height="45dp"
+            android:text="@string/btn_vel_minus"
+            android:textColor="@android:color/black"/>
+
+        <Button
+            android:id="@+id/btn_inductor_plus"
+            style="@style/Widget.AppCompat.Button.Colored"
+            android:layout_width="match_parent"
+            android:layout_height="45dp"
+            android:text="@string/btn_inductor_plus"
+            android:textColor="@android:color/black"
+            tools:visibility="gone"/>
+
+        <Button
+            android:id="@+id/btn_inductor_minus"
+            style="@style/Widget.AppCompat.Button.Colored"
+            android:layout_width="match_parent"
+            android:layout_height="45dp"
+            android:text="@string/btn_inductor_minus"
+            android:textColor="@android:color/black"
+            tools:visibility="gone"/>
+
+    </LinearLayout>
+
+</RelativeLayout>

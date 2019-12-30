@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <LinearLayout
+        android:id="@+id/range_sidebar"
+        android:layout_width="88dp"
+        android:layout_height="wrap_content"
+        android:layout_alignParentEnd="true"
+        android:orientation="vertical">
+
+        <Button
+            android:id="@+id/btn_500m"
+            style="@style/Widget.AppCompat.Button.Colored"
+            android:layout_width="match_parent"
+            android:layout_height="45dp"
+            android:textAllCaps="false"
+            android:text="@string/btn_500m"
+            android:textColor="@android:color/black"/>
+
+        <Button
+            android:id="@+id/btn_1km"
+            style="@style/Widget.AppCompat.Button.Colored"
+            android:layout_width="match_parent"
+            android:layout_height="45dp"
+            android:textAllCaps="false"
+            android:text="@string/btn_1km"
+            android:textColor="@android:color/black"/>
+
+        <Button
+            android:id="@+id/btn_2km"
+            style="@style/Widget.AppCompat.Button.Colored"
+            android:layout_width="match_parent"
+            android:layout_height="45dp"
+            android:textAllCaps="false"
+            android:text="@string/btn_2km"
+            android:textColor="@android:color/black"/>
+
+        <Button
+            android:id="@+id/btn_4km"
+            style="@style/Widget.AppCompat.Button.Colored"
+            android:layout_width="match_parent"
+            android:layout_height="45dp"
+            android:textAllCaps="false"
+            android:text="@string/btn_4km"
+            android:textColor="@android:color/black"/>
+
+        <Button
+            android:id="@+id/btn_8km"
+            style="@style/Widget.AppCompat.Button.Colored"
+            android:layout_width="match_parent"
+            android:layout_height="45dp"
+            android:textAllCaps="false"
+            android:text="@string/btn_8km"
+            android:textColor="@android:color/black"/>
+
+        <Button
+            android:id="@+id/btn_16km"
+            style="@style/Widget.AppCompat.Button.Colored"
+            android:layout_width="match_parent"
+            android:layout_height="45dp"
+            android:textAllCaps="false"
+            android:text="@string/btn_16km"
+            android:textColor="@android:color/black"/>
+
+        <Button
+            android:id="@+id/btn_32km"
+            style="@style/Widget.AppCompat.Button.Colored"
+            android:layout_width="match_parent"
+            android:layout_height="45dp"
+            android:textAllCaps="false"
+            android:text="@string/btn_32km"
+            android:textColor="@android:color/black"/>
+
+        <Button
+            android:id="@+id/btn_64km"
+            style="@style/Widget.AppCompat.Button.Colored"
+            android:layout_width="match_parent"
+            android:layout_height="45dp"
+            android:textAllCaps="false"
+            android:text="@string/btn_64km"
+            android:textColor="@android:color/black"/>
+    </LinearLayout>
+
+</RelativeLayout>

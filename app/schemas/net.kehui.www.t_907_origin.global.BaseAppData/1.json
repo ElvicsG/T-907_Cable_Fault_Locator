@@ -1,0 +1,145 @@
+{
+  "formatVersion": 1,
+  "database": {
+    "version": 1,
+    "identityHash": "c5f541e241e24d6e311d12dce8e874e3",
+    "entities": [
+      {
+        "tableName": "data",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`dataId` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `unit` INTEGER NOT NULL, `para` TEXT, `cableId` TEXT, `date` TEXT, `time` TEXT, `mode` TEXT, `range` INTEGER NOT NULL, `line` TEXT, `phase` TEXT, `positionVirtual` INTEGER NOT NULL, `positionReal` INTEGER NOT NULL, `tester` TEXT, `location` REAL, `testsite` TEXT, `waveData` TEXT, `waveDataSim` TEXT)",
+        "fields": [
+          {
+            "fieldPath": "dataId",
+            "columnName": "dataId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "unit",
+            "columnName": "unit",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "para",
+            "columnName": "para",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "cableId",
+            "columnName": "cableId",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "date",
+            "columnName": "date",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "time",
+            "columnName": "time",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "mode",
+            "columnName": "mode",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "range",
+            "columnName": "range",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "line",
+            "columnName": "line",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "phase",
+            "columnName": "phase",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "positionVirtual",
+            "columnName": "positionVirtual",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "positionReal",
+            "columnName": "positionReal",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "tester",
+            "columnName": "tester",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "location",
+            "columnName": "location",
+            "affinity": "REAL",
+            "notNull": false
+          },
+          {
+            "fieldPath": "testsite",
+            "columnName": "testsite",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "waveData",
+            "columnName": "waveData",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "waveDataSim",
+            "columnName": "waveDataSim",
+            "affinity": "TEXT",
+            "notNull": false
+          }
+        ],
+        "primaryKey": {
+          "columnNames": [
+            "dataId"
+          ],
+          "autoGenerate": true
+        },
+        "indices": [
+          {
+            "name": "index_data_date_mode_range_line_phase_tester_location",
+            "unique": false,
+            "columnNames": [
+              "date",
+              "mode",
+              "range",
+              "line",
+              "phase",
+              "tester",
+              "location"
+            ],
+            "createSql": "CREATE  INDEX `index_data_date_mode_range_line_phase_tester_location` ON `${TABLE_NAME}` (`date`, `mode`, `range`, `line`, `phase`, `tester`, `location`)"
+          }
+        ],
+        "foreignKeys": []
+      }
+    ],
+    "views": [],
+    "setupQueries": [
+      "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'c5f541e241e24d6e311d12dce8e874e3')"
+    ]
+  }
+}

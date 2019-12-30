@@ -1,0 +1,11 @@
+<component name="libraryTable">
+  <library name="Gradle: org.jetbrains:annotations-java5:17.0.0@jar">
+    <CLASSES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.jetbrains/annotations-java5/17.0.0/21d0a362740a3e6524ea34efb7c9fb48951e9f19/annotations-java5-17.0.0.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.jetbrains/annotations-java5/17.0.0/eb0ff79e2c7a35fc825fe2e788e83db914997dfc/annotations-java5-17.0.0-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>

@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                xmlns:tools="http://schemas.android.com/tools"
+                android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <LinearLayout
+        android:id="@+id/opt_sidebar"
+        android:layout_width="88dp"
+        android:layout_height="wrap_content"
+        android:layout_alignParentEnd="true"
+        android:orientation="vertical">
+
+        <Button
+            android:id="@+id/btn_zoom_in"
+            style="@style/Widget.AppCompat.Button.Colored"
+            android:layout_width="match_parent"
+            android:layout_height="45dp"
+            android:text="@string/btn_zoom_in"
+            android:textColor="@android:color/black"/>
+
+        <Button
+            android:id="@+id/btn_zoom_out"
+            style="@style/Widget.AppCompat.Button.Colored"
+            android:layout_width="match_parent"
+            android:layout_height="45dp"
+            android:text="@string/btn_zoom_out"
+            android:textColor="@android:color/black"/>
+
+        <Button
+            android:id="@+id/btn_res"
+            style="@style/Widget.AppCompat.Button.Colored"
+            android:layout_width="match_parent"
+            android:layout_height="45dp"
+            android:text="@string/btn_res"
+            android:textColor="@android:color/black"/>
+
+        <Button
+            android:id="@+id/btn_memory"
+            style="@style/Widget.AppCompat.Button.Colored"
+            android:layout_width="match_parent"
+            android:layout_height="45dp"
+            android:text="@string/btn_memory"
+            android:textColor="@android:color/black"/>
+
+        <Button
+            android:id="@+id/btn_compare"
+            style="@style/Widget.AppCompat.Button.Colored"
+            android:layout_width="match_parent"
+            android:layout_height="45dp"
+            android:text="@string/btn_compare"
+            android:textColor="@android:color/black"/>
+
+        <Button
+            android:id="@+id/wavePrevious"
+            style="@style/Widget.AppCompat.Button.Colored"
+            android:layout_width="match_parent"
+            android:layout_height="45dp"
+            android:text="@string/btn_wave_previous"
+            android:textColor="@android:color/black"
+            tools:visibility="invisible"/>
+
+        <Button
+            android:id="@+id/waveNext"
+            style="@style/Widget.AppCompat.Button.Colored"
+            android:layout_width="match_parent"
+            android:layout_height="45dp"
+            android:text="@string/btn_wave_next"
+            android:textColor="@android:color/black"
+            tools:visibility="invisible"/>
+
+    </LinearLayout>
+
+</RelativeLayout>

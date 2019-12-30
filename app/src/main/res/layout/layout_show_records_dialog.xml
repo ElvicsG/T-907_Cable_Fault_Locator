@@ -1,0 +1,302 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.percentlayout.widget.PercentRelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#00000000"
+    android:gravity="center"
+    android:orientation="vertical">
+
+    <androidx.percentlayout.widget.PercentRelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/bg_dialog">
+
+
+        <ImageView
+            android:id="@+id/iv_close"
+            android:layout_width="@dimen/dp_20"
+            android:layout_height="@dimen/dp_20"
+            android:layout_alignParentRight="true"
+            android:src="@drawable/bg_dialog_close" />
+
+        <TextView
+            android:id="@+id/tv_no_records"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            android:text="@string/no_records"
+            android:textColor="@color/blue_0FF6FF"
+            android:textSize="@dimen/sp_18"
+            android:visibility="gone" />
+
+        <androidx.percentlayout.widget.PercentRelativeLayout
+            android:id="@+id/rl_has_records"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            app:layout_marginBottomPercent="12%"
+            app:layout_marginLeftPercent="10%"
+            app:layout_marginRightPercent="10%"
+            app:layout_marginTopPercent="12%">
+
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rv_records"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                app:layout_marginRightPercent="4%"
+                app:layout_widthPercent="21%">
+
+            </androidx.recyclerview.widget.RecyclerView>
+
+            <RelativeLayout
+                android:id="@+id/rl_info"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_toRightOf="@id/rv_records">
+
+                <TextView
+                    android:id="@+id/tv_cable_id_text"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/cable_id"
+                    android:textColor="@color/blue_0FF6FF"
+                    android:textSize="@dimen/sp_10" />
+
+                <TextView
+                    android:id="@+id/tv_cable_id"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="@dimen/dp_10"
+                    android:layout_toRightOf="@id/tv_cable_id_text"
+                    android:text="1"
+                    android:textColor="@color/blue_0FF6FF"
+                    android:textSize="@dimen/sp_10" />
+
+                <TextView
+                    android:id="@+id/tv_date_text"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_below="@id/tv_cable_id"
+                    android:layout_marginTop="@dimen/dp_10"
+                    android:text="@string/date_text"
+                    android:textColor="@color/blue_0FF6FF"
+                    android:textSize="@dimen/sp_10" />
+
+                <TextView
+                    android:id="@+id/tv_date"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_below="@id/tv_cable_id"
+                    android:layout_marginLeft="@dimen/dp_10"
+                    android:layout_marginTop="@dimen/dp_10"
+                    android:layout_toRightOf="@id/tv_date_text"
+                    android:text="2019年11月11号"
+                    android:textColor="@color/blue_0FF6FF"
+                    android:textSize="@dimen/sp_10" />
+
+                <TextView
+                    android:id="@+id/tv_mode_text"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_below="@id/tv_date_text"
+                    android:layout_marginTop="@dimen/dp_10"
+                    android:text="@string/mode_text"
+                    android:textColor="@color/blue_0FF6FF"
+                    android:textSize="@dimen/sp_10" />
+
+                <TextView
+                    android:id="@+id/tv_mode"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_below="@id/tv_date_text"
+                    android:layout_marginLeft="@dimen/dp_10"
+                    android:layout_marginTop="@dimen/dp_10"
+                    android:layout_toRightOf="@id/tv_mode_text"
+                    android:text="mode"
+                    android:textColor="@color/blue_0FF6FF"
+                    android:textSize="@dimen/sp_10" />
+
+                <TextView
+                    android:id="@+id/tv_range_text"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_below="@id/tv_mode_text"
+                    android:layout_marginTop="@dimen/dp_10"
+                    android:text="@string/range_text"
+                    android:textColor="@color/blue_0FF6FF"
+                    android:textSize="@dimen/sp_10" />
+
+                <TextView
+                    android:id="@+id/tv_range"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_below="@id/tv_mode_text"
+                    android:layout_marginLeft="@dimen/dp_10"
+                    android:layout_marginTop="@dimen/dp_10"
+                    android:layout_toRightOf="@id/tv_range_text"
+                    android:text="range"
+                    android:textColor="@color/blue_0FF6FF"
+                    android:textSize="@dimen/sp_10" />
+
+                <TextView
+                    android:id="@+id/tv_cable_length_text"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_below="@id/tv_range"
+                    android:layout_marginTop="@dimen/dp_10"
+                    android:text="@string/cable_length"
+                    android:textColor="@color/blue_0FF6FF"
+                    android:textSize="@dimen/sp_10" />
+
+                <TextView
+                    android:id="@+id/tv_cable_length"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_below="@id/tv_range"
+                    android:layout_marginLeft="@dimen/dp_10"
+                    android:layout_marginTop="@dimen/dp_10"
+                    android:layout_toRightOf="@id/tv_cable_length_text"
+                    android:text="100"
+                    android:textColor="@color/blue_0FF6FF"
+                    android:textSize="@dimen/sp_10" />
+
+                <TextView
+                    android:id="@+id/tv_cable_length_unit"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_below="@id/tv_range"
+                    android:layout_marginLeft="@dimen/dp_5"
+                    android:layout_marginTop="@dimen/dp_10"
+                    android:layout_toRightOf="@id/tv_cable_length"
+                    android:text="m"
+                    android:textColor="@color/blue_0FF6FF"
+                    android:textSize="@dimen/sp_10" />
+
+                <RelativeLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_below="@id/tv_cable_id"
+                    android:layout_alignParentRight="true">
+
+
+                    <TextView
+                        android:id="@+id/tv_fault_location_text"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginRight="@dimen/dp_10"
+                        android:text="@string/fault_location_text"
+                        android:textColor="@color/blue_0FF6FF"
+                        android:textSize="@dimen/sp_10" />
+
+                    <TextView
+                        android:id="@+id/tv_fault_location"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_toRightOf="@id/tv_fault_location_text"
+                        android:text="American"
+                        android:textColor="@color/blue_0FF6FF"
+                        android:textSize="@dimen/sp_10" />
+
+
+                    <TextView
+                        android:id="@+id/tv_phase_text"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_below="@id/tv_fault_location"
+                        android:layout_marginTop="@dimen/dp_10"
+                        android:layout_marginRight="@dimen/dp_10"
+                        android:text="@string/phase_text"
+                        android:textColor="@color/blue_0FF6FF"
+                        android:textSize="@dimen/sp_10" />
+
+                    <TextView
+                        android:id="@+id/tv_phase"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_below="@id/tv_fault_location"
+                        android:layout_marginTop="@dimen/dp_10"
+                        android:layout_toRightOf="@id/tv_phase_text"
+                        android:text="phase value"
+                        android:textColor="@color/blue_0FF6FF"
+                        android:textSize="@dimen/sp_10" />
+
+                    <TextView
+                        android:id="@+id/tv_operator_text"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_below="@id/tv_phase_text"
+                        android:layout_marginTop="@dimen/dp_10"
+                        android:layout_marginRight="@dimen/dp_10"
+                        android:text="@string/operator"
+                        android:textColor="@color/blue_0FF6FF"
+                        android:textSize="@dimen/sp_10" />
+
+                    <TextView
+                        android:id="@+id/tv_operator"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_below="@id/tv_phase"
+                        android:layout_marginTop="@dimen/dp_10"
+                        android:layout_toRightOf="@id/tv_operator_text"
+                        android:text="Operator"
+                        android:textColor="@color/blue_0FF6FF"
+                        android:textSize="@dimen/sp_10" />
+
+                    <TextView
+                        android:id="@+id/tv_test_site_text"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_below="@id/tv_operator_text"
+                        android:layout_marginTop="@dimen/dp_10"
+                        android:layout_marginRight="@dimen/dp_10"
+                        android:text="@string/test_site_text"
+                        android:textColor="@color/blue_0FF6FF"
+                        android:textSize="@dimen/sp_10" />
+
+                    <TextView
+                        android:id="@+id/tv_test_site"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_below="@id/tv_operator_text"
+                        android:layout_marginTop="@dimen/dp_10"
+                        android:layout_toRightOf="@id/tv_test_site_text"
+                        android:text="Test site"
+                        android:textColor="@color/blue_0FF6FF"
+                        android:textSize="@dimen/sp_10" />
+                </RelativeLayout>
+
+
+                <TextView
+                    android:id="@+id/tv_display"
+                    android:layout_width="@dimen/dp_75"
+                    android:layout_height="@dimen/dp_25"
+                    android:layout_alignParentBottom="true"
+                    android:background="@drawable/shape_solide_tr_stroke_0ff6ff"
+                    android:gravity="center"
+                    android:text="@string/btn_display"
+                    android:textColor="@color/blue_4EDAFC"
+                    android:textSize="@dimen/sp_13" />
+
+                <TextView
+                    android:id="@+id/tv_delete"
+                    android:layout_width="@dimen/dp_75"
+                    android:layout_height="@dimen/dp_25"
+                    android:layout_alignParentBottom="true"
+                    android:layout_marginLeft="@dimen/dp_80"
+                    android:layout_toRightOf="@id/tv_display"
+                    android:background="@drawable/shape_solide_0ff6ff"
+                    android:gravity="center"
+                    android:text="@string/btn_dele"
+                    android:textColor="@color/colorPrimary"
+                    android:textSize="@dimen/sp_13" />
+
+
+            </RelativeLayout>
+
+
+        </androidx.percentlayout.widget.PercentRelativeLayout>
+
+    </androidx.percentlayout.widget.PercentRelativeLayout>
+
+</androidx.percentlayout.widget.PercentRelativeLayout>

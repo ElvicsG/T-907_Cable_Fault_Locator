@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="300dp"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:paddingTop="5dp"
+    android:paddingBottom="5dp">
+
+    <TextView
+        android:id="@+id/tv_date"
+        android:layout_width="75dp"
+        android:layout_height="match_parent"
+        android:layout_weight="1"
+        android:text="@string/title_date" />
+
+    <TextView
+        android:id="@+id/tv_time"
+        android:layout_width="75dp"
+        android:layout_height="match_parent"
+        android:layout_weight="1"
+        android:text="@string/title_time" />
+
+    <TextView
+        android:id="@+id/tv_mode"
+        android:layout_width="75dp"
+        android:layout_height="match_parent"
+        android:layout_weight="1"
+        android:text="@string/title_mode" />
+
+    <TextView
+        android:id="@+id/tv_range"
+        android:layout_width="75dp"
+        android:layout_height="match_parent"
+        android:layout_weight="1"
+        android:text="@string/title_range" />
+</LinearLayout>

@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <attr format="reference" name="spark_SparkViewStyle"/>
+    <color name="spark_base_line_color">#757577</color>
+    <color name="spark_line_color">#FFEB3B</color>
+    <color name="spark_scrub_line_color">#757577</color>
+    <declare-styleable name="spark_SparkView">
+        <attr format="color|reference" name="spark_lineColor"/>
+        <attr format="dimension|reference" name="spark_lineWidth"/>
+        <attr format="dimension|reference" name="spark_cornerRadius"/>
+        <attr format="boolean|reference" name="spark_fill"/>
+        <attr format="enum" name="spark_fillType">
+            <enum name="none" value="0"/>
+            <enum name="up" value="1"/>
+            <enum name="down" value="2"/>
+            <enum name="towardZero" value="3"/>
+        </attr><attr format="color|reference" name="spark_baseLineColor"/>
+        <attr format="dimension|reference" name="spark_baseLineWidth"/>
+        <attr format="color|reference" name="spark_scrubLineColor"/>
+        <attr format="dimension|reference" name="spark_scrubLineWidth"/>
+        <attr format="boolean|reference" name="spark_scrubEnabled"/>
+        <attr format="boolean|reference" name="spark_animateChanges"/>
+    </declare-styleable>
+    <dimen name="spark_base_line_width">1dp</dimen>
+    <dimen name="spark_corner_radius">3dp</dimen>
+    <dimen name="spark_line_width">1.2dp</dimen>
+    <dimen name="spark_scrub_line_width">1dp</dimen>
+    <style name="spark_SparkView">
+        <item name="spark_lineColor">@color/spark_line_color</item>
+        <item name="spark_lineWidth">@dimen/spark_line_width</item>
+        <item name="spark_cornerRadius">@dimen/spark_corner_radius</item>
+        <item name="spark_fill">false</item>
+
+        <item name="spark_baseLineColor">@color/spark_base_line_color</item>
+        <item name="spark_baseLineWidth">@dimen/spark_base_line_width</item>
+
+        <item name="spark_scrubLineColor">@color/spark_scrub_line_color</item>
+        <item name="spark_scrubLineWidth">@dimen/spark_scrub_line_width</item>
+        <item name="spark_scrubEnabled">false</item>
+        <item name="spark_animateChanges">true</item>
+    </style>
+</resources>
