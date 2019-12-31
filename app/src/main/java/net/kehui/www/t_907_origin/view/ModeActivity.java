@@ -241,14 +241,20 @@ public class ModeActivity extends BaseActivity {
             //显示波形
             case VIEW_REFRESH:
                 resetWhatNeed();
+                Log.e("【时效测试】", "开始组织波形数据");
+
                 if (density < densityMax) {
                     //setDensity(density);
                     organizeNormalWaveData();
+                    Log.e("【时效测试】", "组织波形数据完毕");
                     displayWave();
                 } else {
                     organizeWaveData();
+                    Log.e("【时效测试】", "组织波形数据完毕");
                     displayWave();
                 }
+                Log.e("【时效测试】", "绘制完毕");
+
                 break;
             //显示本地存储的数据
             case DISPLAY_DATABASE:
@@ -554,6 +560,8 @@ public class ModeActivity extends BaseActivity {
             dataTransfer = mode;
             //发送指令
             startService();
+            Log.e("【时效测试】", "发送接收波形数据命令");
+            ConnectService.canAskPower = false;
             if (tDialog != null) {
                 //重新进入时不需要再发取消测试命令
                 Constant.isCancelAim = true;
@@ -641,7 +649,7 @@ public class ModeActivity extends BaseActivity {
                     }, 20);
                     handler.postDelayed(() -> {
                         //脉宽0
-                        setPulseWidth(0);
+                        setPulseWidth(pulseWidth);
                     }, 20);
 
 
@@ -3584,12 +3592,16 @@ public class ModeActivity extends BaseActivity {
             command = COMMAND_TEST;
             dataTransfer = TESTING;
             startService();
+            Log.e("【时效测试】", "命令发送测试命令");
             handler.postDelayed(new Runnable() {
                 @Override
                 public void run() {
                     command = COMMAND_RECEIVE_WAVE;
                     dataTransfer = 0x11;
                     startService();
+                    Log.e("【时效测试】", "发送接收波形数据命令");
+
+                    ConnectService.canAskPower = false;
                 }
 
             }, 20);
@@ -3630,6 +3642,7 @@ public class ModeActivity extends BaseActivity {
             command = COMMAND_TEST;
             dataTransfer = TESTING;
             startService();
+            Log.e("【时效测试】", "命令发送测试命令");
             Constant.isCancelAim = false;
         }
     }

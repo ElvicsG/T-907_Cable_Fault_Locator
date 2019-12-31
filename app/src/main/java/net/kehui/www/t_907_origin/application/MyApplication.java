@@ -12,6 +12,7 @@ import android.util.DisplayMetrics;
 
 import androidx.multidex.MultiDex;
 
+import net.kehui.www.t_907_origin.handler.CrashHandler;
 import net.kehui.www.t_907_origin.util.MultiLanguageUtil;
 import net.kehui.www.t_907_origin.util.StateUtils;
 import net.kehui.www.t_907_origin.view.SplashActivity;
@@ -30,6 +31,10 @@ public class MyApplication extends Application {
     @Override
     public void onCreate() {
         super.onCreate();
+        CrashHandler handler = CrashHandler.getInstance();
+        handler.init(instances);
+        Thread.setDefaultUncaughtExceptionHandler(handler);
+
         instances = this;
         MultiLanguageUtil.init(getApplicationContext());
         String languageType = StateUtils.getString(MyApplication.getInstances(), AppConfig.CURRENT_LANGUAGE, "ch");

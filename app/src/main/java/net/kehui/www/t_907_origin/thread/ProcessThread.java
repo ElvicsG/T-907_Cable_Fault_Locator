@@ -60,6 +60,8 @@ public class ProcessThread extends Thread {
     }
 
     private void SendWaveMessage(int[] waveData) {
+        ConnectService.canAskPower = true;
+
         Log.e("【波形数据处理】", "正常包");
         //Log.e("【波形数据处理】", "正常包：" + Arrays.toString(waveData));
 
@@ -106,12 +108,16 @@ public class ProcessThread extends Thread {
                     }
                     //波形数据
                     else {
+                        Log.e("【时效测试】", "接收完数据");
+
                         int[] waveData = new int[byteLength];
-                        
+
                         for (int i = 0; i < byteLength; i++) {
                             //将字节数组转变为int数组
                             waveData[i] = bytesItem[i] & 0xff;
                         }
+                        Log.e("【时效测试】", "处理完数据");
+
                         SendWaveMessage(waveData);
                     }
 

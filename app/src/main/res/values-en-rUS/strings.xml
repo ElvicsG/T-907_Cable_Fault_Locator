@@ -133,7 +133,7 @@
 Select the test mode after setting parameters properly.</string>
     <string name="save_success">Saved successfully</string>
     <string name="distance">Distance</string>
-    <string name="wave_number">Waveform Number : </string>
+    <string name="wave_number">Waveform NO. : </string>
     <string name="wave_one">1</string>
     <string name="wave_two">2</string>
     <string name="wave_three">3</string>

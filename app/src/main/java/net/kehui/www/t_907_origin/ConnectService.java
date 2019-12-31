@@ -22,6 +22,7 @@ import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import net.kehui.www.t_907_origin.application.Constant;
 import net.kehui.www.t_907_origin.thread.ConnectThread;
 import net.kehui.www.t_907_origin.thread.ProcessThread;
+import net.kehui.www.t_907_origin.util.WifiUtil;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
@@ -45,6 +46,8 @@ public class ConnectService extends Service {
     //是否与T-907建立连接
     public static boolean isConnected;
     public static boolean needReconnect = true;
+    //测试未收到波形时，不要请求电量。
+    public static boolean canAskPower = true;
     public int dataTransfer;
     public int command;
     public int[] wifiStream;
@@ -211,15 +214,16 @@ public class ConnectService extends Service {
             @Override
             public void run() {
 
-                if (isConnected == true) {
+                //如果连接正常并且不在接收波形，则收取电量。
+                if (isConnected == true && canAskPower == true) {
                     command = 0x06;
                     dataTransfer = 0x08;
                     sendCommand();
                 }
-                handler.postDelayed(this, 60000);
+                handler.postDelayed(this, 6000);
             }
         };
-        handler.postDelayed(runnable, 60000);
+        handler.postDelayed(runnable, 6000);
 
         super.onCreate();
     }
@@ -294,6 +298,9 @@ public class ConnectService extends Service {
                 break;
             case 9:
                 returnStr = "9 接受数据";
+                break;
+            case 10:
+                returnStr = "10 脉宽";
                 break;
 
         }
@@ -383,6 +390,10 @@ public class ConnectService extends Service {
             returnStr = "开始接收数据 " + String.valueOf(dataStr);
 
         }
+        if (cmdStr == 10) {
+            returnStr = "脉宽 " + String.valueOf(dataStr);
+
+        }
         return returnStr;
     }
 
@@ -428,13 +439,18 @@ public class ConnectService extends Service {
     @Override
     public void onDestroy() {
         isConnected = false;
-
+        handler.removeCallbacksAndMessages(null);
         unregisterReceiver(receiver);
 
         try {
             connectThread.getOutputStream().flush();
             connectThread.getOutputStream().close();
             connectThread.getSocket().close();
+
+            WifiUtil wifiUtil = new WifiUtil(this);
+            wifiUtil.closeWifi();
+            android.os.Process.killProcess(android.os.Process.myPid());
+
         } catch (Exception e) {
             e.printStackTrace();
         }

@@ -52,13 +52,14 @@ public class MultiLanguageUtil {
     public void setConfiguration() {
         Locale targetLocale = getLanguageLocale();
         Configuration configuration = mContext.getResources().getConfiguration();
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
             configuration.setLocale(targetLocale);
         } else {
             configuration.locale = targetLocale;
         }
         Resources resources = mContext.getResources();
         DisplayMetrics dm = resources.getDisplayMetrics();
+        //resources.updateConfiguration(configuration, dm);//语言更换生效的代码!
         resources.updateConfiguration(configuration, dm);//语言更换生效的代码!
     }
 
@@ -77,8 +78,10 @@ public class MultiLanguageUtil {
             Locale sysLocale = getSysLocale();
             return sysLocale;
         } else if (languageType.equals("en")) {
-            return Locale.ENGLISH;
+            //return Locale.ENGLISH;
+            return Locale.US;
         } else if (languageType.equals("ch")) {
+            //return Locale.CHINESE;
             return Locale.SIMPLIFIED_CHINESE;
         } else if (languageType.equals("de")) {
             return Locale.GERMANY;
@@ -113,7 +116,7 @@ public class MultiLanguageUtil {
      */
     public void updateLanguage(String languageType) {
         StateUtils.setString(MyApplication.getInstances(), AppConfig.CURRENT_LANGUAGE, languageType);
-        MultiLanguageUtil.getInstance().setConfiguration();
+        //MultiLanguageUtil.getInstance().setConfiguration();
 
     }
 

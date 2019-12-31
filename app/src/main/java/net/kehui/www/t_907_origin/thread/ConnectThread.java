@@ -128,7 +128,7 @@ public class ConnectThread extends Thread {
             byte[] buffer = new byte[65565 * 9];
             byte[] command = new byte[65565 * 9];
             byte[] wave = new byte[65565 * 9];
-            byte[] tempBuffer = new byte[65565 * 9];
+            byte[] tempBuffer = new byte[65565 * 9 + 18];
             int processedByte = 0;
             int remainByte = 0;
             boolean needAddData = false;
@@ -237,6 +237,8 @@ public class ConnectThread extends Thread {
                             }
                             //波形数据，截需要的长度，不够要拼数据
                             else if (((tempBuffer[3] & 0xff) == 102 || (tempBuffer[3] & 0xff) == 119) && needAddData == false) {
+                                Log.e("【时效测试】", "开始接收波形数据");
+
                                 //如果不是从处理中数据过来的，初始化为当前接受的数据，也就是直接是波形数据的。
                                 if (remainByte == 0)
                                     remainByte = bytes;
@@ -261,6 +263,8 @@ public class ConnectThread extends Thread {
                             } else {
                                 //如果是正常的命令或波形数据，则继续收取数据，如果不是，则走异常数据处理。
                                 if ((tempBuffer[3] & 0xff) == 102 || (tempBuffer[3] & 0xff) == 85 || (tempBuffer[3] & 0xff) == 119) {
+                                    Log.e("【时效测试】", "接收波形数据");
+
                                     //System.arraycopy(buffer, 0, tempBuffer, remainByte, bytes);
                                     if (remainByte == wifiStreamLen) {
                                         Log.e("【新数据处理】", "一次性长度一致");
@@ -276,6 +280,7 @@ public class ConnectThread extends Thread {
                                     }
                                     //不一致要继续接受数据
                                     else {
+                                        Log.e("【时效测试】", "接收波形数据");
 
                                         System.arraycopy(buffer, 0, tempBuffer, remainByte, bytes);
                                         remainByte += bytes;
@@ -294,6 +299,8 @@ public class ConnectThread extends Thread {
                                             break;
 
                                         } else if (remainByte > wifiStreamLen) {
+                                            Log.e("【时效测试】", "接收波形数据");
+
                                             Log.e("【新数据处理】", "数据超长，取正确包，截取继续处理，可能是波形后跟了电量数据");
 
                                             //获取补全的波形放入队列

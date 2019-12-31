@@ -39,8 +39,8 @@
         <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="15dp"
             android:layout_marginStart="25dp"
+            android:layout_marginTop="15dp"
             android:orientation="horizontal">
 
             <TextView
@@ -49,7 +49,7 @@
                 android:layout_height="wrap_content"
                 android:text="@string/break_down"
                 android:textColor="@color/colorPrimary"
-                android:textSize="16sp"/>
+                android:textSize="16sp" />
         </LinearLayout>
 
         <LinearLayout
@@ -104,7 +104,7 @@
         android:background="@color/blue_72FBFD"
         android:visibility="gone"
         app:layout_heightPercent="57%"
-        app:layout_marginTopPercent="8%"
+        app:layout_marginTopPercent="6%"
         app:layout_widthPercent="1.5%"
         app:move_viewColor="@color/blue_0a9bbe"
         app:move_viewHeight="@dimen/dp_50"
@@ -151,7 +151,7 @@
                 android:layout_marginLeft="@dimen/dp_15"
                 android:text="@string/mode_text"
                 android:textColor="@color/colorPrimary"
-                android:textSize="@dimen/sp_11" />
+                android:textSize="@dimen/sp_10" />
 
             <TextView
                 android:id="@+id/tv_mode"
@@ -160,7 +160,7 @@
                 android:layout_gravity="center_vertical"
                 android:text="TDR"
                 android:textColor="@color/colorPrimary"
-                android:textSize="@dimen/sp_11" />
+                android:textSize="@dimen/sp_10" />
 
             <TextView
                 android:layout_width="wrap_content"
@@ -168,7 +168,7 @@
                 android:layout_gravity="center_vertical"
                 android:text="   "
                 android:textColor="@color/colorPrimary"
-                android:textSize="@dimen/sp_11" />
+                android:textSize="@dimen/sp_10" />
 
             <TextView
                 android:layout_width="wrap_content"
@@ -176,7 +176,7 @@
                 android:layout_gravity="center_vertical"
                 android:text="@string/tv_range"
                 android:textColor="@color/colorPrimary"
-                android:textSize="@dimen/sp_11" />
+                android:textSize="@dimen/sp_10" />
 
             <TextView
                 android:id="@+id/tv_range_value"
@@ -185,7 +185,7 @@
                 android:layout_gravity="center_vertical"
                 android:text=""
                 android:textColor="@color/colorPrimary"
-                android:textSize="@dimen/sp_11" />
+                android:textSize="@dimen/sp_10" />
 
             <TextView
                 android:layout_width="wrap_content"
@@ -193,7 +193,7 @@
                 android:layout_gravity="center_vertical"
                 android:text="   "
                 android:textColor="@color/colorPrimary"
-                android:textSize="@dimen/sp_11" />
+                android:textSize="@dimen/sp_10" />
 
             <TextView
                 android:layout_width="wrap_content"
@@ -201,7 +201,7 @@
                 android:layout_gravity="center_vertical"
                 android:text="@string/tv_gain"
                 android:textColor="@color/colorPrimary"
-                android:textSize="@dimen/sp_11" />
+                android:textSize="@dimen/sp_10" />
 
             <TextView
                 android:id="@+id/tv_gain_value"
@@ -210,7 +210,7 @@
                 android:layout_gravity="center_vertical"
                 android:text="13"
                 android:textColor="@color/colorPrimary"
-                android:textSize="@dimen/sp_11" />
+                android:textSize="@dimen/sp_10" />
 
             <TextView
                 android:layout_width="wrap_content"
@@ -218,7 +218,7 @@
                 android:layout_gravity="center_vertical"
                 android:text="%   "
                 android:textColor="@color/colorPrimary"
-                android:textSize="@dimen/sp_11" />
+                android:textSize="@dimen/sp_10" />
 
             <TextView
                 android:layout_width="wrap_content"
@@ -226,7 +226,7 @@
                 android:layout_gravity="center_vertical"
                 android:text="@string/tv_vel"
                 android:textColor="@color/colorPrimary"
-                android:textSize="@dimen/sp_11" />
+                android:textSize="@dimen/sp_10" />
 
             <TextView
                 android:id="@+id/tv_vop_value"
@@ -235,7 +235,7 @@
                 android:layout_gravity="center_vertical"
                 android:text=""
                 android:textColor="@color/colorPrimary"
-                android:textSize="@dimen/sp_11" />
+                android:textSize="@dimen/sp_10" />
 
             <TextView
                 android:id="@+id/tv_vop_unit"
@@ -244,7 +244,7 @@
                 android:layout_gravity="center_vertical"
                 android:text="m/us"
                 android:textColor="@color/colorPrimary"
-                android:textSize="@dimen/sp_11" />
+                android:textSize="@dimen/sp_10" />
 
             <TextView
 
@@ -253,7 +253,7 @@
                 android:layout_gravity="center_vertical"
                 android:text="   "
                 android:textColor="@color/colorPrimary"
-                android:textSize="@dimen/sp_11" />
+                android:textSize="@dimen/sp_10" />
 
             <TextView
                 android:id="@+id/tv_balance_text"
@@ -262,7 +262,7 @@
                 android:layout_gravity="center_vertical"
                 android:text="@string/tv_balance"
                 android:textColor="@color/colorPrimary"
-                android:textSize="@dimen/sp_11" />
+                android:textSize="@dimen/sp_10" />
 
             <TextView
                 android:id="@+id/tv_balance_value"
@@ -271,7 +271,7 @@
                 android:layout_gravity="center_vertical"
                 android:text="100"
                 android:textColor="@color/colorPrimary"
-                android:textSize="@dimen/sp_11" />
+                android:textSize="@dimen/sp_10" />
 
             <TextView
                 android:id="@+id/tv_balance_space"
@@ -280,7 +280,7 @@
                 android:layout_gravity="center_vertical"
                 android:text="   "
                 android:textColor="@color/colorPrimary"
-                android:textSize="@dimen/sp_11" />
+                android:textSize="@dimen/sp_10" />
 
             <TextView
                 android:layout_width="wrap_content"
@@ -288,7 +288,7 @@
                 android:layout_gravity="center_vertical"
                 android:text="@string/tv_density"
                 android:textColor="@color/colorPrimary"
-                android:textSize="@dimen/sp_11" />
+                android:textSize="@dimen/sp_10" />
 
             <TextView
                 android:id="@+id/tv_zoom_value"
@@ -297,7 +297,7 @@
                 android:layout_gravity="center_vertical"
                 android:text=""
                 android:textColor="@color/colorPrimary"
-                android:textSize="@dimen/sp_11" />
+                android:textSize="@dimen/sp_10" />
 
             <TextView
                 android:layout_width="wrap_content"
@@ -305,7 +305,7 @@
                 android:layout_gravity="center_vertical"
                 android:text="   "
                 android:textColor="@color/colorPrimary"
-                android:textSize="@dimen/sp_11" />
+                android:textSize="@dimen/sp_10" />
 
             <TextView
                 android:id="@+id/tv_delay_text"
@@ -314,7 +314,7 @@
                 android:layout_gravity="center_vertical"
                 android:text="@string/tv_delay"
                 android:textColor="@color/colorPrimary"
-                android:textSize="@dimen/sp_11" />
+                android:textSize="@dimen/sp_10" />
 
             <TextView
                 android:id="@+id/tv_decay_value"
@@ -323,7 +323,7 @@
                 android:layout_gravity="center_vertical"
                 android:text=""
                 android:textColor="@color/colorPrimary"
-                android:textSize="@dimen/sp_11" />
+                android:textSize="@dimen/sp_10" />
 
             <TextView
                 android:id="@+id/tv_delay_space"
@@ -332,7 +332,7 @@
                 android:layout_gravity="center_vertical"
                 android:text="   "
                 android:textColor="@color/colorPrimary"
-                android:textSize="@dimen/sp_11" />
+                android:textSize="@dimen/sp_10" />
 
             <TextView
                 android:id="@+id/tv_wave_text"
@@ -341,7 +341,7 @@
                 android:layout_gravity="center_vertical"
                 android:text="@string/wave_number"
                 android:textColor="@color/colorPrimary"
-                android:textSize="@dimen/sp_11"
+                android:textSize="@dimen/sp_10"
                 android:visibility="gone" />
 
             <TextView
@@ -351,7 +351,7 @@
                 android:layout_gravity="center_vertical"
                 android:text=""
                 android:textColor="@color/colorPrimary"
-                android:textSize="@dimen/sp_11" />
+                android:textSize="@dimen/sp_10" />
 
             <TextView
                 android:id="@+id/tv_wave_space"
@@ -360,7 +360,7 @@
                 android:layout_gravity="center_vertical"
                 android:text="   "
                 android:textColor="@color/colorPrimary"
-                android:textSize="@dimen/sp_11" />
+                android:textSize="@dimen/sp_10" />
         </LinearLayout>
     </androidx.percentlayout.widget.PercentRelativeLayout>
 

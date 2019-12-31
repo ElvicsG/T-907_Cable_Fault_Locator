@@ -5,6 +5,8 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.res.Configuration;
+import android.content.res.Resources;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -12,6 +14,7 @@ import android.os.Message;
 import android.text.Editable;
 import android.text.TextUtils;
 import android.text.TextWatcher;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
@@ -45,8 +48,10 @@ import net.kehui.www.t_907_origin.ui.HelpCenterDialog;
 import net.kehui.www.t_907_origin.ui.LanguageChangeDialog;
 import net.kehui.www.t_907_origin.ui.ShowRecordsDialog;
 import net.kehui.www.t_907_origin.util.AppUtils;
+import net.kehui.www.t_907_origin.util.MultiLanguageUtil;
 import net.kehui.www.t_907_origin.util.StateUtils;
 import net.kehui.www.t_907_origin.util.UnitUtils;
+import net.kehui.www.t_907_origin.util.WifiUtil;
 
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserFactory;
@@ -57,6 +62,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.StringReader;
 import java.io.StringWriter;
+import java.util.Locale;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadFactory;
@@ -602,10 +608,15 @@ public class MainActivity extends BaseActivity {
             public void onDismiss(DialogInterface dialog) {
                 if (!languageChangeDialog.getCloseStatus()) {
                     //不需要关闭服务
-                    needStopServce = false;
+                    needStopServce = true;
+                    ConnectService.needReconnect = false;
+                    Intent intent = new Intent(MainActivity.this, ConnectService.class);
+                    stopService(intent);
                     finish();
-                    Intent intentSplash = new Intent(MainActivity.this, MainActivity.class);
+                    //finish();
+                    Intent intentSplash = new Intent(MainActivity.this, SplashActivity.class);
                     startActivity(intentSplash);
+
                 }
             }
         });
@@ -886,6 +897,7 @@ public class MainActivity extends BaseActivity {
         Constant.currentLanguage = languageType;
         super.onResume();
     }
+
 
     @Override
     protected void onPause() {

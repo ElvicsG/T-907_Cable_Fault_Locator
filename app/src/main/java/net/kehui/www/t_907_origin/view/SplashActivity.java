@@ -88,6 +88,8 @@ public class SplashActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         verifyStoragePermissions(this);
         WifiUtil wifiUtil = new WifiUtil(this);
+        if (wifiUtil.checkState() == 3)
+            wifiUtil.closeWifi();
         wifiUtil.openWifi();
         wifiUtil.addNetwork(wifiUtil.createWifiInfo("T-9071", "123456789", 3));
         //隐藏状态栏
