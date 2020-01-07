@@ -17,10 +17,12 @@
         <item name="android:windowContentOverlay">@null</item>
         <item name="android:backgroundDimEnabled">true</item>
         <item name="android:gravity">center_horizontal</item>
-        <item name="android:windowAnimationStyle">@android:style/Animation.Translucent</item> <!-- 窗口样式Dialog -->
+        <item name="android:windowAnimationStyle">@android:style/Animation.Translucent
+        </item> <!-- 窗口样式Dialog -->
         <!-- <item name="android:backgroundDimEnabled">false</item> -->
         <!--  <item name="android:windowBackground">@null</item> --><!--除去背景色-->
     </style>
+
     <style name="BaseDialogStyle" parent="Theme.AppCompat.Dialog.MinWidth">
         <item name="android:windowBackground">@android:color/transparent</item><!--背景透明-->
         <item name="android:windowFrame">@null</item><!--边框-->
@@ -28,13 +30,14 @@
         <item name="android:windowIsFloating">true</item><!--是否浮现在activity之上-->
         <item name="android:windowContentOverlay">@null</item><!--内容覆盖 -->
     </style>
+
     <declare-styleable name="move_MoveWaveView">
-        <attr format="color|reference" name="move_viewColor"/>
-        <attr format="dimension|reference" name="move_viewWidth"/>
-        <attr format="dimension|reference" name="move_viewHeight"/>
-        <attr format="enum" name="move_viewOrientation">
-            <enum name="horizontal" value="0"/>
-            <enum name="vertical" value="1"/>
+        <attr name="move_viewColor" format="color|reference" />
+        <attr name="move_viewWidth" format="dimension|reference" />
+        <attr name="move_viewHeight" format="dimension|reference" />
+        <attr name="move_viewOrientation" format="enum">
+            <enum name="horizontal" value="0" />
+            <enum name="vertical" value="1" />
         </attr>
     </declare-styleable>
 

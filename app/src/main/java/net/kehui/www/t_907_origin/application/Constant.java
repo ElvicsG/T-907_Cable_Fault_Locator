@@ -5,6 +5,7 @@ package net.kehui.www.t_907_origin.application;
  * @date 2019/7/8
  */
 public class Constant {
+    public static final String SSID = "T-907";
     public static final String BASE_API = "http://cfl.kehui.cn/";
     public static final int MiUnit = 0;
     public static final int FtUnit = 1;

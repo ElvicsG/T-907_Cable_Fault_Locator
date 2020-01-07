@@ -41,6 +41,11 @@ public class MoveWaveView extends View implements ScrubGestureDetector.ScrubList
     private int orientationMoveWaveView;
     private int density = 1;
 
+    private float currentMoverY = 0;
+    private float currentY = 0;
+
+    private float current510Y = 0;
+
     public void setViewMoveWaveListener(ViewMoveWaveListener viewMoveWaveListener) {
         this.viewMoveWaveListener = viewMoveWaveListener;
     }
@@ -103,6 +108,7 @@ public class MoveWaveView extends View implements ScrubGestureDetector.ScrubList
     @Override
     public void onActionDown(float x, float y) {
 
+        currentY = y;
     }
 
     @Override
@@ -112,16 +118,29 @@ public class MoveWaveView extends View implements ScrubGestureDetector.ScrubList
                 float moveX = x - (viewWidth / 2);
                 viewMoveWaveListener.onMoved(moveX, y);
             }
-
-
         } else {
-            float h1 = getHeight() - sparkViewRect.bottom;
+            float moveValue = 0;
+            moveValue = y - currentY;
+
+            currentMoverY = currentMoverY + moveValue;
+            if (currentMoverY >= 0 && currentMoverY <= getHeight() - viewHeight) {
+                setMoveViewVerticalMove(currentMoverY);
+            }
+            current510Y = current510Y + (255 * moveValue) / (getHeight()) * 2;
+            if (currentMoverY >= 0 && currentMoverY <= getHeight() - viewHeight) {
+                viewMoveWaveListener.onMoved(x, current510Y);
+            }
+            currentY = y;
+            /*float h1 = getHeight() - sparkViewRect.bottom;
             float scale = h1 / getHeight();
             if (y >= 0 && y <= getHeight() + viewHeight / 2) {
                 float moveY = y * scale - (h1 / 2);
                 viewMoveWaveListener.onMoved(x, moveY);
                 setMoveViewVerticalMove((y * scale) - viewHeight + h1 / 2);
-            }
+                //setMoveViewVerticalMove(y - viewHeight + h1 / 2);
+                Log.e("【垂直滑条】", "X:" + x + "/Y:" + y + "/getHeight():" + getHeight() + "/moveY:" + moveY + "/滑块y:" + ((y * scale) - viewHeight + h1 / 2));
+            }*/
+
         }
 
     }
@@ -175,6 +194,7 @@ public class MoveWaveView extends View implements ScrubGestureDetector.ScrubList
         } else {
             //滑块滑动的偏移量
             float h3 = contentRect.bottom / 2 - viewHeight / 2;
+            currentMoverY = h3;
             setMoveViewVerticalMove(h3);
         }
 

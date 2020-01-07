@@ -5,18 +5,13 @@
     android:layout_margin="@dimen/dp_5"
     android:orientation="vertical">
 
-    <ImageView
-        android:id="@+id/iv_pulse_width_close"
-        android:layout_width="@dimen/dp_15"
-        android:layout_height="@dimen/dp_15"
-        android:src="@drawable/bg_dialog_close" />
 
     <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:gravity="center"
-            android:layout_gravity="center"
-            android:layout_weight="1">
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_weight="1"
+        android:gravity="center">
 
         <EditText
             android:id="@+id/et_pulse_width_id"
@@ -32,30 +27,46 @@
             android:textSize="@dimen/sp_13" />
 
         <TextView
-                android:id="@+id/tv_cable_vop_unit"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_alignRight="@id/et_pulse_width_id"
-                android:text="@string/ns"
-                android:textColor="@color/blue_4EDAFC"
-                android:textSize="@dimen/sp_13" />
-
-    </LinearLayout>
-    <LinearLayout
+            android:id="@+id/tv_cable_vop_unit"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_alignRight="@id/et_pulse_width_id"
+            android:text="@string/ns"
+            android:textColor="@color/blue_4EDAFC"
+            android:textSize="@dimen/sp_13" />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/dp_5"
+        android:layout_weight="1"
+        android:gravity="center">
+
+        <ImageView
+            android:id="@+id/tv_pulse_width_save"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/dp_4"
+            android:layout_marginBottom="@dimen/dp_4"
             android:gravity="center"
-            android:layout_marginTop="@dimen/dp_5"
-            android:layout_weight="1">
+            android:src="@drawable/bg_save_selector" />
 
-            <ImageView
-                android:id="@+id/tv_pulse_width_save"
-                android:layout_width="wrap_content"
-                android:layout_marginTop="@dimen/dp_4"
-                android:layout_marginBottom="@dimen/dp_4"
-                android:layout_height="wrap_content"
-                android:gravity="center"
-                android:src="@drawable/bg_save_selector" />
+    </LinearLayout>
 
+    <LinearLayout
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:layout_weight="1"
+        android:orientation="vertical">
+
+        <ImageView
+            android:id="@+id/iv_pulse_width_close"
+            android:layout_width="@dimen/dp_16"
+            android:layout_height="@dimen/dp_16"
+            android:layout_gravity="right"
+
+            android:src="@drawable/bg_dialog_close" />
     </LinearLayout>
 </LinearLayout>

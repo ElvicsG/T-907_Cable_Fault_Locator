@@ -52,7 +52,7 @@ public class MultiLanguageUtil {
     public void setConfiguration() {
         Locale targetLocale = getLanguageLocale();
         Configuration configuration = mContext.getResources().getConfiguration();
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
             configuration.setLocale(targetLocale);
         } else {
             configuration.locale = targetLocale;

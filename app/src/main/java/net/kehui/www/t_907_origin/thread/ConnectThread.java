@@ -23,6 +23,7 @@ import java.util.concurrent.ArrayBlockingQueue;
 
 import javax.security.auth.login.LoginException;
 
+import static android.content.Context.SYSTEM_HEALTH_SERVICE;
 import static net.kehui.www.t_907_origin.base.BaseActivity.COMMAND_MODE;
 import static net.kehui.www.t_907_origin.base.BaseActivity.COMMAND_RANGE;
 import static net.kehui.www.t_907_origin.base.BaseActivity.COMMAND_RECEIVE_WAVE;
@@ -58,6 +59,8 @@ public class ConnectThread extends Thread {
     private int mode = TDR;
     private int range = 0;
     private int wifiStreamLen = 549;
+
+    private int mimWifiStreamLen = 0;
     private int readCount = 0;
     private boolean isCommand = true;
 
@@ -133,6 +136,10 @@ public class ConnectThread extends Thread {
             int remainByte = 0;
             boolean needAddData = false;
 
+            boolean needProcessMIMData = false;
+
+            int mimProcessedDataLen = 0;
+
             //是否需要异常处理
             boolean needOtherProcess = false;
 
@@ -160,13 +167,13 @@ public class ConnectThread extends Thread {
                         //将读到的数据放到缓存变量
                         //清空缓存数组
                         //如果剩余要处理的为0则重新赋值
-                        if (remainByte == 0) {
+                        if (remainByte == 0 & needAddData == false) {
                             Arrays.fill(tempBuffer, (byte) 0);
                             System.arraycopy(buffer, 0, tempBuffer, 0, bytes);
                         }
                         //开始检测是否有垃圾数据
                         //不是垃圾数据
-                        if ((tempBuffer[0] & 0xff) != 235 && needAddData == false) {
+                        if ((tempBuffer[0] & 0xff) != 235 && needAddData == false && needProcessMIMData == false) {
                             Log.e("【新数据处理】", "无效头数据");
                             //一个个处理太慢，先直接扔掉吧。
                             break;
@@ -236,8 +243,9 @@ public class ConnectThread extends Thread {
                                 }
                             }
                             //波形数据，截需要的长度，不够要拼数据
-                            else if (((tempBuffer[3] & 0xff) == 102 || (tempBuffer[3] & 0xff) == 119) && needAddData == false) {
-                                Log.e("【时效测试】", "开始接收波形数据");
+                            else if ((tempBuffer[3] & 0xff) == 102 && needAddData == false) {
+                                //Log.e("【时效测试】", "开始接收波形数据");
+
 
                                 //如果不是从处理中数据过来的，初始化为当前接受的数据，也就是直接是波形数据的。
                                 if (remainByte == 0)
@@ -260,78 +268,185 @@ public class ConnectThread extends Thread {
                                     Log.e("【新数据处理】", "数据不全，需要补全，需要：" + wifiStreamLen + ",当前：" + remainByte + ",补全数据ing....");
                                     break;
                                 }
+                            } else if ((tempBuffer[3] & 0xff) == 119 && needAddData == false && needProcessMIMData == false) {
+                                //Log.e("【时效测试】", "开始接收波形数据");
+
+
+                                if ((tempBuffer[3] & 0xff) == 119) {
+                                    mimWifiStreamLen = wifiStreamLen / 9;
+                                }
+                                //如果不是从处理中数据过来的，初始化为当前接受的数据，也就是直接是波形数据的。
+                                if (remainByte == 0)
+                                    remainByte = bytes;
+
+                                if (remainByte >= mimWifiStreamLen) {
+                                    needProcessMIMData = true;
+                                    continue;
+
+                                } else {
+                                    needAddData = true;
+                                    break;
+                                }
+
                             } else {
                                 //如果是正常的命令或波形数据，则继续收取数据，如果不是，则走异常数据处理。
-                                if ((tempBuffer[3] & 0xff) == 102 || (tempBuffer[3] & 0xff) == 85 || (tempBuffer[3] & 0xff) == 119) {
-                                    Log.e("【时效测试】", "接收波形数据");
+                                if ((tempBuffer[3] & 0xff) == 102) {
+                                    //Log.e("【时效测试】", "接收波形数据");
 
-                                    //System.arraycopy(buffer, 0, tempBuffer, remainByte, bytes);
+                                    System.arraycopy(buffer, 0, tempBuffer, remainByte, bytes);
+                                    remainByte += bytes;
+
+                                    Log.e("【新数据处理】", "需要：" + wifiStreamLen + ",当前：" + remainByte + ",补全数据ing....");
+                                    //补全数据后，如果长度相等，则不需要继续补全
                                     if (remainByte == wifiStreamLen) {
-                                        Log.e("【新数据处理】", "一次性长度一致");
-                                        byte[] waveBytes = new byte[remainByte];
-                                        System.arraycopy(tempBuffer, 0, waveBytes, 0, wifiStreamLen);
 
+                                        byte[] waveBytes = new byte[wifiStreamLen];
+                                        System.arraycopy(tempBuffer, 0, waveBytes, 0, wifiStreamLen);
                                         ConnectService.bytesDataQueue.put(waveBytes);
+                                        Log.e("【新数据处理】", "补全结束");
 
                                         remainByte = 0;
                                         processedByte = 0;
                                         needAddData = false;
                                         break;
+
+                                    } else if (remainByte > wifiStreamLen) {
+                                        //Log.e("【时效测试】", "接收波形数据");
+
+                                        Log.e("【新数据处理】", "数据超长，取正确包，截取继续处理，可能是波形后跟了电量数据");
+
+                                        //获取补全的波形放入队列
+                                        byte[] correctBytes = new byte[wifiStreamLen];
+                                        System.arraycopy(tempBuffer, 0, correctBytes, 0, wifiStreamLen);
+                                        ConnectService.bytesDataQueue.put(correctBytes);
+
+                                        //超出的波形重新放入缓存，继续处理。
+                                        byte[] convertBuffer = new byte[remainByte - wifiStreamLen];
+                                        System.arraycopy(tempBuffer, wifiStreamLen, convertBuffer, 0, remainByte - wifiStreamLen);
+                                        Arrays.fill(tempBuffer, (byte) 0);
+                                        System.arraycopy(convertBuffer, 0, tempBuffer, 0, remainByte - wifiStreamLen);
+
+                                        //设置基础处理的几个参数
+                                        bytes = remainByte - wifiStreamLen;
+                                        remainByte = remainByte - wifiStreamLen;
+                                        processedByte = 0;
+                                        needAddData = false;
+                                        continue;
+
+                                    } else {
+                                        int i = 0;
+                                        break;
                                     }
-                                    //不一致要继续接受数据
-                                    else {
-                                        Log.e("【时效测试】", "接收波形数据");
 
-                                        System.arraycopy(buffer, 0, tempBuffer, remainByte, bytes);
-                                        remainByte += bytes;
-                                        Log.e("【新数据处理】", "需要：" + wifiStreamLen + ",当前：" + remainByte + ",补全数据ing....");
-                                        //补全数据后，如果长度相等，则不需要继续补全
-                                        if (remainByte == wifiStreamLen) {
+                                } else if (((tempBuffer[3] & 0xff) == 119
+                                        || (tempBuffer[3] & 0xff) == 136
+                                        || (tempBuffer[3] & 0xff) == 153
+                                        || (tempBuffer[3] & 0xff) == 170
+                                        || (tempBuffer[3] & 0xff) == 187
+                                        || (tempBuffer[3] & 0xff) == 204
+                                        || (tempBuffer[3] & 0xff) == 221
+                                        || (tempBuffer[3] & 0xff) == 238
+                                        || (tempBuffer[3] & 0xff) == 255) & needProcessMIMData == true) {
 
-                                            byte[] waveBytes = new byte[wifiStreamLen];
-                                            System.arraycopy(tempBuffer, 0, waveBytes, 0, wifiStreamLen);
-                                            ConnectService.bytesDataQueue.put(waveBytes);
-                                            Log.e("【新数据处理】", "补全结束");
+                                    if (remainByte >= mimWifiStreamLen) {
+                                        byte[] waveBytes = new byte[mimWifiStreamLen];
+                                        System.arraycopy(tempBuffer, 0, waveBytes, 0, mimWifiStreamLen);
+                                        ConnectService.bytesDataQueue.put(waveBytes);
+                                        Log.e("【MIM】", "入库：" + (waveBytes[3] & 0xff));
+                                        remainByte -= mimWifiStreamLen;
+                                        mimProcessedDataLen += mimWifiStreamLen;
+
+                                        if (remainByte == 0 && mimProcessedDataLen == wifiStreamLen) {
+                                            remainByte = 0;
+                                            processedByte = 0;
+                                            mimProcessedDataLen = 0;
+
+                                            needAddData = false;
+                                            needProcessMIMData = false;
+                                            break;
+                                        } else if (remainByte > 0 && mimProcessedDataLen == wifiStreamLen) {
 
                                             remainByte = 0;
                                             processedByte = 0;
+                                            mimProcessedDataLen = 0;
+
                                             needAddData = false;
+                                            needProcessMIMData = false;
                                             break;
-
-                                        } else if (remainByte > wifiStreamLen) {
-                                            Log.e("【时效测试】", "接收波形数据");
-
-                                            Log.e("【新数据处理】", "数据超长，取正确包，截取继续处理，可能是波形后跟了电量数据");
-
-                                            //获取补全的波形放入队列
-                                            byte[] correctBytes = new byte[wifiStreamLen];
-                                            System.arraycopy(tempBuffer, 0, correctBytes, 0, wifiStreamLen);
-                                            ConnectService.bytesDataQueue.put(correctBytes);
-
-                                            //超出的波形重新放入缓存，继续处理。
-                                            byte[] convertBuffer = new byte[remainByte - wifiStreamLen];
-                                            System.arraycopy(tempBuffer, wifiStreamLen, convertBuffer, 0, remainByte - wifiStreamLen);
-                                            Arrays.fill(tempBuffer, (byte) 0);
-                                            System.arraycopy(convertBuffer, 0, tempBuffer, 0, remainByte - wifiStreamLen);
-
-                                            //设置基础处理的几个参数
-                                            bytes = remainByte - wifiStreamLen;
-                                            remainByte = remainByte - wifiStreamLen;
-                                            processedByte = 0;
-                                            needAddData = false;
-                                            continue;
-
                                         } else {
-                                            break;
+                                            byte[] convertBytes = new byte[remainByte];
+                                            System.arraycopy(tempBuffer, mimWifiStreamLen, convertBytes, 0, remainByte);
+                                            Arrays.fill(tempBuffer, (byte) 0);
+                                            System.arraycopy(convertBytes, 0, tempBuffer, 0, remainByte);
+
+                                            needProcessMIMData = true;
+                                            continue;
                                         }
 
-                                        //printBuffer("拼接波形数据", tempBuffer);
+
+                                    } else {
+                                        needAddData = true;
+                                        needProcessMIMData = false;
+                                        break;
                                     }
+                                    /*if (mimProcessedDataLen == wifiStreamLen) {
+                                        remainByte = 0;
+                                        processedByte = 0;
+                                        mimProcessedDataLen = 0;
+
+                                        needAddData = false;
+                                        needProcessMIMData = false;
+                                        break;
+                                    } else if (mimProcessedDataLen > wifiStreamLen) {
+                                        remainByte = 0;
+                                        processedByte = 0;
+                                        mimProcessedDataLen = 0;
+
+                                        needAddData = false;
+                                        needProcessMIMData = false;
+                                        break;
+                                    } else {
+                                        needAddData = true;
+                                        needProcessMIMData = false;
+                                        break;
+                                    }*/
+
+
+                                } else if (((tempBuffer[3] & 0xff) == 119
+                                        || (tempBuffer[3] & 0xff) == 136
+                                        || (tempBuffer[3] & 0xff) == 153
+                                        || (tempBuffer[3] & 0xff) == 170
+                                        || (tempBuffer[3] & 0xff) == 187
+                                        || (tempBuffer[3] & 0xff) == 204
+                                        || (tempBuffer[3] & 0xff) == 221
+                                        || (tempBuffer[3] & 0xff) == 238
+                                        || (tempBuffer[3] & 0xff) == 255) & needAddData == true) {
+
+                                    System.arraycopy(buffer, 0, tempBuffer, remainByte, bytes);
+                                    remainByte += bytes;
+
+                                    if (remainByte >= mimWifiStreamLen) {
+                                        needProcessMIMData = true;
+                                        needAddData = false;
+                                        continue;
+
+                                    } else {
+                                        needAddData = true;
+                                        needProcessMIMData = false;
+                                        break;
+                                    }
+
+
                                 }
                                 //数据头部不适正常数据的，如中断接受的波形数据，在这里处理
                                 else {
                                     //此处不容易测试，可能会有bug，需要时间调试。
                                     Log.e("【容错处理】", "进入容错程序");
+                                    remainByte = 0;
+                                    processedByte = 0;
+                                    mimProcessedDataLen = 0;
+                                    needAddData = false;
+                                    needProcessMIMData = false;
                                     break;
 
                                 }

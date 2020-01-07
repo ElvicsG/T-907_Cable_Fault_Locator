@@ -60,10 +60,9 @@ public class ProcessThread extends Thread {
     }
 
     private void SendWaveMessage(int[] waveData) {
-        ConnectService.canAskPower = true;
 
-        Log.e("【波形数据处理】", "正常包");
-        //Log.e("【波形数据处理】", "正常包：" + Arrays.toString(waveData));
+        Log.e("【波形数据处理】", "正常包：" + waveData[3]);
+        //e("【波形包数据】", Arrays.toString(waveData));
 
         Message message = Message.obtain();
         message.what = ModeActivity.GET_WAVE;
@@ -74,6 +73,18 @@ public class ProcessThread extends Thread {
         //Log.e("【波形数据处理】", "正常包：" + Arrays.toString(waveData));
     }
 
+    public static void e(String tag, String msg) {  //信息太长,分段打印
+        //因为String的length是字符数量不是字节数量所以为了防止中文字符过多，
+        //  把4*1024的MAX字节打印长度改为2001字符数
+        int max_str_length = 2001 - tag.length();
+        //大于4000时
+        while (msg.length() > max_str_length) {
+            Log.i(tag, msg.substring(0, max_str_length));
+            msg = msg.substring(max_str_length);
+        }
+        //剩余部分
+        Log.i(tag, msg);
+    }
 
     /**
      * 处理队列数据，循环执行。
@@ -84,7 +95,6 @@ public class ProcessThread extends Thread {
         while (true) {
             if (ConnectService.bytesDataQueue.size() > 0) {
                 try {
-                    Log.e("【新数据处理】", "转送命令");
                     int byteLength = 0;
                     byte[] bytesItem = (byte[]) ConnectService.bytesDataQueue.take();
                     byteLength = bytesItem.length;
@@ -108,7 +118,7 @@ public class ProcessThread extends Thread {
                     }
                     //波形数据
                     else {
-                        Log.e("【时效测试】", "接收完数据");
+                        //Log.e("【时效测试】", "接收完数据");
 
                         int[] waveData = new int[byteLength];
 
@@ -116,7 +126,7 @@ public class ProcessThread extends Thread {
                             //将字节数组转变为int数组
                             waveData[i] = bytesItem[i] & 0xff;
                         }
-                        Log.e("【时效测试】", "处理完数据");
+                        //Log.e("【时效测试】", "处理完数据");
 
                         SendWaveMessage(waveData);
                     }

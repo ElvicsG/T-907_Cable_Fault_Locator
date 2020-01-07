@@ -1,6 +1,7 @@
 package net.kehui.www.t_907_origin.view;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.wifi.WifiManager;
@@ -25,6 +26,7 @@ import net.kehui.www.t_907_origin.ConnectService;
 import net.kehui.www.t_907_origin.R;
 import net.kehui.www.t_907_origin.application.Constant;
 import net.kehui.www.t_907_origin.entity.ParamInfo;
+import net.kehui.www.t_907_origin.util.MultiLanguageUtil;
 import net.kehui.www.t_907_origin.util.StateUtils;
 import net.kehui.www.t_907_origin.util.WifiUtil;
 
@@ -88,10 +90,15 @@ public class SplashActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         verifyStoragePermissions(this);
         WifiUtil wifiUtil = new WifiUtil(this);
-        if (wifiUtil.checkState() == 3)
-            wifiUtil.closeWifi();
+        String info = wifiUtil.getWifiInfo();
+/*       if (wifiUtil.checkState() == 3)
+            wifiUtil.closeWifi();*/
         wifiUtil.openWifi();
-        wifiUtil.addNetwork(wifiUtil.createWifiInfo("T-9071", "123456789", 3));
+        try {
+            wifiUtil.addNetwork(wifiUtil.createWifiInfo(Constant.SSID, "123456789", 3));
+        } catch (Exception l_Ex) {
+        }
+
         //隐藏状态栏
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
         setContentView(R.layout.activity_splash);
@@ -147,6 +154,11 @@ public class SplashActivity extends AppCompatActivity {
     public void startService() {
         Intent intent = new Intent(SplashActivity.this, ConnectService.class);
         startService(intent);
+    }
+
+    @Override
+    protected void attachBaseContext(Context newBase) {
+        super.attachBaseContext(MultiLanguageUtil.attachBaseContext(newBase));
     }
 
 }

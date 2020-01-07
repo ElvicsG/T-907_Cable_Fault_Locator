@@ -180,6 +180,9 @@ public class MainActivity extends BaseActivity {
     private String cableVop;
     private String cableLength;
     private String cableId;
+    /**
+     * 测试缆信息
+     */
     private Boolean testLead;
     private String length;
     private String vop;
@@ -229,6 +232,7 @@ public class MainActivity extends BaseActivity {
             else if (action.equals(BROADCAST_ACTION_DEVICE_CONNECT_FAILURE)) {
                 ConnectService.isConnected = false;
                 ivWifiStatus.setImageResource(R.drawable.ic_no_wifi_connect);
+                ivBatteryStatus.setImageResource(R.drawable.ic_battery_no);
             } else if (action.equals(BROADCAST_ACTION_DOWIFI_COMMAND)) {
                 wifiStream = intent.getIntArrayExtra(INTENT_KEY_COMMAND);
                 assert wifiStream != null;
@@ -255,8 +259,6 @@ public class MainActivity extends BaseActivity {
     private void doWifiCommand(int[] wifiArray) {
         //仪器触发时：APP发送接收数据命令
         if (wifiArray[5] == POWERDISPLAY) {
-            Log.e("【电量】", "收到电量");
-            Log.e("【电量】", "收到电量");
             int batteryValue = wifiArray[6] * 256 + wifiArray[7];
             if (batteryValue <= 2600) {
                 ivBatteryStatus.setImageResource(R.drawable.ic_battery_zero);
@@ -612,7 +614,6 @@ public class MainActivity extends BaseActivity {
                     ConnectService.needReconnect = false;
                     Intent intent = new Intent(MainActivity.this, ConnectService.class);
                     stopService(intent);
-                    finish();
                     //finish();
                     Intent intentSplash = new Intent(MainActivity.this, SplashActivity.class);
                     startActivity(intentSplash);
@@ -623,6 +624,25 @@ public class MainActivity extends BaseActivity {
     }
 
     private void saveParamInfo() {
+        if (!TextUtils.isEmpty(etCableVop.getText().toString())) {
+            double vop = Double.parseDouble(etCableVop.getText().toString());
+            double maxVop;
+            double minVop;
+            if (CurrentUnit == MiUnit) {
+                maxVop = 300;
+                minVop = 90;
+            } else {
+                maxVop = Double.valueOf(UnitUtils.miToFt(300));
+                minVop = Double.valueOf(UnitUtils.miToFt(90));
+            }
+            if (vop > maxVop) {
+                etCableVop.setText(maxVop + "");
+            }
+            if (vop < minVop)
+                etCableVop.setText(minVop + "");
+
+        }
+
         //保存数据存储的单位状态
         int currentunit = StateUtils.getInt(MainActivity.this, AppConfig.CURRENT_UNIT, MiUnit);
 
@@ -842,18 +862,7 @@ public class MainActivity extends BaseActivity {
 
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
-                if (!TextUtils.isEmpty(s.toString())) {
-                    double vop = Double.parseDouble(s.toString());
-                    double maxVop;
-                    if (CurrentUnit == MiUnit) {
-                        maxVop = 300;
-                    } else {
-                        maxVop = Double.valueOf(UnitUtils.miToFt(300));
-                    }
-                    if (vop > maxVop) {
-                        etCableVop.setText(maxVop + "");
-                    }
-                }
+
             }
 
             @Override
@@ -917,6 +926,8 @@ public class MainActivity extends BaseActivity {
             ConnectService.needReconnect = false;
             Intent intent = new Intent(MainActivity.this, ConnectService.class);
             stopService(intent);
+            //android.os.Process.killProcess(android.os.Process.myPid());
+
         }
         super.onDestroy();
     }

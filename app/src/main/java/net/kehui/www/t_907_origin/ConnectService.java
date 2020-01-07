@@ -21,6 +21,7 @@ import com.google.common.util.concurrent.ThreadFactoryBuilder;
 
 import net.kehui.www.t_907_origin.application.Constant;
 import net.kehui.www.t_907_origin.thread.ConnectThread;
+import net.kehui.www.t_907_origin.thread.ConnectThread_20200102_OK;
 import net.kehui.www.t_907_origin.thread.ProcessThread;
 import net.kehui.www.t_907_origin.util.WifiUtil;
 
@@ -78,6 +79,9 @@ public class ConnectService extends Service {
     //数据生产者队列，生产的数据放入队列。
     public static ArrayBlockingQueue bytesDataQueue;
 
+    //重启语言时，连着设备无线的处理方式
+    public static Boolean isWifiConnect = false;
+
     //处理收到的数据
     public Handler handler = new Handler(msg -> {
         switch (msg.what) {
@@ -110,8 +114,8 @@ public class ConnectService extends Service {
                 wifiStream = msg.getData().getIntArray("WAVE");
                 assert wifiStream != null;
                 mExtra = wifiStream;
-                //sendBroadcast(BROADCAST_ACTION_DOWIFI_WAVE, INTENT_KEY_WAVA, wifiStream);
-                sendBroadcast(BROADCAST_ACTION_DOWIFI_WAVE, INTENT_KEY_WAVA, null);
+                sendBroadcast(BROADCAST_ACTION_DOWIFI_WAVE, INTENT_KEY_WAVA, wifiStream);
+                //sendBroadcast(BROADCAST_ACTION_DOWIFI_WAVE, INTENT_KEY_WAVA, null);
                 break;
             default:
                 break;
@@ -177,9 +181,13 @@ public class ConnectService extends Service {
                         (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
                 assert connectivityManager != null;
                 NetworkInfo info = connectivityManager.getActiveNetworkInfo();
+                /*if (info != null && isWifiConnect == false) {*/
                 if (info != null) {
-                    handler.sendEmptyMessage(DEVICE_RECONNECT);
+                    if ((info.isConnected() == true && info.getExtraInfo().contains(Constant.SSID)) && isWifiConnect == false) {
+                        handler.sendEmptyMessage(DEVICE_RECONNECT);
+                    }
                 } else {
+                    isWifiConnect = false;
                     //todo 断开链接的通知
                     handler.sendEmptyMessage(DEVICE_DISCONNECTED);
                     try {
@@ -203,6 +211,14 @@ public class ConnectService extends Service {
 
     @Override
     public void onCreate() {
+        WifiUtil wifiUtil = new WifiUtil(getApplicationContext());
+
+        if (wifiUtil.checkState() == 3)
+            if (wifiUtil.getSSID().contains(Constant.SSID)) {
+                isWifiConnect = true;
+                handler.sendEmptyMessage(DEVICE_RECONNECT);
+            }
+
         IntentFilter intentFilter = new IntentFilter();
         intentFilter.addAction(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION);
         intentFilter.addAction(WifiManager.WIFI_STATE_CHANGED_ACTION);
@@ -210,6 +226,9 @@ public class ConnectService extends Service {
         intentFilter.addAction(ConnectivityManager.CONNECTIVITY_ACTION);
         registerReceiver(receiver, intentFilter);
         this.bytesDataQueue = new ArrayBlockingQueue(100);
+/*        if (wifiUtil.checkState() == 3)
+            if (wifiUtil.getSSID().contains(Constant.SSID))
+                handler.sendEmptyMessage(DEVICE_RECONNECT);*/
         Runnable runnable = new Runnable() {
             @Override
             public void run() {
@@ -220,10 +239,10 @@ public class ConnectService extends Service {
                     dataTransfer = 0x08;
                     sendCommand();
                 }
-                handler.postDelayed(this, 6000);
+                handler.postDelayed(this, 30000);
             }
         };
-        handler.postDelayed(runnable, 6000);
+        handler.postDelayed(runnable, 30000);
 
         super.onCreate();
     }
@@ -447,8 +466,8 @@ public class ConnectService extends Service {
             connectThread.getOutputStream().close();
             connectThread.getSocket().close();
 
-            WifiUtil wifiUtil = new WifiUtil(this);
-            wifiUtil.closeWifi();
+/*            WifiUtil wifiUtil = new WifiUtil(this);
+            wifiUtil.closeWifi();*/
             android.os.Process.killProcess(android.os.Process.myPid());
 
         } catch (Exception e) {

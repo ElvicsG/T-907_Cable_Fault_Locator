@@ -129,11 +129,20 @@ public class BaseActivity extends AppCompatActivity {
     public int breakdownPosition;
     public int breakBk;
     public int faultResult;
-    public float[] waveArrayFilter = new float[65560];
-    public float[] waveArrayIntegral = new float[65560];
-    public float[] s1 = new float[65560];
-    public float[] s2 = new float[65560];
-    public int[] minPeak = new int[255];
+    public double[] waveArrayFilter = new double[65560];
+    public double[] waveArrayIntegral = new double[65560];
+    public double[] s1 = new double[65560];
+    public double[] s2 = new double[65560];
+
+    /**
+     * ICM自动测距参数    //GC20191231
+     */
+    public boolean breakDown;
+    /**
+     * 测试缆信息添加    //GC20200103
+     */
+    public double leadLength;
+    public double leadVop;
 
 
     /**
@@ -256,7 +265,7 @@ public class BaseActivity extends AppCompatActivity {
     private void initParameter() {
         mode = 0x11;//TESTING
         range = 0x11;//RANGE_500
-        rangeState = 0;
+        rangeState = 1;
         gain = 13;
         velocity = 172;
         density = 1;
@@ -357,3 +366,6 @@ public class BaseActivity extends AppCompatActivity {
 //GC20191219    根据虚光标的原始位置进行放大缩小
 //GC20191223    250m范围取点
 //GC20191226    250m范围距离
+//GC20191231    自动测距修改
+//GC20200103    测试缆信息添加
+//GC20200106    光标定位修改

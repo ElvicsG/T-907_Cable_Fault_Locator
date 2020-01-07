@@ -53,7 +53,7 @@ public class LanguageChangeDialog extends Dialog implements View.OnClickListener
     TextView tvZh;
 
     private View view;
-    private boolean isClose;
+    private boolean isClose = true;
 
     public boolean getCloseStatus() {
         return isClose;
@@ -139,11 +139,11 @@ public class LanguageChangeDialog extends Dialog implements View.OnClickListener
                 dismiss();
                 break;
             case R.id.tv_en:
-                isClose=false;
+                isClose = false;
                 setLanguage("en");
                 break;
             case R.id.tv_zh:
-                isClose=false;
+                isClose = false;
                 setLanguage("ch");
                 break;
 

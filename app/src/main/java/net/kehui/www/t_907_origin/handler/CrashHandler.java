@@ -17,12 +17,7 @@ public class CrashHandler implements Thread.UncaughtExceptionHandler {
 
     }
 
-    public void init(Context context) {
-        mcontext = context;
-        //系统默认处理类
-        //设置该类为系统默认处理类
-        Thread.setDefaultUncaughtExceptionHandler(this);
-    }
+
 
     public static CrashHandler getInstance() {
         return INSTANCE;
@@ -38,8 +33,8 @@ public class CrashHandler implements Thread.UncaughtExceptionHandler {
     @Override
     public void uncaughtException(Thread t, Throwable e) {
         // 处理异常,可以自定义弹框，可以上传异常信息
-        Intent intent = new Intent(mcontext, ConnectService.class);
-        mcontext.stopService(intent);
+        /*Intent intent = new Intent(mcontext, ConnectService.class);
+        mcontext.stopService(intent);*/
         // 干掉当前的程序
         //android.os.Process.killProcess(android.os.Process.myPid());
     }

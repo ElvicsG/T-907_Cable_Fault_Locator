@@ -122,6 +122,10 @@ public class WifiUtil {
     public String getBSSID() {
         return (mWifiInfo == null) ? "NULL" : mWifiInfo.getBSSID();
     }
+    // 得到接入点的BSSID
+    public String getSSID() {
+        return (mWifiInfo == null) ? "NULL" : mWifiInfo.getSSID();
+    }
 
     // 得到IP地址
     public int getIPAddress() {

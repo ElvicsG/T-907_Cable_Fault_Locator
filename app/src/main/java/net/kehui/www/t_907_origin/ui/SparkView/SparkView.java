@@ -937,9 +937,10 @@ public class SparkView extends View implements ScrubGestureDetector.ScrubListene
         if (adapter == null || adapter.getCount() == 0) {
             return;
         }
+        int index = 0;
         if (scrubListener != null) {
             getParent().requestDisallowInterceptTouchEvent(true);
-            int index = getNearestIndex(xPoints, x);
+            index = getNearestIndex(xPoints, x);
             if (scrubListener != null) {
                 scrubListener.onScrubbed(adapter.getItem(index), y);
             }
@@ -947,11 +948,11 @@ public class SparkView extends View implements ScrubGestureDetector.ScrubListene
         //GC20181223 光标切换
         Log.i("QQQ", "adapter" + ".selectCursor()" + adapter.getCursorState());
         //GC20190628 光标位置限制，触摸有效范围
-        if (x >= 8.9929 & x <= 1111.1304) {
+        if (x >= 8.9929 & x <= 1111.1304 & index < 509) {
             if (adapter.getCursorState()) {
                 setScrubLineRealMove(x);
             } else {
-                if (y <400)
+                if (y < 400)
                     setScrubLineVirtualMove(x);
             }
         }

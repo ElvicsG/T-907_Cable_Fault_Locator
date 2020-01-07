@@ -142,7 +142,9 @@
             android:layout_height="match_parent"
             android:layout_centerHorizontal="true"
             android:background="@drawable/bg_main_msg"
+            android:gravity="center"
             android:orientation="horizontal">
+
 
             <TextView
                 android:layout_width="wrap_content"
@@ -361,6 +363,7 @@
                 android:text="   "
                 android:textColor="@color/colorPrimary"
                 android:textSize="@dimen/sp_10" />
+
         </LinearLayout>
     </androidx.percentlayout.widget.PercentRelativeLayout>
 
@@ -376,11 +379,11 @@
             android:id="@+id/ll_adjust"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
+            android:layout_marginLeft="@dimen/dp_5"
+            android:layout_marginRight="@dimen/dp_5"
             android:gravity="center_horizontal"
             android:orientation="vertical"
-            app:layout_heightPercent="69%"
-            android:layout_marginLeft="@dimen/dp_5"
-            android:layout_marginRight="@dimen/dp_5">
+            app:layout_heightPercent="69%">
 
 
             <ImageView
@@ -526,9 +529,9 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_alignTop="@id/tv_compare"
+            android:layout_centerVertical="true"
             android:layout_marginLeft="@dimen/dp_5"
             android:layout_marginRight="@dimen/dp_5"
-            android:layout_centerVertical="true"
             android:background="@drawable/shape_solide_tr_stroke_0ff6ff"
             android:gravity="center_horizontal"
             android:orientation="vertical"
@@ -545,9 +548,9 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_alignTop="@id/tv_cal"
+            android:layout_centerVertical="true"
             android:layout_marginLeft="@dimen/dp_5"
             android:layout_marginRight="@dimen/dp_5"
-            android:layout_centerVertical="true"
             android:background="@drawable/shape_solide_tr_stroke_0ff6ff"
             android:gravity="center_horizontal"
             android:orientation="vertical"
@@ -563,10 +566,10 @@
             android:id="@+id/ll_pulse_width"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginLeft="@dimen/dp_5"
-            android:layout_marginRight="@dimen/dp_5"
             android:layout_alignTop="@id/tv_pulse_width"
             android:layout_centerVertical="true"
+            android:layout_marginLeft="@dimen/dp_5"
+            android:layout_marginRight="@dimen/dp_5"
             android:background="@drawable/shape_solide_tr_stroke_0ff6ff"
             android:gravity="center_horizontal"
             android:orientation="vertical"
@@ -584,10 +587,10 @@
             android:layout_height="wrap_content"
             android:layout_alignTop="@id/tv_range"
             android:layout_centerVertical="true"
-            android:background="@drawable/shape_solide_tr_stroke_0ff6ff"
-            android:gravity="center_horizontal"
             android:layout_marginLeft="@dimen/dp_5"
             android:layout_marginRight="@dimen/dp_5"
+            android:background="@drawable/shape_solide_tr_stroke_0ff6ff"
+            android:gravity="center_horizontal"
             android:orientation="vertical"
             android:visibility="gone"
             app:layout_marginLeftPercent="1%"
@@ -602,12 +605,12 @@
             android:layout_height="wrap_content"
             android:layout_alignTop="@id/tv_trigger_delay"
             android:layout_centerVertical="true"
+            android:layout_marginLeft="@dimen/dp_5"
+            android:layout_marginRight="@dimen/dp_5"
             android:background="@drawable/shape_solide_tr_stroke_0ff6ff"
             android:gravity="center_horizontal"
             android:orientation="vertical"
             android:visibility="gone"
-            android:layout_marginLeft="@dimen/dp_5"
-            android:layout_marginRight="@dimen/dp_5"
             app:layout_marginLeftPercent="2%"
             app:layout_marginRightPercent="2%">
 
