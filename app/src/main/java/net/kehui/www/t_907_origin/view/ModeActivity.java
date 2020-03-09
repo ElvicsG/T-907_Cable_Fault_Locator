@@ -283,7 +283,6 @@ public class ModeActivity extends BaseActivity {
                 try {
                     organizeWaveData();
                     displayWave();
-
                 } catch (Exception l_ex) {
                 }
                 break;
@@ -292,6 +291,7 @@ public class ModeActivity extends BaseActivity {
         }
         return false;
     });
+    private boolean AlreadDisplayWave;
 
 
     /**
@@ -404,7 +404,6 @@ public class ModeActivity extends BaseActivity {
         //测试缆信息添加    //GC20200103
         leadLength = getLocalLength();
         leadVop = getLocalVop();
-
     }
 
     //TODO wdx 20191218 波宽度属性值初始化
@@ -646,10 +645,10 @@ public class ModeActivity extends BaseActivity {
             } else if (batteryValue > 2818 && batteryValue <= 3018) {
                 ivBatteryStatus.setImageResource(R.drawable.ic_battery_two);
 
-            } else if (batteryValue > 3018 && batteryValue <= 3220) {
+            } else if (batteryValue > 3018 && batteryValue <= 3120) {
                 ivBatteryStatus.setImageResource(R.drawable.ic_battery_three);
 
-            } else if (batteryValue > 3220) {
+            } else if (batteryValue > 3120) {
                 ivBatteryStatus.setImageResource(R.drawable.ic_battery_four);
 
             }
@@ -767,6 +766,7 @@ public class ModeActivity extends BaseActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_mode);
+        AlreadDisplayWave = false;
         modeIntent = getIntent().getIntExtra(MODE_KEY, 0);
         mode = getIntent().getIntExtra(MODE_KEY, 0);
         isReceiveData = getIntent().getBooleanExtra("isReceiveData", true);
@@ -1025,6 +1025,8 @@ public class ModeActivity extends BaseActivity {
             case DECAY:
                 initDecayView();
                 break;
+            default:
+                break;
         }
     }
 
@@ -1203,10 +1205,11 @@ public class ModeActivity extends BaseActivity {
                         Log.e("【虚光标】", "滑动中：value:" + value + "/positionVirtual:" + positionVirtual + "/cusorMoveValue:" + cusorMoveValue + "/pointDistance" + pointDistance + "/zero:" + zero); //GN 数值变化0-509
                         //记忆移动后虚光标在画布中的位置
                         positionVirtual = (int) value;
-                        Log.e("【虚光标】", "滑动结束：value:" + value + "/positionVirtual:" + positionVirtual + "/cusorMoveValue:" + cusorMoveValue + "/pointDistance" + pointDistance + "/zero:" + zero); //GN 数值变化0-509
+                        int WaveDataStart = currentMoverPosition510 * dataLength / 510;
+                        Log.e("【虚光标】", "滑动结束：value:" + value + "/positionVirtual:" + positionVirtual + "/cusorMoveValue:" + cusorMoveValue + "/pointDistance" + pointDistance + "/zero:" + zero + "/WaveDataStart:" + WaveDataStart); //GN 数值变化0-509
 
-                       /* if (positionVirtual == 0)
-                            pointDistance = 0;*/
+                        if (positionVirtual == 0 && zero == 0 && WaveDataStart < 510)
+                            pointDistance = 0;
                         //距离显示
                         calculateDistance(Math.abs(pointDistance - zero));
                     }
@@ -1485,7 +1488,7 @@ public class ModeActivity extends BaseActivity {
 
         // Log.e("【光标参数】", "positionReal：" + positionReal + "/zero:" + zero + "/positionVirtual:" + positionVirtual + "/pointDistance:" + pointDistance);
 
-     }
+    }
 
     /**
      * 在sparkView界面显示波形
@@ -1514,6 +1517,10 @@ public class ModeActivity extends BaseActivity {
         cursorState = false;
         myChartAdapterMainWave.setCursorState(false);
 //        btnCursor.setTextColor(ContextCompat.getColor(MainActivity.this, R.color.T_purple));
+
+        tvZoomMin.setEnabled(true);
+        tvZoomPlus.setEnabled(true);
+        AlreadDisplayWave = true;
     }
 
     //设置滑块参数
@@ -2244,7 +2251,7 @@ public class ModeActivity extends BaseActivity {
         //距离显示
         calculateDistance(Math.abs(pointDistance - zero));
     }*/
-   //20200110 光标定位重新
+    //20200110 光标定位重新
     /**
      * 脉冲电流方式光标自动定位 //GC20190708
      */
@@ -2261,10 +2268,10 @@ public class ModeActivity extends BaseActivity {
             positionReal = zero / densityMax;
             positionVirtual = pointDistance / densityMax;
         }else{
-        //positionReal = zero / density;
-        //positionReal = zero / density;
-        //positionVirtual = pointDistance / density;
-        //超出范围居中画光标
+            //positionReal = zero / density;
+            //positionReal = zero / density;
+            //positionVirtual = pointDistance / density;
+            //超出范围居中画光标
         /*if (positionVirtual > 510) {
             positionVirtual = 255;
         }*/}
@@ -2552,10 +2559,6 @@ public class ModeActivity extends BaseActivity {
 
         //移动滑块到指定位置
         setHorizontalMoveView();
-
-        /*//GT20200104
-        icmDatabaseAutoTest();*/
-
     }
 
     /**
@@ -2929,7 +2932,7 @@ public class ModeActivity extends BaseActivity {
         tvZoomPlus.setEnabled(true);
         tvZoomMin.setEnabled(true);
 //        //设置滑动块的宽度
-        setHorizontalMoveView();
+        setHorizontalMoveViewOnlyHeight();
 //        //移动滑块位置
 //        if (fenzi1 != 0) {
 //            setHorizontalMoveViewPosition(positionVirtual * mvWave.getParentWidth() / fenzi1);
@@ -2943,6 +2946,13 @@ public class ModeActivity extends BaseActivity {
         //LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(rlWave.getWidth() / density, 30);
 
         LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(mvWave.getParentWidth() * 510 * density / dataLength, getResources().getDimensionPixelSize(R.dimen.dp_20));
+        mvWave.setLayoutParams(layoutParams);
+    }
+
+    private void setHorizontalMoveViewOnlyHeight() {
+        //LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(rlWave.getWidth() / density, 30);
+
+        LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(mvWave.getWidth(), getResources().getDimensionPixelSize(R.dimen.dp_20));
         mvWave.setLayoutParams(layoutParams);
     }
 
@@ -2996,6 +3006,7 @@ public class ModeActivity extends BaseActivity {
      * @param range 需要发送的范围控制命令值 / 响应信息栏范围变化
      */
     public void setRange(int range) {
+        AlreadDisplayWave = false;
         this.range = range;
 
         switch (range) {
@@ -3655,7 +3666,8 @@ public class ModeActivity extends BaseActivity {
                 break;
             case R.id.tv_help:
                 closeAllView();
-
+                break;
+            default:
                 break;
         }
     }
@@ -4063,6 +4075,7 @@ public class ModeActivity extends BaseActivity {
      * 测试按钮
      */
     private void clickTest() {
+        Constant.SaveToDBGain = Constant.Gain;
         closeAllView();
         llRange.setVisibility(View.INVISIBLE);
         //TODO 2019-1222-2224 点击测试后，zoom值恢复默认值
@@ -4117,6 +4130,13 @@ public class ModeActivity extends BaseActivity {
                         @Override
                         public void onViewClick(BindViewHolder viewHolder, View view,
                                                 TDialog tDialog) {
+
+                            if (AlreadDisplayWave == false) {
+                                tvZoomMin.setEnabled(false);
+                                tvZoomPlus.setEnabled(false);
+                                tvWaveNext.setEnabled(false);
+                                tvWavePre.setEnabled(false);
+                            }
                             //设置取消测试标志位true
                             Constant.isCancelAim = true;
                             tDialog.dismiss();
@@ -4125,8 +4145,7 @@ public class ModeActivity extends BaseActivity {
                             ConnectService.canAskPower = true;
 
                             startService();
-                            tvWaveNext.setEnabled(false);
-                            tvWavePre.setEnabled(false);
+
                         }
                     })
                     .create()

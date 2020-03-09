@@ -1,5 +1,6 @@
 package net.kehui.www.t_907_origin.view;
 
+import android.Manifest;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
@@ -8,6 +9,7 @@ import android.net.wifi.WifiManager;
 import android.os.Build;
 import android.os.Bundle;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 
@@ -27,14 +29,18 @@ import net.kehui.www.t_907_origin.R;
 import net.kehui.www.t_907_origin.application.Constant;
 import net.kehui.www.t_907_origin.entity.ParamInfo;
 import net.kehui.www.t_907_origin.util.MultiLanguageUtil;
+import net.kehui.www.t_907_origin.util.PermissionUtil;
 import net.kehui.www.t_907_origin.util.StateUtils;
 import net.kehui.www.t_907_origin.util.WifiUtil;
 
+import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+
+import pub.devrel.easypermissions.EasyPermissions;
 
 import static java.lang.Thread.sleep;
 
@@ -42,7 +48,7 @@ import static java.lang.Thread.sleep;
  * @author li.md
  * @date 19/06/27
  */
-public class SplashActivity extends AppCompatActivity {
+public class SplashActivity extends AppCompatActivity implements EasyPermissions.PermissionCallbacks, EasyPermissions.RationaleCallbacks {
 
     private TDialog tDialog;
     private ProgressBar progressBar;
@@ -53,6 +59,9 @@ public class SplashActivity extends AppCompatActivity {
     private static String[] PERMISSIONS_STORAGE = {
             "android.permission.READ_EXTERNAL_STORAGE",
             "android.permission.WRITE_EXTERNAL_STORAGE"};
+    //要申请的权限
+    private String[] mPermissions = {Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE};
+    public static final int CODE = 0x001;
 
     //动态申请权限
     public static void verifyStoragePermissions(Activity activity) {
@@ -88,16 +97,23 @@ public class SplashActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        verifyStoragePermissions(this);
-        WifiUtil wifiUtil = new WifiUtil(this);
+        mPermissions = PermissionUtil.getDeniedPermissions(this, mPermissions);
+        if (mPermissions != null) {
+            if (mPermissions.length > 0) {
+                EasyPermissions.requestPermissions(this, PermissionUtil.permissionText(mPermissions), CODE, mPermissions);
+            }
+        }
+
+        //verifyStoragePermissions(this);
+/*        WifiUtil wifiUtil = new WifiUtil(this);
         String info = wifiUtil.getWifiInfo();
-/*       if (wifiUtil.checkState() == 3)
-            wifiUtil.closeWifi();*/
+*//*       if (wifiUtil.checkState() == 3)
+            wifiUtil.closeWifi();*//*
         wifiUtil.openWifi();
         try {
             wifiUtil.addNetwork(wifiUtil.createWifiInfo(Constant.SSID, "123456789", 3));
         } catch (Exception l_Ex) {
-        }
+        }*/
 
         //隐藏状态栏
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
@@ -116,7 +132,7 @@ public class SplashActivity extends AppCompatActivity {
                 try {
                     //使程序休眠5秒
                     sleep(1000);
-                    startService();
+                    //startService();
                     Intent intent = new Intent();
                     intent.setClass(SplashActivity.this, MainActivity.class);
                     startActivity(intent);
@@ -130,10 +146,49 @@ public class SplashActivity extends AppCompatActivity {
         singleThreadPool.shutdown();
 
         //将保存的脉宽设置为0
-        InitPulseWidthInfo();
+        //InitPulseWidthInfo();
 //        showProgress();
 
 
+    }
+
+    //所有的权限申请成功的回调
+    @Override
+    public void onPermissionsGranted(int requestCode, @NonNull List<String> perms) {
+        //do something
+    }
+
+    //权限获取失败的回调
+    @Override
+    public void onPermissionsDenied(int requestCode, @NonNull List<String> perms) {
+        //存在被永久拒绝(拒绝&不再询问)的权限
+        if (EasyPermissions.somePermissionPermanentlyDenied(this, perms)) {
+            mPermissions = PermissionUtil.getDeniedPermissions(this, mPermissions);
+            PermissionUtil.PermissionDialog(this, PermissionUtil.permissionText(mPermissions) + "请在应用权限管理进行设置！");
+        } else {
+            EasyPermissions.requestPermissions(this, PermissionUtil.permissionText(mPermissions), CODE, mPermissions);
+        }
+    }
+
+    //权限被拒绝后的显示提示对话框，点击确认的回调
+    @Override
+    public void onRationaleAccepted(int requestCode) {
+        //会自动再次获取没有申请成功的权限
+        //do something
+    }
+
+    //权限被拒绝后的显示提示对话框，点击取消的回调
+    @Override
+    public void onRationaleDenied(int requestCode) {
+        //什么都不会做
+        //do something
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        //将结果传入EasyPermissions中
+        EasyPermissions.onRequestPermissionsResult(requestCode, permissions, grantResults, this);
     }
 
     private void InitPulseWidthInfo() {

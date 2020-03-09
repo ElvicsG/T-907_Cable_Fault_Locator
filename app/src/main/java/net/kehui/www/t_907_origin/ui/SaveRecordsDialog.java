@@ -488,7 +488,7 @@ public class SaveRecordsDialog extends BaseDialog implements View.OnClickListene
         data.positionReal = positionReal;
         data.positionVirtual = positionVirtual;
         //参数数据 方式  范围 增益 波速度
-        data.para = new int[]{Constant.ModeValue, Constant.RangeValue, Constant.Gain,
+        data.para = new int[]{Constant.ModeValue, Constant.RangeValue, Constant.SaveToDBGain,
                 (int) Constant.Velocity};
         return data;
     }

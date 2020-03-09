@@ -265,7 +265,7 @@ public class BaseActivity extends AppCompatActivity {
     private void initParameter() {
         mode = 0x11;//TESTING
         range = 0x11;//RANGE_500
-        rangeState = 1;
+        rangeState = 0;
         gain = 13;
         velocity = 172;
         density = 1;

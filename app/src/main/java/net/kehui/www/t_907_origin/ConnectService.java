@@ -82,6 +82,7 @@ public class ConnectService extends Service {
     //重启语言时，连着设备无线的处理方式
     public static Boolean isWifiConnect = false;
 
+    static Socket socket;
     //处理收到的数据
     public Handler handler = new Handler(msg -> {
         switch (msg.what) {
@@ -91,8 +92,10 @@ public class ConnectService extends Service {
                 break;
             case DEVICE_RECONNECT:
                 //Toast.makeText(ConnectService.this, getResources().getString(R.string.communication_failed), Toast.LENGTH_LONG).show();
-                if (needReconnect)
+                if (needReconnect) {
+                    ConnectWifi();
                     ConnectDevice();
+                }
                 break;
             case DEVICE_DISCONNECTED:
                 //Toast.makeText(ConnectService.this, getResources().getString(R.string.disconnect), Toast.LENGTH_LONG).show();
@@ -123,6 +126,18 @@ public class ConnectService extends Service {
         return false;
     });
 
+    private void ConnectWifi() {
+        WifiUtil wifiUtil = new WifiUtil(this);
+        if (wifiUtil.checkState() != 3)
+            wifiUtil.openWifi();
+        try {
+            if (!wifiUtil.getSSID().contains(Constant.SSID)) {
+                wifiUtil.addNetwork(wifiUtil.createWifiInfo(Constant.SSID, "123456789", 3));
+            }
+        } catch (Exception l_Ex) {
+        }
+    }
+
     private void ConnectDevice() {
         ThreadFactory threadFactory = new ThreadFactoryBuilder()
                 .setNameFormat("connect-pool-%d").build();
@@ -133,7 +148,7 @@ public class ConnectService extends Service {
 
         singleThreadPool.execute(() -> {
             try {
-                ArrayList<String> connectedIP = getConnectedIP();
+               /* ArrayList<String> connectedIP = getConnectedIP();
                 for (String ip : connectedIP) {
                     if (ip.contains(".")) {
                         if (!ConnectService.isConnected) {
@@ -148,7 +163,23 @@ public class ConnectService extends Service {
                         }
 
                     }
+                }*/
+                if (!ConnectService.isConnected) {
+                    socket= new Socket(Constant.DeviceIP, PORT);
+                    socket.setKeepAlive(true);
+                    connectThread = new ConnectThread(socket, handler, Constant.DeviceIP);
+                    connectThread.start();
+
+                    processThread = new ProcessThread(handler);
+                    processThread.start();
                 }
+                /*ArrayList<String> connectedIP = getConnectedIP();
+                for (String ip : connectedIP) {
+                    if (ip.contains(".")) {
+
+
+                    }
+                }*/
             } catch (IOException e) {
                 e.printStackTrace();
                 try {
@@ -213,11 +244,17 @@ public class ConnectService extends Service {
     public void onCreate() {
         WifiUtil wifiUtil = new WifiUtil(getApplicationContext());
 
-        if (wifiUtil.checkState() == 3)
+        if (wifiUtil.checkState() == 3) {
             if (wifiUtil.getSSID().contains(Constant.SSID)) {
                 isWifiConnect = true;
                 handler.sendEmptyMessage(DEVICE_RECONNECT);
+            } else {
+                handler.sendEmptyMessage(DEVICE_RECONNECT);
             }
+        } else {
+            handler.sendEmptyMessage(DEVICE_RECONNECT);
+        }
+
 
         IntentFilter intentFilter = new IntentFilter();
         intentFilter.addAction(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION);

@@ -17,7 +17,6 @@ import androidx.annotation.Nullable;
 import net.kehui.www.t_907_origin.R;
 import net.kehui.www.t_907_origin.receiver.RestartAppReceiver;
 import net.kehui.www.t_907_origin.util.MultiLanguageUtil;
-import net.kehui.www.t_907_origin.view.MainActivity;
 import net.kehui.www.t_907_origin.view.SplashActivity;
 
 /**

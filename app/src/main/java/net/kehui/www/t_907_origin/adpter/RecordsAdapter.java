@@ -75,6 +75,7 @@ public class RecordsAdapter extends RecyclerView.Adapter {
             return;
         }
         notifyItemRemoved(selected);
+        //notifyItemRangeChanged(selected, getItemCount());
     }
 
     /**

@@ -6,6 +6,7 @@ package net.kehui.www.t_907_origin.application;
  */
 public class Constant {
     public static final String SSID = "T-907";
+    public static final String DeviceIP = "192.168.5.143";
     public static final String BASE_API = "http://cfl.kehui.cn/";
     public static final int MiUnit = 0;
     public static final int FtUnit = 1;
@@ -23,6 +24,7 @@ public class Constant {
     public static int ModeValue;
     public static int RangeValue;
     public static int Gain;
+    public static int SaveToDBGain;
     public static double Velocity;
     public static int Density;
     public static int DensityMax;
@@ -49,7 +51,6 @@ public class Constant {
     public static int[] TempData7;
     public static int[] TempData8;
 
-    public static String DeviceIP = "";
     //TODO 20191218 触发框出现后不点击取消测试，按机器返回键的处理逻辑
     public static boolean isCancelAim = false;
 

@@ -68,6 +68,7 @@ public class ShowRecordsDialog extends BaseDialog implements View.OnClickListene
      */
     public RecordsAdapter adapter;
     public int selectedId;
+    public int listSize = 0;
     int pos;
     @BindView(R.id.iv_close)
     ImageView ivClose;
@@ -134,7 +135,7 @@ public class ShowRecordsDialog extends BaseDialog implements View.OnClickListene
         initView();
 
         final WindowManager.LayoutParams params = getWindow().getAttributes();
-        params.width = (int) ( ScreenUtils.getScreenWidth(getContext()) * 0.9);
+        params.width = (int) (ScreenUtils.getScreenWidth(getContext()) * 0.9);
         params.height = (int) (ScreenUtils.getScreenHeight(getContext()) * 0.7);
         getWindow().setAttributes(params);
         getWindow().setBackgroundDrawableResource(android.R.color.transparent);
@@ -192,12 +193,65 @@ public class ShowRecordsDialog extends BaseDialog implements View.OnClickListene
             case R.id.tv_delete:
                 deletePosition();
                 break;
-
+            default:
+                break;
         }
     }
 
-
     private void deletePosition() {
+        Flowable.create((FlowableOnSubscribe<List>) e -> {
+            Data[] datas = null;
+            datas = dao.queryDataId(selectedId);
+            dao.deleteData(datas);
+            e.onNext(Arrays.asList(dao.query()));
+            e.onComplete();
+        }, BackpressureStrategy.BUFFER)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread()).subscribe(new Subscriber<List>() {
+            @Override
+            public void onSubscribe(Subscription s) {
+                s.request(Long.MAX_VALUE);
+                //subscription = s;
+            }
+
+            @Override
+            public void onNext(List list) {
+                adapter.datas = list;
+                adapter.notifyDataSetChanged();
+
+                if (adapter.getItemCount() <= 0) {
+                    rlHasRecords.setVisibility(View.GONE);
+                    tvNoRecords.setVisibility(View.VISIBLE);
+                } else {
+                    if (pos == list.size())
+                        pos -= 1;
+                    selectedId = adapter.datas.get(pos).dataId;
+                    setDataByPosition(adapter.datas.get(pos));
+                    adapter.changeSelected(pos);
+
+                    Constant.Para =  adapter.datas.get(pos).para;
+                    Constant.WaveData =  adapter.datas.get(pos).waveData;
+                    Constant.SimData =  adapter.datas.get(pos).waveDataSim;
+                    Constant.PositionR = adapter.datas.get(pos).positionReal;
+                    Constant.PositonV = adapter.datas.get(pos).positionVirtual;
+                    Constant.SaveLocation = adapter.datas.get(pos).location;
+                }
+
+            }
+
+            @Override
+            public void onError(Throwable t) {
+            }
+
+            @Override
+            public void onComplete() {
+            }
+        });
+
+        adapter.deleteItem(pos);
+
+    }
+   /* private void deletePosition() {
         Flowable.create((FlowableOnSubscribe<List>) e -> {
             Data[] datas = null;
             datas = dao.queryDataId(selectedId);
@@ -228,8 +282,9 @@ public class ShowRecordsDialog extends BaseDialog implements View.OnClickListene
             }
         });
         adapter.deleteItem(pos);
-        dismiss();
-    }
+        //dismiss();
+        //clearDataDisplay();
+    }*/
 
     private void initAdapter() {
         adapter = new RecordsAdapter();
@@ -307,6 +362,20 @@ public class ShowRecordsDialog extends BaseDialog implements View.OnClickListene
 
             }
         });
+    }
+
+    private void clearDataDisplay() {
+        tvCableId.setText("");
+        tvCableLength.setText("");
+        tvCableLengthUnit.setText("");
+        tvDate.setText("");
+        tvMode.setText("");
+        tvRange.setText("");
+        tvFaultLocation.setText("");
+
+        tvPhase.setText("");
+        tvOperator.setText("");
+        tvTestSite.setText("");
     }
 
     private void setDataByPosition(Data data) {
