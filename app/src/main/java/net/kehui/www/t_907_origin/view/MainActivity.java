@@ -269,10 +269,10 @@ public class MainActivity extends BaseActivity {
             } else if (batteryValue > 2818 && batteryValue <= 3018) {
                 ivBatteryStatus.setImageResource(R.drawable.ic_battery_two);
 
-            } else if (batteryValue > 3018 && batteryValue <= 3220) {
+             } else if (batteryValue > 3018 && batteryValue <= 3120) {
                 ivBatteryStatus.setImageResource(R.drawable.ic_battery_three);
 
-            } else if (batteryValue > 3220) {
+            } else if (batteryValue > 3120) {
                 ivBatteryStatus.setImageResource(R.drawable.ic_battery_four);
 
             }
@@ -414,11 +414,15 @@ public class MainActivity extends BaseActivity {
                 break;
             case R.id.btn_help:
                 showHelpCenterDialog();
+
+                //GC20200306
                 break;
             case R.id.btn_records:
                 showRecordsDialog();
                 break;
             case R.id.btn_remote:
+                break;
+            default:
                 break;
         }
     }
@@ -536,7 +540,6 @@ public class MainActivity extends BaseActivity {
 
     private void showProgressMode(int mode) {
         showProgress();
-
         //开启线程
         ThreadFactory threadFactory = new ThreadFactoryBuilder()
                 .setNameFormat("splash-pool-%d").build();
@@ -735,16 +738,18 @@ public class MainActivity extends BaseActivity {
                 if (saveUnit == MiUnit) {
                     //改变数值
                     if (!TextUtils.isEmpty(paramInfo.getCableVop())) {
-                        if (paramInfo.getCableVop().equals("0") || paramInfo.getCableVop().equals("0.0"))
+                        if (paramInfo.getCableVop().equals("0") || paramInfo.getCableVop().equals("0.0")) {
                             etCableVop.setText("");
-                        else
+                        } else {
                             etCableVop.setText(String.valueOf(paramInfo.getCableVop()));
+                        }
                     }
                     if (!TextUtils.isEmpty(paramInfo.getCableLength())) {
-                        if (paramInfo.getCableLength().equals("0") || paramInfo.getCableLength().equals("0.0"))
+                        if (paramInfo.getCableLength().equals("0") || paramInfo.getCableLength().equals("0.0")) {
                             etCableLength.setText("");
-                        else
+                        } else {
                             etCableLength.setText(String.valueOf(paramInfo.getCableLength()));
+                        }
                     }
 
                     etCableId.setText(paramInfo.getCableId());
@@ -760,16 +765,18 @@ public class MainActivity extends BaseActivity {
                 } else {
                     //改变数值
                     if (!TextUtils.isEmpty(paramInfo.getCableVop())) {
-                        if (paramInfo.getCableVop().equals("0") || paramInfo.getCableVop().equals("0.0"))
+                        if (paramInfo.getCableVop().equals("0") || paramInfo.getCableVop().equals("0.0")) {
                             etCableVop.setText("");
-                        else
+                        } else {
                             etCableVop.setText(String.valueOf(UnitUtils.ftToMi(Double.valueOf(paramInfo.getCableVop()))));
+                        }
                     }
                     if (!TextUtils.isEmpty(paramInfo.getCableLength())) {
-                        if (paramInfo.getCableLength().equals("0") || paramInfo.getCableLength().equals("0.0"))
+                        if (paramInfo.getCableLength().equals("0") || paramInfo.getCableLength().equals("0.0")) {
                             etCableLength.setText("");
-                        else
+                        } else {
                             etCableLength.setText(String.valueOf(UnitUtils.ftToMi(Double.valueOf(paramInfo.getCableLength()))));
+                        }
                     }
 
                     etCableId.setText(paramInfo.getCableId());
@@ -787,16 +794,18 @@ public class MainActivity extends BaseActivity {
                 if (saveUnit == FtUnit) {
                     //改变数值
                     if (!TextUtils.isEmpty(paramInfo.getCableVop())) {
-                        if (paramInfo.getCableVop().equals("0") || paramInfo.getCableVop().equals("0.0"))
+                        if (paramInfo.getCableVop().equals("0") || paramInfo.getCableVop().equals("0.0")) {
                             etCableVop.setText("");
-                        else
+                        } else {
                             etCableVop.setText(String.valueOf(paramInfo.getCableVop()));
+                        }
                     }
                     if (!TextUtils.isEmpty(paramInfo.getCableLength())) {
-                        if (paramInfo.getCableLength().equals("0") || paramInfo.getCableLength().equals("0.0"))
+                        if (paramInfo.getCableLength().equals("0") || paramInfo.getCableLength().equals("0.0")) {
                             etCableLength.setText("");
-                        else
+                        } else {
                             etCableLength.setText(String.valueOf(paramInfo.getCableLength()));
+                        }
                     }
 
                     etCableId.setText(paramInfo.getCableId());
@@ -812,16 +821,18 @@ public class MainActivity extends BaseActivity {
                 } else {
                     //改变数值
                     if (!TextUtils.isEmpty(paramInfo.getCableVop())) {
-                        if (paramInfo.getCableVop().equals("0") || paramInfo.getCableVop().equals("0.0"))
+                        if (paramInfo.getCableVop().equals("0") || paramInfo.getCableVop().equals("0.0")) {
                             etCableVop.setText("");
-                        else
+                        } else {
                             etCableVop.setText(String.valueOf(UnitUtils.miToFt(Double.valueOf(paramInfo.getCableVop()))));
+                        }
                     }
                     if (!TextUtils.isEmpty(paramInfo.getCableLength())) {
-                        if (paramInfo.getCableLength().equals("0") || paramInfo.getCableLength().equals("0.0"))
+                        if (paramInfo.getCableLength().equals("0") || paramInfo.getCableLength().equals("0.0")) {
                             etCableLength.setText("");
-                        else
+                        } else {
                             etCableLength.setText(String.valueOf(UnitUtils.miToFt(Double.valueOf(paramInfo.getCableLength()))));
+                        }
                     }
 
                     etCableId.setText(paramInfo.getCableId());

@@ -321,7 +321,8 @@ public class ConnectService extends Service {
             case 10:
                 returnStr = "10 脉宽";
                 break;
-
+            default:
+                break;
         }
         return returnStr;
     }
@@ -335,6 +336,8 @@ public class ConnectService extends Service {
                     break;
                 case 34:
                     returnStr = "取消测试 22";
+                    break;
+                default:
                     break;
             }
         }
@@ -354,6 +357,8 @@ public class ConnectService extends Service {
                     break;
                 case 68:
                     returnStr = "DECAY 44";
+                    break;
+                default:
                     break;
             }
         }
@@ -385,6 +390,8 @@ public class ConnectService extends Service {
                     break;
                 case 136:
                     returnStr = "范围 64KM";
+                    break;
+                default:
                     break;
             }
         }

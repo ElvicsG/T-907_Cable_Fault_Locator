@@ -17,6 +17,7 @@ import androidx.annotation.Nullable;
 import net.kehui.www.t_907_origin.R;
 import net.kehui.www.t_907_origin.receiver.RestartAppReceiver;
 import net.kehui.www.t_907_origin.util.MultiLanguageUtil;
+import net.kehui.www.t_907_origin.view.MainActivity;
 import net.kehui.www.t_907_origin.view.SplashActivity;
 
 /**
@@ -81,6 +82,7 @@ public class HelpCenterDialog extends Dialog implements View.OnClickListener {
                 dismiss();
                 break;
             case R.id.iv_operation_guide:
+                //GC20200306
 
                 break;
             case R.id.iv_safe_guide:
@@ -88,6 +90,8 @@ public class HelpCenterDialog extends Dialog implements View.OnClickListener {
                 break;
             case R.id.iv_introdution_button:
 
+                break;
+            default:
                 break;
 
         }

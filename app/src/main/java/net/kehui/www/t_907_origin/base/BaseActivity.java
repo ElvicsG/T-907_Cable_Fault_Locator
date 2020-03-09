@@ -369,3 +369,6 @@ public class BaseActivity extends AppCompatActivity {
 //GC20191231    自动测距修改
 //GC20200103    测试缆信息添加
 //GC20200106    光标定位修改
+//GC20200109    DC方式下自动测距单独实现
+//GC20200110    击穿点判断起始位置更改
+//GC20200306    帮助按钮功能添加
