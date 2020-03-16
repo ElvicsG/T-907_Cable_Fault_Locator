@@ -58,12 +58,13 @@
             android:layout_height="wrap_content"
             android:layout_alignParentRight="true"
             android:layout_margin="@dimen/dp_10">
+
             <TextView
                 android:id="@+id/tv_icm"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="@dimen/dp_15"
-                android:text="@string/fault_distance"
+                android:text=""
                 android:textColor="@color/colorPrimary"
                 android:textSize="@dimen/sp_11" />
 
@@ -91,7 +92,6 @@
             android:padding="@dimen/dp_4"
             app:spark_lineColor="@color/spark_line_color"
             app:spark_scrubEnabled="true" />
-
 
     </RelativeLayout>
 
@@ -151,7 +151,7 @@
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_vertical"
                 android:layout_marginLeft="@dimen/dp_15"
-                android:text="@string/mode_text"
+                android:text="@string/mode"
                 android:textColor="@color/colorPrimary"
                 android:textSize="@dimen/sp_10" />
 

@@ -51,13 +51,13 @@
     <drawable name="clr_normal">#FF303F9F</drawable>
     <drawable name="clr_pressed">#9501f9</drawable>
     <string name="title_activity_base">BaseActivity</string>
-    <string name="fault_distance"></string>
+    <string name="fault_distance">Fault Distance</string>
     <string name="btn_cursor">CSR</string>
     <string name="tv_method">"MTD: "</string>
     <string name="tv_gain">Gain: </string>
     <string name="tv_vel">VOP: </string>
     <string name="tv_range">Range: </string>
-    <string name="btn_cancel">CANCEL</string>
+    <string name="btn_cancel">Cancel</string>
     <string name="btn_adj">ADJ</string>
     <string name="btn_test">TEST</string>
     <string name="wait_trigger">Armed…</string>
@@ -75,7 +75,6 @@
     <string name="tv_testmode">"MODE :  "</string>
     <string name="tv_testrange">"RANGE :  "</string>
     <string name="tv_testphase">"PHASE :  "</string>
-    <string name="tv_tester">"TESTER :  "</string>
     <string name="tv_testlocation">"LOCATION :  "</string>
     <string name="tv_testline">"LINE :  "</string>
     <string name="btn_Confirm">Confirm</string>
@@ -103,12 +102,10 @@
     <string name="gain_too_low">Gain too low for auto. location</string>
     <string name="cursor_zero_set_success">Cursor zero setting successfully!</string>
     <string name="connect_success">Connect T-907 success!</string>
-    <string name="communication_failed">Please check connecting...</string>
+    <string name="communication_failed">Please check connecting…</string>
     <string name="no_records">No Data</string>
-
     <!-- 新的资源 -->
     <string name="cable_vop">Cable VOP : </string>
-    <string name="cable_length">Length : </string>
     <string name="tv_cable_id">Cable ID : </string>
     <string name="test_lead">Test lead : </string>
     <string name="length">Length : </string>
@@ -118,18 +115,20 @@
     <string name="vop_min">VOP-</string>
     <string name="records">Records</string>
     <string name="btn_both">Both</string>
-    <string name="fault_location_text">Fault Location : </string>
-    <string name="phase_text">Phase : </string>
     <string name="operator">Operator:</string>
-    <string name="cable_id">Cable ID : </string>
     <string name="select_change">Select Language</string>
     <string name="zh">Chinese</string>
     <string name="en">English</string>
-    <string name="date_text">Date : </string>
-    <string name="mode_text">Mode : </string>
-    <string name="range_text">Range : </string>
-    <string name="test_site_text">Test Site : </string>
-    <string name="main_notice">The default test range is %1$s.The range will be determined automaticlly if the cable length is inputed.
+    <string name="cable_id">Cable ID:</string>
+    <string name="date_text">Date:</string>
+    <string name="mode_text">Mode:</string>
+    <string name="range_text">Range:</string>
+    <string name="cable_length">Length:</string>
+    <string name="fault_location_text">Fault Location:</string>
+    <string name="phase_text">Phase:</string>
+    <string name="tv_tester">TESTER:</string>
+    <string name="test_site_text">Test Site:</string>
+    <string name="main_notice">The default test range is %1$s.The range will be determined automatically if the cable length is inputed.
 Select the test mode after setting parameters properly.</string>
     <string name="save_success">Saved successfully</string>
     <string name="distance">Distance</string>
@@ -151,13 +150,21 @@ Select the test mode after setting parameters properly.</string>
     <string name="yingli">mi</string>
     <string name="update_version">New version available, click to update now</string>
     <string name="no_load_url">No address available for download</string>
-    <string name="downloading">Downloading...</string>
-    <string name="check_update">Checking New Version...</string>
+    <string name="downloading">Downloading…</string>
+    <string name="check_update">Checking New Version…</string>
     <string name="has_new_version">Already New Version</string>
-
     <string name="ask_cancel">Please Press Cancel Button Before Exit.</string>
     <string name="update_now">Update Now.</string>
     <string name="update_later">Update Later.</string>
     <string name="maxpulsewidth">The maximum value of pulsewidth is 7000.</string>
+    <!--新增GC-->
+    <string name="disconnect">Connection exception</string>
+    <string name="btn_next">NEXT</string>
+    <string name="btn_previous">PRE.</string>
+    <string name="safe_guide">Safety</string>
+    <string name="operation_guide">Operation</string>
+    <string name="button_instruction">Instruction</string>
+    <string name="back">Return</string>
+    <string name="mode">Mode:</string>
 
 </resources>

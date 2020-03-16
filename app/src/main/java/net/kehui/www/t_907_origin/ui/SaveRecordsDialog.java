@@ -229,8 +229,8 @@ public class SaveRecordsDialog extends BaseDialog implements View.OnClickListene
             tvCableLengthUnit.setText(R.string.mi);
 
         } else {
-            tvCableLengthUnit.setText(R.string.ft);
             tvFalutLocationUnit.setText(R.string.ft);
+            tvCableLengthUnit.setText(R.string.ft);
         }
 
     }

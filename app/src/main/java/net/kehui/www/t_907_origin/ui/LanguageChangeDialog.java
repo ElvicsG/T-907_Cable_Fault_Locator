@@ -1,47 +1,19 @@
 package net.kehui.www.t_907_origin.ui;
 
 import android.app.Dialog;
-import android.content.ComponentName;
 import android.content.Context;
-import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.ImageView;
-import android.widget.RelativeLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.recyclerview.widget.DefaultItemAnimator;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
 
 import net.kehui.www.t_907_origin.R;
-import net.kehui.www.t_907_origin.adpter.RecordsAdapter;
 import net.kehui.www.t_907_origin.application.Constant;
-import net.kehui.www.t_907_origin.entity.Data;
-import net.kehui.www.t_907_origin.receiver.RestartAppReceiver;
 import net.kehui.www.t_907_origin.util.MultiLanguageUtil;
-import net.kehui.www.t_907_origin.view.MainActivity;
-import net.kehui.www.t_907_origin.view.SplashActivity;
-
-import org.reactivestreams.Subscriber;
-import org.reactivestreams.Subscription;
-
-import java.util.Arrays;
-import java.util.List;
-
-import butterknife.BindView;
-import butterknife.Unbinder;
-import io.reactivex.BackpressureStrategy;
-import io.reactivex.Flowable;
-import io.reactivex.FlowableOnSubscribe;
-import io.reactivex.android.schedulers.AndroidSchedulers;
-import io.reactivex.schedulers.Schedulers;
-
-import static net.kehui.www.t_907_origin.view.ListActivity.DISPLAY_ACTION;
 
 /**
  * Create by jwj on 2019/11/26
@@ -106,7 +78,7 @@ public class LanguageChangeDialog extends Dialog implements View.OnClickListener
             MultiLanguageUtil.getInstance().updateLanguage("es");
         }
         dismiss();
-//        Intent intentSplash = new Intent(getContext(), SplashActivity.class);
+//        Intent intentSplash = new Intent(getContext(), z_SplashActivity.class);
 //        intentSplash.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 //        getContext().startActivity(intentSplash);
 //        android.os.Process.killProcess(android.os.Process.myPid());

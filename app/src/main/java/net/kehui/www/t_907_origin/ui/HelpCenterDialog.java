@@ -1,23 +1,16 @@
 package net.kehui.www.t_907_origin.ui;
 
 import android.app.Dialog;
-import android.content.ComponentName;
 import android.content.Context;
-import android.content.Intent;
-import android.media.Image;
 import android.os.Bundle;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.ImageView;
-import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import net.kehui.www.t_907_origin.R;
-import net.kehui.www.t_907_origin.receiver.RestartAppReceiver;
-import net.kehui.www.t_907_origin.util.MultiLanguageUtil;
-import net.kehui.www.t_907_origin.view.SplashActivity;
 
 /**
  * Create by jwj on 2019/11/26
@@ -63,7 +56,7 @@ public class HelpCenterDialog extends Dialog implements View.OnClickListener {
 
     private void initView() {
         ivClose = view.findViewById(R.id.iv_close);
-        ivIntroductionButton = view.findViewById(R.id.iv_introdution_button);
+        ivIntroductionButton = view.findViewById(R.id.iv_button_instructions);
         ivOperationGuide = view.findViewById(R.id.iv_operation_guide);
         ivSafeGuide = view.findViewById(R.id.iv_safe_guide);
 
@@ -87,7 +80,7 @@ public class HelpCenterDialog extends Dialog implements View.OnClickListener {
             case R.id.iv_safe_guide:
 
                 break;
-            case R.id.iv_introdution_button:
+            case R.id.iv_button_instructions:
 
                 break;
             default:

@@ -13,7 +13,6 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="@dimen/dp_4"
         android:gravity="center"
-
         android:src="@drawable/bg_delay_plus_selector" />
 
     <ImageView
@@ -21,7 +20,6 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="@dimen/dp_4"
-
         android:gravity="center"
         android:src="@drawable/bg_delay_min_selector" />
 

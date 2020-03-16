@@ -8,10 +8,6 @@ import android.view.ViewGroup;
 import android.widget.Button;
 
 import net.kehui.www.t_907_origin.R;
-import net.kehui.www.t_907_origin.application.Constant;
-import net.kehui.www.t_907_origin.view.MainActivity;
-
-import java.util.Objects;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -42,7 +38,7 @@ public class WaveFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        View optionLayout = inflater.inflate(R.layout.wave_layout, container, false);
+        View optionLayout = inflater.inflate(R.layout.z_wave_layout, container, false);
         unbinder = ButterKnife.bind(this, optionLayout);
         return optionLayout;
     }

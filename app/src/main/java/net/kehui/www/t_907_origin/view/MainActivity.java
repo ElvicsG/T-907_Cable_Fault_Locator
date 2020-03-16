@@ -5,8 +5,6 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.res.Configuration;
-import android.content.res.Resources;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -14,11 +12,9 @@ import android.os.Message;
 import android.text.Editable;
 import android.text.TextUtils;
 import android.text.TextWatcher;
-import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
-import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.ImageView;
@@ -28,8 +24,6 @@ import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.TextView;
 import android.widget.Toast;
-
-import androidx.percentlayout.widget.PercentRelativeLayout;
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.timmy.tdialog.TDialog;
@@ -48,10 +42,8 @@ import net.kehui.www.t_907_origin.ui.HelpCenterDialog;
 import net.kehui.www.t_907_origin.ui.LanguageChangeDialog;
 import net.kehui.www.t_907_origin.ui.ShowRecordsDialog;
 import net.kehui.www.t_907_origin.util.AppUtils;
-import net.kehui.www.t_907_origin.util.MultiLanguageUtil;
 import net.kehui.www.t_907_origin.util.StateUtils;
 import net.kehui.www.t_907_origin.util.UnitUtils;
-import net.kehui.www.t_907_origin.util.WifiUtil;
 
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserFactory;
@@ -62,7 +54,6 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.StringReader;
 import java.io.StringWriter;
-import java.util.Locale;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadFactory;
@@ -84,10 +75,7 @@ import static net.kehui.www.t_907_origin.ConnectService.BROADCAST_ACTION_DOWIFI_
 import static net.kehui.www.t_907_origin.ConnectService.INTENT_KEY_COMMAND;
 import static net.kehui.www.t_907_origin.application.Constant.CurrentUnit;
 import static net.kehui.www.t_907_origin.application.Constant.FtUnit;
-import static net.kehui.www.t_907_origin.application.Constant.LastUnit;
 import static net.kehui.www.t_907_origin.application.Constant.MiUnit;
-import static net.kehui.www.t_907_origin.view.ModeActivity.BUNDLE_COMMAND_KEY;
-import static net.kehui.www.t_907_origin.view.ModeActivity.MODE_KEY;
 
 /**
  * @author JWJ
@@ -119,14 +107,12 @@ public class MainActivity extends BaseActivity {
     EditText etVop;
     @BindView(R.id.tv_unit_text)
     TextView tvUnitText;
-
     @BindView(R.id.ll_length)
     LinearLayout llLength;
     @BindView(R.id.tv_vop_save)
     TextView tvSave;
     @BindView(R.id.ll_setting)
     LinearLayout llSetting;
-    //PercentRelativeLayout llSetting;
     @BindView(R.id.iv_tdr_mode)
     ImageView ivTdrMode;
     @BindView(R.id.iv_icms_mode)
@@ -202,130 +188,28 @@ public class MainActivity extends BaseActivity {
     private String version = "1";
     private String url = "baidu.com";
 
+    //定义bundle 里参数command 的key
+    public static final String BUNDLE_COMMAND_KEY = "bundle_command_key";
     public static final String MODE_KEY = "mode_key";
     public static final String DATA_TRANSFER_KEY = "dataTransfer";
     //定义intent bundle的key
     public static final String BUNDLE_PARAM_KEY = "bundle_param_key";
-    //定义bundle 里参数command 的key
-    public static final String BUNDLE_COMMAND_KEY = "bundle_command_key";
 
-    private boolean needStopServce = true;
+    private boolean needStopService = true;
 
-    private BroadcastReceiver receiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            String action = intent.getAction();
-            assert action != null;
-            //网络连接，更换网络图标
-            if (action.equals(BROADCAST_ACTION_DEVICE_CONNECTED)) {
-                //连接设备成功
-                //如果成功，在跳转ModeActivity时需要主动下发给设备指令
-                ConnectService.isConnected = true;
-                ivWifiStatus.setImageResource(R.drawable.ic_wifi_connected);
-                handler.postDelayed(() -> {
-                    //电量
-                    command = 0x06;
-                    dataTransfer = 0x08;
-                    startService();
-                }, 20);
-            }
-            //网络断开，更换网络图标
-            else if (action.equals(BROADCAST_ACTION_DEVICE_CONNECT_FAILURE)) {
-                ConnectService.isConnected = false;
-                ivWifiStatus.setImageResource(R.drawable.ic_no_wifi_connect);
-                ivBatteryStatus.setImageResource(R.drawable.ic_battery_no);
-            } else if (action.equals(BROADCAST_ACTION_DOWIFI_COMMAND)) {
-                wifiStream = intent.getIntArrayExtra(INTENT_KEY_COMMAND);
-                assert wifiStream != null;
-                doWifiCommand(wifiStream);
-
-            }
-
-        }
-
-    };
-
-    //去服务发送指令
-    public void startService() {
-        Intent intent = new Intent(MainActivity.this, ConnectService.class);
-        //发送指令
-        Bundle bundle = new Bundle();
-        bundle.putInt(BUNDLE_COMMAND_KEY, command);
-        bundle.putInt(MODE_KEY, mode);
-        bundle.putInt(DATA_TRANSFER_KEY, dataTransfer);
-        intent.putExtra(BUNDLE_PARAM_KEY, bundle);
-        startService(intent);
-    }
-
-    private void doWifiCommand(int[] wifiArray) {
-        //仪器触发时：APP发送接收数据命令
-        if (wifiArray[5] == POWERDISPLAY) {
-            int batteryValue = wifiArray[6] * 256 + wifiArray[7];
-            if (batteryValue <= 2600) {
-                ivBatteryStatus.setImageResource(R.drawable.ic_battery_zero);
-
-            } else if (batteryValue > 2600 && batteryValue <= 2818) {
-                ivBatteryStatus.setImageResource(R.drawable.ic_battery_one);
-
-            } else if (batteryValue > 2818 && batteryValue <= 3018) {
-                ivBatteryStatus.setImageResource(R.drawable.ic_battery_two);
-
-            } else if (batteryValue > 3018 && batteryValue <= 3120) {
-                ivBatteryStatus.setImageResource(R.drawable.ic_battery_three);
-
-            } else if (batteryValue > 3120) {
-                ivBatteryStatus.setImageResource(R.drawable.ic_battery_four);
-
-            }
-
-        }
-
-    }
-
-    //隐藏虚拟按键，暂时用不到。
-    protected void hideBottomUIMenu() {
-        //隐藏虚拟按键，并且全屏
-        if (Build.VERSION.SDK_INT > 11 && Build.VERSION.SDK_INT < 19) { // lower api
-            View v = this.getWindow().getDecorView();
-            v.setSystemUiVisibility(View.GONE);
-        } else if (Build.VERSION.SDK_INT >= 19) {
-            //for new api versions.
-            View decorView = getWindow().getDecorView();
-            int uiOptions = View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
-                    | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY | View.SYSTEM_UI_FLAG_FULLSCREEN;
-            decorView.setSystemUiVisibility(uiOptions);
-        }
-
-    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         ButterKnife.bind(this);
+
         startMainService();
-        InitPulseWidthInfo();
         ConnectService.needReconnect = true;
-        //初始化单位相关
+        initPulseWidthInfo();
         initUnit();
-        //读取配置默认值
         initParamInfo();
-
         initBroadcastReceiver();
-    }
-
-    private void InitPulseWidthInfo() {
-        ParamInfo paramInfo = (ParamInfo) StateUtils.getObject(MainActivity.this, Constant.PULSE_WIDTH_INFO_KEY);
-        if (paramInfo != null) {
-            paramInfo.setPulseWidth(0);
-        } else {
-            paramInfo = new ParamInfo();
-            paramInfo.setPulseWidth(0);
-        }
-
-        StateUtils.setObject(MainActivity.this, paramInfo, Constant.PULSE_WIDTH_INFO_KEY);
-
-
     }
 
     public void startMainService() {
@@ -333,27 +217,21 @@ public class MainActivity extends BaseActivity {
         startService(intent);
     }
 
-    /**
-     * 注册广播接受服务发送的通知
-     */
-    private void initBroadcastReceiver() {
-        //初始化画数据库监听广播   //GC20190713
-        IntentFilter ifDisplay = new IntentFilter();
-        ifDisplay.addAction(BROADCAST_ACTION_DEVICE_CONNECTED);
-        ifDisplay.addAction(BROADCAST_ACTION_DEVICE_CONNECT_FAILURE);
-        ifDisplay.addAction(BROADCAST_ACTION_DOWIFI_COMMAND);
-
-        registerReceiver(receiver, ifDisplay);
-
-        //判断服务里连接状态，如果已经连接，则重发广播，改变连接状态
-        if (ConnectService.isConnected) {
-            Intent intent = new Intent(BROADCAST_ACTION_DEVICE_CONNECTED);
-            sendBroadcast(intent);
+    private void initPulseWidthInfo() {
+        ParamInfo paramInfo = (ParamInfo) StateUtils.getObject(MainActivity.this, Constant.PULSE_WIDTH_INFO_KEY);
+        if (paramInfo != null) {
+            paramInfo.setPulseWidth(0);
+        } else {
+            paramInfo = new ParamInfo();
+            paramInfo.setPulseWidth(0);
         }
+        StateUtils.setObject(MainActivity.this, paramInfo, Constant.PULSE_WIDTH_INFO_KEY);
     }
 
+    /**
+     * 计量单位初始化 (m ft)
+     */
     int currentCheckedId = 0;
-
     private void initUnit() {
         tvMsg.setText(String.format(getString(R.string.main_notice), getString(R.string.mi)));
         unit = StateUtils.getInt(MainActivity.this, AppConfig.CURRENT_UNIT, MiUnit);
@@ -399,360 +277,11 @@ public class MainActivity extends BaseActivity {
             initParamInfo();
         }
 
-
     }
-
-
-    @OnClick({R.id.tv_vop_save, R.id.iv_tdr_mode, R.id.iv_icms_mode, R.id.iv_icmd_mode, R.id.iv_mim_mode, R.id.iv_decay_mode, R.id.btn_language, R.id.btn_update, R.id.btn_help, R.id.btn_records, R.id.btn_remote})
-    public void onClick(View view) {
-        Intent intent = new Intent();
-        switch (view.getId()) {
-            case R.id.tv_vop_save:
-                //保存首页设置
-                saveParamInfo();
-                break;
-            case R.id.iv_tdr_mode:
-                showProgressMode(TDR);
-                break;
-            case R.id.iv_icms_mode:
-                showProgressMode(ICM);
-                break;
-            case R.id.iv_icmd_mode:
-                showProgressMode(ICM_DECAY);
-                break;
-            case R.id.iv_mim_mode:
-                showProgressMode(SIM);
-                break;
-            case R.id.iv_decay_mode:
-                showProgressMode(DECAY);
-                break;
-            case R.id.btn_language:
-                showLanguageChangeDialog();
-                break;
-            case R.id.btn_update:
-                //TODO 20191218 增加版本更新
-                Toast.makeText(MainActivity.this, R.string.check_update, Toast.LENGTH_SHORT).show();
-                downloadFile();
-                break;
-            case R.id.btn_help:
-                showHelpCenterDialog();
-                //GC20200306
-                break;
-            case R.id.btn_records:
-                showRecordsDialog();
-                break;
-            case R.id.btn_remote:
-                break;
-            default:
-                break;
-        }
-    }
-
-    private Handler handler = new Handler(new Handler.Callback() {
-        @Override
-        public boolean handleMessage(Message msg) {
-            showAppUpdate(version, url);
-            return false;
-        }
-    });
-
-    private void showAppUpdate(String version, String url) {
-        if (mAppUpdateDialog == null) {
-            mAppUpdateDialog = new AppUpdateDialog(this);
-        }
-        if (!mAppUpdateDialog.isShowing()) {
-            mAppUpdateDialog.show();
-        }
-        mAppUpdateDialog.setVersionEntity(url);
-    }
-
-
-    //开始下载文件
-    public void downloadFile() {
-        String xmlurl = Constant.BASE_API + "app/version.xml";
-        Request request = new Request.Builder().url(xmlurl).addHeader("Accept-Encoding", "identity").build();
-        //Request request = new Request.Builder().url(xmlurl).build();
-        OkHttpClient httpClient = new OkHttpClient();
-
-        httpClient.newCall(request).enqueue(new Callback() {
-            @Override
-            public void onFailure(Call call, IOException e) {
-                //下载失败
-                Log.i("下载失败：", e.getMessage());
-            }
-
-            @Override
-            public void onResponse(Call call, Response response) throws IOException {
-                InputStream inputStream = null;
-                byte[] buff = new byte[2048];
-                int len = 0;
-                try {
-                    inputStream = response.body().byteStream();
-                    InputStreamReader isr = new InputStreamReader(inputStream);
-                    BufferedReader br = new BufferedReader(isr);
-                    // 内存流 写入读取的数据
-                    StringWriter sw = new StringWriter();
-                    String str = null;
-                    while ((str = br.readLine()) != null) {
-                        sw.write(str);
-                    }
-                    br.close();
-                    sw.close();
-                    str = sw.toString();
-                    XmlPullParserFactory factory = XmlPullParserFactory.newInstance();
-                    XmlPullParser parser = factory.newPullParser();
-                    parser.setInput(new StringReader(str));
-                    int eventType = parser.getEventType();
-                    version = "";
-                    url = "";
-                    while (eventType != XmlPullParser.END_DOCUMENT) {
-                        String nodeName = parser.getName();
-                        switch (eventType) {
-                            // 开始解析某个结点
-                            case XmlPullParser.START_TAG: {
-                                if ("version".equals(nodeName)) {
-                                    version = parser.nextText();
-                                } else if ("url".equals(nodeName)) {
-                                    url = parser.nextText();
-                                }
-                                break;
-                            }
-                            // 完成解析某个结点
-                            case XmlPullParser.END_TAG: {
-                                if ("update".equals(nodeName)) {
-                                    if (Integer.parseInt(version) > AppUtils.getAppVersionCode()) {
-                                        //获取文案
-                                        if (!AppUpdateDialog.isShowUpdating) {
-                                            handler.sendEmptyMessage(0);
-                                        }
-                                    } else {
-                                        Toast.makeText(MainActivity.this, R.string.has_new_version, Toast.LENGTH_SHORT).show();
-                                    }
-                                }
-                                break;
-                            }
-                            default:
-                                break;
-                        }
-                        eventType = parser.next();
-                    }
-
-                } catch (Exception e) {
-//                    Logs.i("下载出错：" + e.getMessage());
-                } finally {
-                    try {
-                        if (inputStream != null) {
-                            inputStream.close();
-                        }
-                    } catch (IOException e) {
-                    }
-                }
-            }
-        });
-    }
-
-    private void showHelpCenterDialog() {
-        helpCenterDialog = new HelpCenterDialog(this);
-        if (!helpCenterDialog.isShowing()) {
-            helpCenterDialog.show();
-        }
-    }
-
-
-    private void showProgressMode(int mode) {
-        showProgress();
-        //开启线程
-        ThreadFactory threadFactory = new ThreadFactoryBuilder()
-                .setNameFormat("splash-pool-%d").build();
-        ExecutorService singleThreadPool = new ThreadPoolExecutor(1, 1,
-                0L, TimeUnit.MILLISECONDS,
-                new LinkedBlockingQueue<Runnable>(1024), threadFactory,
-                new ThreadPoolExecutor.AbortPolicy());
-
-        singleThreadPool.execute(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    //使程序休眠5秒
-                    Intent intent = new Intent(getApplicationContext(), ModeActivity.class);
-                    intent.setClass(MainActivity.this, ModeActivity.class);
-                    intent.putExtra(MODE_KEY, mode);
-                    startActivity(intent);
-                    if (tDialog != null) {
-                        tDialog.dismiss();
-                    }
-                    //启动MainActivity
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-        });
-        singleThreadPool.shutdown();
-    }
-
 
     /**
-     * 等待进度progress创建并显示
+     * 参数配置初始化
      */
-    private void showProgress() {
-        //进度条
-        tDialog = new TDialog.Builder(getSupportFragmentManager())
-                .setLayoutRes(R.layout.dialog_loading)
-                .setScreenWidthAspect(this, 0.8f)
-                .setCancelableOutside(false)
-                .setGravity(Gravity.BOTTOM)
-                .setOnBindViewListener(new OnBindViewListener() {
-                    @Override
-                    public void bindView(BindViewHolder viewHolder) {
-                        progressBar = viewHolder.getView(R.id.progressBar);
-                        tvProgress = viewHolder.getView(R.id.hardwareConnection);
-                    }
-                })
-                .create()
-                .show();
-    }
-
-    private void showRecordsDialog() {
-
-        customDialog = new ShowRecordsDialog(this);
-        customDialog.setFromMain(true);
-        if (!customDialog.isShowing()) {
-            customDialog.show();
-        }
-
-    }
-
-    private void showLanguageChangeDialog() {
-
-
-        languageChangeDialog = new LanguageChangeDialog(this);
-        if (!languageChangeDialog.isShowing()) {
-            languageChangeDialog.show();
-        }
-        languageChangeDialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
-            @Override
-            public void onDismiss(DialogInterface dialog) {
-                if (!languageChangeDialog.getCloseStatus()) {
-                    //不需要关闭服务
-                    needStopServce = true;
-                    ConnectService.needReconnect = false;
-                    Intent intent = new Intent(MainActivity.this, ConnectService.class);
-                    stopService(intent);
-                    //finish();
-                    //Intent intentSplash = new Intent(MainActivity.this, SplashActivity.class);
-                    Intent intentSplash = new Intent(MainActivity.this, MainActivity.class);
-                    startActivity(intentSplash);
-
-                }
-            }
-        });
-    }
-
-    private void saveParamInfo() {
-        if (!TextUtils.isEmpty(etCableVop.getText().toString())) {
-            double vop = Double.parseDouble(etCableVop.getText().toString());
-            double maxVop;
-            double minVop;
-            if (CurrentUnit == MiUnit) {
-                maxVop = 300;
-                minVop = 90;
-            } else {
-                maxVop = Double.valueOf(UnitUtils.miToFt(300));
-                minVop = Double.valueOf(UnitUtils.miToFt(90));
-            }
-            if (vop > maxVop) {
-                etCableVop.setText(maxVop + "");
-            }
-            if (vop < minVop)
-                etCableVop.setText(minVop + "");
-
-        }
-
-        //保存数据存储的单位状态
-        int currentunit = StateUtils.getInt(MainActivity.this, AppConfig.CURRENT_UNIT, MiUnit);
-
-        //保存数据库存储的数据单位状态
-        if (currentunit == FtUnit) {
-            StateUtils.setInt(MainActivity.this, AppConfig.CURRENT_SAVE_UNIT, FtUnit);
-
-        } else if (currentunit == MiUnit) {
-            StateUtils.setInt(MainActivity.this, AppConfig.CURRENT_SAVE_UNIT, MiUnit);
-        }
-
-        cableLength = etCableLength.getText().toString();
-        cableVop = etCableVop.getText().toString();
-        cableId = etCableId.getText().toString();
-        if (cbTestLead.isChecked()) {
-            testLead = true;
-        } else {
-            testLead = false;
-        }
-
-        length = etLength.getText().toString();
-        vop = etVop.getText().toString();
-        ParamInfo paramInfo = (ParamInfo) StateUtils.getObject(MainActivity.this, Constant.PARAM_INFO_KEY);
-        if (paramInfo == null) {
-            paramInfo = new ParamInfo();
-        }
-        paramInfo.setCableId(cableId);
-        paramInfo.setTestLead(testLead);
-        //处理拿到不输入的情况
-        /*if (CurrentUnit == MiUnit) {*/
-        if (TextUtils.isEmpty(cableLength)) {
-            cableLength = "0";
-            paramInfo.setCableLength(cableLength);
-        } else {
-            paramInfo.setCableLength(cableLength);
-        }
-        if (TextUtils.isEmpty(cableVop)) {
-            cableVop = "0";
-            paramInfo.setCableVop(cableVop);
-        } else {
-            paramInfo.setCableVop(cableVop);
-        }
-        if (TextUtils.isEmpty(length)) {
-            length = "0";
-            paramInfo.setLength(length);
-
-        } else {
-            paramInfo.setLength(length);
-        }
-        if (TextUtils.isEmpty(vop)) {
-            vop = "0";
-            paramInfo.setVop(vop);
-
-        } else {
-            paramInfo.setVop(vop);
-        }
-
-        /*else {
-            if (TextUtils.isEmpty(cableLength)) {
-                cableLength = "0";
-            } else {
-                paramInfo.setCableLength(UnitUtils.ftToMi(Double.parseDouble(cableLength)));
-            }
-            if (TextUtils.isEmpty(cableVop)) {
-                cableVop = "0";
-            } else {
-                paramInfo.setCableVop(UnitUtils.ftToMi(Double.parseDouble(cableVop)));
-            }
-            if (TextUtils.isEmpty(length)) {
-                length = "0";
-            } else {
-                paramInfo.setLength(UnitUtils.ftToMi(Double.parseDouble(length)));
-            }
-            if (TextUtils.isEmpty(vop)) {
-                vop = "0";
-            } else {
-                paramInfo.setVop(UnitUtils.ftToMi(Double.parseDouble(vop)));
-            }
-        }*/
-
-        StateUtils.setObject(MainActivity.this, paramInfo, Constant.PARAM_INFO_KEY);
-        Toast.makeText(MainActivity.this, R.string.save_success, Toast.LENGTH_SHORT).show();
-    }
-
-
     private void initParamInfo() {
         ParamInfo paramInfo = (ParamInfo) StateUtils.getObject(MainActivity.this, Constant.PARAM_INFO_KEY);
         unit = StateUtils.getInt(MainActivity.this, AppConfig.CURRENT_UNIT, MiUnit);
@@ -952,6 +481,459 @@ public class MainActivity extends BaseActivity {
         });
     }
 
+    /**
+     * 注册广播接受服务发送的通知
+     */
+    private void initBroadcastReceiver() {
+        //初始化数据库监听广播   //GC20190713
+        IntentFilter ifDisplay = new IntentFilter();
+        ifDisplay.addAction(BROADCAST_ACTION_DEVICE_CONNECTED);
+        ifDisplay.addAction(BROADCAST_ACTION_DEVICE_CONNECT_FAILURE);
+        ifDisplay.addAction(BROADCAST_ACTION_DOWIFI_COMMAND);
+
+        registerReceiver(receiver, ifDisplay);
+
+        //判断服务里连接状态，如果已经连接，则重发广播，改变连接状态
+        if (ConnectService.isConnected) {
+            Intent intent = new Intent(BROADCAST_ACTION_DEVICE_CONNECTED);
+            sendBroadcast(intent);
+        }
+    }
+
+    private BroadcastReceiver receiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            String action = intent.getAction();
+            assert action != null;
+            //网络连接，更换网络图标
+            if (action.equals(BROADCAST_ACTION_DEVICE_CONNECTED)) {
+                //连接设备成功
+                //如果成功，在跳转ModeActivity时需要主动下发给设备指令
+                ConnectService.isConnected = true;
+                ivWifiStatus.setImageResource(R.drawable.ic_wifi_connected);
+                handler.postDelayed(() -> {
+                    //电量
+                    command = 0x06;
+                    dataTransfer = 0x08;
+                    startService();
+                }, 1000);   //GC20200314    电量获取显示修改
+            }
+            //网络断开，更换网络图标
+            else if (action.equals(BROADCAST_ACTION_DEVICE_CONNECT_FAILURE)) {
+                ConnectService.isConnected = false;
+                ivWifiStatus.setImageResource(R.drawable.ic_no_wifi_connect);
+                ivBatteryStatus.setImageResource(R.drawable.ic_battery_no);
+            } else if (action.equals(BROADCAST_ACTION_DOWIFI_COMMAND)) {
+                wifiStream = intent.getIntArrayExtra(INTENT_KEY_COMMAND);
+                assert wifiStream != null;
+                doWifiCommand(wifiStream);
+            }
+        }
+
+    };
+
+    /**
+     *去服务发送指令
+     */
+    public void startService() {
+        Intent intent = new Intent(MainActivity.this, ConnectService.class);
+        //发送指令
+        Bundle bundle = new Bundle();
+        bundle.putInt(BUNDLE_COMMAND_KEY, command);
+        bundle.putInt(MODE_KEY, mode);
+        bundle.putInt(DATA_TRANSFER_KEY, dataTransfer);
+        intent.putExtra(BUNDLE_PARAM_KEY, bundle);
+        startService(intent);
+    }
+
+    private void doWifiCommand(int[] wifiArray) {
+        //仪器触发时：APP发送接收数据命令
+        if (wifiArray[5] == POWERDISPLAY) {
+            int batteryValue = wifiArray[6] * 256 + wifiArray[7];
+            if (batteryValue <= 2600) {
+                ivBatteryStatus.setImageResource(R.drawable.ic_battery_zero);
+                //GC20200314
+                Constant.batteryValue = 0;
+            } else if (batteryValue > 2600 && batteryValue <= 2818) {
+                ivBatteryStatus.setImageResource(R.drawable.ic_battery_one);
+                Constant.batteryValue = 1;
+            } else if (batteryValue > 2818 && batteryValue <= 3018) {
+                ivBatteryStatus.setImageResource(R.drawable.ic_battery_two);
+                Constant.batteryValue = 2;
+            } else if (batteryValue > 3018 && batteryValue <= 3120) {
+                ivBatteryStatus.setImageResource(R.drawable.ic_battery_three);
+                Constant.batteryValue = 3;
+            } else if (batteryValue > 3120) {
+                ivBatteryStatus.setImageResource(R.drawable.ic_battery_four);
+                Constant.batteryValue = 4;
+            }
+
+        }
+
+    }
+
+    @OnClick({R.id.tv_vop_save, R.id.iv_tdr_mode, R.id.iv_icms_mode, R.id.iv_icmd_mode, R.id.iv_mim_mode, R.id.iv_decay_mode, R.id.btn_language, R.id.btn_update, R.id.btn_help, R.id.btn_records, R.id.btn_remote})
+    public void onClick(View view) {
+        Intent intent = new Intent();
+        switch (view.getId()) {
+            case R.id.tv_vop_save:
+                //保存首页设置
+                saveParamInfo();
+                break;
+            case R.id.iv_tdr_mode:
+                showProgressMode(TDR);
+                break;
+            case R.id.iv_icms_mode:
+                showProgressMode(ICM);
+                break;
+            case R.id.iv_icmd_mode:
+                showProgressMode(ICM_DECAY);
+                break;
+            case R.id.iv_mim_mode:
+                showProgressMode(SIM);
+                break;
+            case R.id.iv_decay_mode:
+                showProgressMode(DECAY);
+                break;
+            case R.id.btn_language:
+                showLanguageChangeDialog();
+                break;
+            case R.id.btn_update:
+                //TODO 20191218 增加版本更新
+                Toast.makeText(MainActivity.this, R.string.check_update, Toast.LENGTH_SHORT).show();
+                downloadFile();
+                break;
+            case R.id.btn_help:
+//                 showHelpCenterDialog();
+                //GC20200306
+                intent = new Intent(MainActivity.this, HelpActivity.class);
+                startActivity(intent);
+                break;
+            case R.id.btn_records:
+                showRecordsDialog();
+                break;
+            case R.id.btn_remote:
+                break;
+            default:
+                break;
+        }
+    }
+
+    private void showProgressMode(int mode) {
+        showProgress();
+        //开启线程
+        ThreadFactory threadFactory = new ThreadFactoryBuilder()
+                .setNameFormat("splash-pool-%d").build();
+        ExecutorService singleThreadPool = new ThreadPoolExecutor(1, 1,
+                0L, TimeUnit.MILLISECONDS,
+                new LinkedBlockingQueue<Runnable>(1024), threadFactory,
+                new ThreadPoolExecutor.AbortPolicy());
+
+        singleThreadPool.execute(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    //使程序休眠5秒
+                    Intent intent = new Intent(getApplicationContext(), ModeActivity.class);
+                    intent.setClass(MainActivity.this, ModeActivity.class);
+                    intent.putExtra(MODE_KEY, mode);
+                    startActivity(intent);
+                    if (tDialog != null) {
+                        tDialog.dismiss();
+                    }
+                    //启动MainActivity
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+        singleThreadPool.shutdown();
+    }
+
+    /**
+     * 等待进度progress创建并显示
+     */
+    private void showProgress() {
+        //进度条
+        tDialog = new TDialog.Builder(getSupportFragmentManager())
+                .setLayoutRes(R.layout.dialog_loading)
+                .setScreenWidthAspect(this, 0.8f)
+                .setCancelableOutside(false)
+                .setGravity(Gravity.BOTTOM)
+                .setOnBindViewListener(new OnBindViewListener() {
+                    @Override
+                    public void bindView(BindViewHolder viewHolder) {
+                        progressBar = viewHolder.getView(R.id.progressBar);
+                        tvProgress = viewHolder.getView(R.id.hardwareConnection);
+                    }
+                })
+                .create()
+                .show();
+    }
+
+    private void saveParamInfo() {
+        if (!TextUtils.isEmpty(etCableVop.getText().toString())) {
+            double vop = Double.parseDouble(etCableVop.getText().toString());
+            double maxVop;
+            double minVop;
+            if (CurrentUnit == MiUnit) {
+                maxVop = 300;
+                minVop = 90;
+            } else {
+                maxVop = Double.valueOf(UnitUtils.miToFt(300));
+                minVop = Double.valueOf(UnitUtils.miToFt(90));
+            }
+            if (vop > maxVop) {
+                etCableVop.setText(maxVop + "");
+            }
+            if (vop < minVop)
+                etCableVop.setText(minVop + "");
+
+        }
+
+        //保存数据存储的单位状态
+        int currentunit = StateUtils.getInt(MainActivity.this, AppConfig.CURRENT_UNIT, MiUnit);
+
+        //保存数据库存储的数据单位状态
+        if (currentunit == FtUnit) {
+            StateUtils.setInt(MainActivity.this, AppConfig.CURRENT_SAVE_UNIT, FtUnit);
+
+        } else if (currentunit == MiUnit) {
+            StateUtils.setInt(MainActivity.this, AppConfig.CURRENT_SAVE_UNIT, MiUnit);
+        }
+
+        cableLength = etCableLength.getText().toString();
+        cableVop = etCableVop.getText().toString();
+        cableId = etCableId.getText().toString();
+        if (cbTestLead.isChecked()) {
+            testLead = true;
+        } else {
+            testLead = false;
+        }
+
+        length = etLength.getText().toString();
+        vop = etVop.getText().toString();
+        ParamInfo paramInfo = (ParamInfo) StateUtils.getObject(MainActivity.this, Constant.PARAM_INFO_KEY);
+        if (paramInfo == null) {
+            paramInfo = new ParamInfo();
+        }
+        paramInfo.setCableId(cableId);
+        paramInfo.setTestLead(testLead);
+        //处理拿到不输入的情况
+        /*if (CurrentUnit == MiUnit) {*/
+        if (TextUtils.isEmpty(cableLength)) {
+            cableLength = "0";
+            paramInfo.setCableLength(cableLength);
+        } else {
+            paramInfo.setCableLength(cableLength);
+        }
+        if (TextUtils.isEmpty(cableVop)) {
+            cableVop = "0";
+            paramInfo.setCableVop(cableVop);
+        } else {
+            paramInfo.setCableVop(cableVop);
+        }
+        if (TextUtils.isEmpty(length)) {
+            length = "0";
+            paramInfo.setLength(length);
+
+        } else {
+            paramInfo.setLength(length);
+        }
+        if (TextUtils.isEmpty(vop)) {
+            vop = "0";
+            paramInfo.setVop(vop);
+
+        } else {
+            paramInfo.setVop(vop);
+        }
+
+        /*else {
+            if (TextUtils.isEmpty(cableLength)) {
+                cableLength = "0";
+            } else {
+                paramInfo.setCableLength(UnitUtils.ftToMi(Double.parseDouble(cableLength)));
+            }
+            if (TextUtils.isEmpty(cableVop)) {
+                cableVop = "0";
+            } else {
+                paramInfo.setCableVop(UnitUtils.ftToMi(Double.parseDouble(cableVop)));
+            }
+            if (TextUtils.isEmpty(length)) {
+                length = "0";
+            } else {
+                paramInfo.setLength(UnitUtils.ftToMi(Double.parseDouble(length)));
+            }
+            if (TextUtils.isEmpty(vop)) {
+                vop = "0";
+            } else {
+                paramInfo.setVop(UnitUtils.ftToMi(Double.parseDouble(vop)));
+            }
+        }*/
+
+        StateUtils.setObject(MainActivity.this, paramInfo, Constant.PARAM_INFO_KEY);
+        Toast.makeText(MainActivity.this, R.string.save_success, Toast.LENGTH_SHORT).show();
+    }
+
+    private void showLanguageChangeDialog() {
+        languageChangeDialog = new LanguageChangeDialog(this);
+        if (!languageChangeDialog.isShowing()) {
+            languageChangeDialog.show();
+        }
+        languageChangeDialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
+            @Override
+            public void onDismiss(DialogInterface dialog) {
+                if (!languageChangeDialog.getCloseStatus()) {
+                    //不需要关闭服务
+                    needStopService = true;
+                    ConnectService.needReconnect = false;
+                    Intent intent = new Intent(MainActivity.this, ConnectService.class);
+                    stopService(intent);
+                    //finish();
+                    //Intent intentSplash = new Intent(MainActivity.this, z_SplashActivity.class);
+                    Intent intentSplash = new Intent(MainActivity.this, MainActivity.class);
+                    startActivity(intentSplash);
+
+                }
+            }
+        });
+    }
+
+    /**
+     * 开始下载文件
+     */
+    public void downloadFile() {
+        String xmlurl = Constant.BASE_API + "app/version.xml";
+        Request request = new Request.Builder().url(xmlurl).addHeader("Accept-Encoding", "identity").build();
+        //Request request = new Request.Builder().url(xmlurl).build();
+        OkHttpClient httpClient = new OkHttpClient();
+
+        httpClient.newCall(request).enqueue(new Callback() {
+            @Override
+            public void onFailure(Call call, IOException e) {
+                //下载失败
+                Log.i("下载失败：", e.getMessage());
+            }
+
+            @Override
+            public void onResponse(Call call, Response response) throws IOException {
+                InputStream inputStream = null;
+                byte[] buff = new byte[2048];
+                int len = 0;
+                try {
+                    inputStream = response.body().byteStream();
+                    InputStreamReader isr = new InputStreamReader(inputStream);
+                    BufferedReader br = new BufferedReader(isr);
+                    // 内存流 写入读取的数据
+                    StringWriter sw = new StringWriter();
+                    String str = null;
+                    while ((str = br.readLine()) != null) {
+                        sw.write(str);
+                    }
+                    br.close();
+                    sw.close();
+                    str = sw.toString();
+                    XmlPullParserFactory factory = XmlPullParserFactory.newInstance();
+                    XmlPullParser parser = factory.newPullParser();
+                    parser.setInput(new StringReader(str));
+                    int eventType = parser.getEventType();
+                    version = "";
+                    url = "";
+                    while (eventType != XmlPullParser.END_DOCUMENT) {
+                        String nodeName = parser.getName();
+                        switch (eventType) {
+                            // 开始解析某个结点
+                            case XmlPullParser.START_TAG: {
+                                if ("version".equals(nodeName)) {
+                                    version = parser.nextText();
+                                } else if ("url".equals(nodeName)) {
+                                    url = parser.nextText();
+                                }
+                                break;
+                            }
+                            // 完成解析某个结点
+                            case XmlPullParser.END_TAG: {
+                                if ("update".equals(nodeName)) {
+                                    if (Integer.parseInt(version) > AppUtils.getAppVersionCode()) {
+                                        //获取文案
+                                        if (!AppUpdateDialog.isShowUpdating) {
+                                            handler.sendEmptyMessage(0);
+                                        }
+                                    } else {
+                                        Toast.makeText(MainActivity.this, R.string.has_new_version, Toast.LENGTH_SHORT).show();
+                                    }
+                                }
+                                break;
+                            }
+                            default:
+                                break;
+                        }
+                        eventType = parser.next();
+                    }
+
+                } catch (Exception e) {
+//                    Logs.i("下载出错：" + e.getMessage());
+                } finally {
+                    try {
+                        if (inputStream != null) {
+                            inputStream.close();
+                        }
+                    } catch (IOException e) {
+                    }
+                }
+            }
+        });
+    }
+
+    private Handler handler = new Handler(new Handler.Callback() {
+        @Override
+        public boolean handleMessage(Message msg) {
+            showAppUpdate(version, url);
+            return false;
+        }
+    });
+
+    private void showAppUpdate(String version, String url) {
+        if (mAppUpdateDialog == null) {
+            mAppUpdateDialog = new AppUpdateDialog(this);
+        }
+        if (!mAppUpdateDialog.isShowing()) {
+            mAppUpdateDialog.show();
+        }
+        mAppUpdateDialog.setVersionEntity(url);
+    }
+
+    private void showHelpCenterDialog() {
+        helpCenterDialog = new HelpCenterDialog(this);
+        if (!helpCenterDialog.isShowing()) {
+            helpCenterDialog.show();
+        }
+    }
+
+    private void showRecordsDialog() {
+        customDialog = new ShowRecordsDialog(this);
+        customDialog.setFromMain(true);
+        if (!customDialog.isShowing()) {
+            customDialog.show();
+        }
+    }
+
+    //隐藏虚拟按键，暂时用不到。
+    protected void hideBottomUIMenu() {
+        //隐藏虚拟按键，并且全屏
+        if (Build.VERSION.SDK_INT > 11 && Build.VERSION.SDK_INT < 19) { // lower api
+            View v = this.getWindow().getDecorView();
+            v.setSystemUiVisibility(View.GONE);
+        } else if (Build.VERSION.SDK_INT >= 19) {
+            //for new api versions.
+            View decorView = getWindow().getDecorView();
+            int uiOptions = View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+                    | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY | View.SYSTEM_UI_FLAG_FULLSCREEN;
+            decorView.setSystemUiVisibility(uiOptions);
+        }
+
+    }
+
     @Override
     protected void onResume() {
         initParamInfo();
@@ -959,7 +941,6 @@ public class MainActivity extends BaseActivity {
         Constant.currentLanguage = languageType;
         super.onResume();
     }
-
 
     @Override
     protected void onPause() {
@@ -975,7 +956,7 @@ public class MainActivity extends BaseActivity {
             unregisterReceiver(receiver);
         }
         //切换语言时不要关闭服务
-        if (needStopServce == true) {
+        if (needStopService == true) {
             ConnectService.needReconnect = false;
             Intent intent = new Intent(MainActivity.this, ConnectService.class);
             stopService(intent);

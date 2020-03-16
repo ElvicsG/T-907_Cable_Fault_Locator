@@ -34,20 +34,24 @@
             android:name=".view.ModeActivity"
             android:screenOrientation="sensorLandscape"></activity>
         <activity
-            android:name=".view.ListActivity"
+            android:name=".view.z_ListActivity"
             android:configChanges="screenSize|keyboardHidden|orientation"
             android:screenOrientation="sensorLandscape"
             android:theme="@style/AlertNoActionBar"></activity>
         <activity
-            android:name=".view.SearchActivity"
+            android:name=".view.HelpActivity"
             android:configChanges="screenSize|keyboardHidden|orientation"
             android:screenOrientation="sensorLandscape" />
         <activity
-            android:name=".view.SaveActivity"
+            android:name=".view.z_SearchActivity"
             android:configChanges="screenSize|keyboardHidden|orientation"
             android:screenOrientation="sensorLandscape" />
         <activity
-            android:name=".view.SplashActivity"
+            android:name=".view.z_SaveActivity"
+            android:configChanges="screenSize|keyboardHidden|orientation"
+            android:screenOrientation="sensorLandscape" />
+        <activity
+            android:name=".view.z_SplashActivity"
             android:configChanges="screenSize|keyboardHidden|orientation"
             android:screenOrientation="sensorLandscape">
             <intent-filter>
@@ -63,7 +67,7 @@
             android:screenOrientation="sensorLandscape"
             android:windowSoftInputMode="adjustUnspecified|stateHidden" />
         <activity
-            android:name=".view.MainActivity2"
+            android:name=".view.z_MainActivity"
             android:configChanges="screenSize|keyboardHidden|orientation"
             android:screenOrientation="sensorLandscape" />
         <activity android:name=".base.BaseActivity" />

@@ -27,7 +27,6 @@
             app:layout_marginLeftPercent="10%"
             app:layout_marginRightPercent="10%">
 
-
             <RelativeLayout
                 android:id="@+id/rl_info"
                 android:layout_width="match_parent"
@@ -256,7 +255,6 @@
                         android:layout_alignRight="@id/tv_fault_location"
                         android:background="@color/blue_72FBFD" />
 
-
                     <TextView
                         android:id="@+id/tv_phase_text"
                         android:layout_width="wrap_content"
@@ -264,7 +262,6 @@
                         android:layout_below="@id/tv_fault_location"
                         android:layout_alignRight="@id/tv_fault_location_text"
                         android:layout_marginTop="@dimen/sp_10"
-
                         android:text="@string/phase_text"
                         android:textColor="@color/blue_0FF6FF"
                         android:textSize="@dimen/sp_10" />
@@ -283,10 +280,12 @@
 
                     <Spinner
                         android:id="@+id/sp_phase"
-                        android:layout_width="150dp"
+                        android:layout_width="@dimen/dp_80"
                         android:layout_height="wrap_content"
                         android:layout_below="@id/tv_fault_location"
+                        android:layout_marginStart="@dimen/dp_10"
                         android:layout_marginTop="@dimen/sp_10"
+                        android:layout_toEndOf="@+id/tv_phase_text"
                         android:layout_toRightOf="@id/tv_phase_text"
                         android:gravity="right"
                         app:layout_column="4" />
@@ -306,7 +305,6 @@
                         android:layout_height="wrap_content"
                         android:layout_below="@id/tv_phase_text"
                         android:layout_alignRight="@id/tv_fault_location_text"
-
                         android:layout_marginTop="@dimen/sp_10"
                         android:text="@string/tv_tester"
                         android:textColor="@color/blue_0FF6FF"
@@ -341,7 +339,6 @@
                         android:layout_below="@id/tv_operator_text"
                         android:layout_alignRight="@id/tv_fault_location_text"
                         android:layout_marginTop="@dimen/sp_10"
-
                         android:text="@string/test_site_text"
                         android:textColor="@color/blue_0FF6FF"
                         android:textSize="@dimen/sp_10" />

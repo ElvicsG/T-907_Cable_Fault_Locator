@@ -11,10 +11,9 @@ import android.widget.LinearLayout;
 import androidx.fragment.app.Fragment;
 
 import net.kehui.www.t_907_origin.R;
-import net.kehui.www.t_907_origin.view.ListActivity;
-import net.kehui.www.t_907_origin.view.MainActivity;
-import net.kehui.www.t_907_origin.view.SaveActivity;
-import net.kehui.www.t_907_origin.view.SearchActivity;
+import net.kehui.www.t_907_origin.view.z_ListActivity;
+import net.kehui.www.t_907_origin.view.z_SaveActivity;
+import net.kehui.www.t_907_origin.view.z_SearchActivity;
 
 import java.util.Objects;
 
@@ -41,7 +40,7 @@ public class FileFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        View fileLayout = inflater.inflate(R.layout.file_layout, container, false);
+        View fileLayout = inflater.inflate(R.layout.z_file_layout, container, false);
         unbinder = ButterKnife.bind(this, fileLayout);
         return fileLayout;
     }
@@ -56,18 +55,18 @@ public class FileFragment extends Fragment {
     public void onViewClicked(View view) {
         switch (view.getId()) {
             case R.id.btn_save:
-                Intent intentSave = new Intent(Objects.requireNonNull(getActivity()).getApplicationContext(),SaveActivity.class);
+                Intent intentSave = new Intent(Objects.requireNonNull(getActivity()).getApplicationContext(), z_SaveActivity.class);
                 startActivity(intentSave);
                 break;
             case R.id.btn_browse:
                 Intent it = new Intent(
                         Objects.requireNonNull(getActivity()).getApplicationContext(),
-                        ListActivity.class);
+                        z_ListActivity.class);
                 startActivity(it);
                 break;
             case R.id.btn_search:
                 Intent intentSearch =
-                        new Intent(Objects.requireNonNull(getActivity()).getApplicationContext(), SearchActivity.class);
+                        new Intent(Objects.requireNonNull(getActivity()).getApplicationContext(), z_SearchActivity.class);
                 startActivity(intentSearch);
                 break;
             default:

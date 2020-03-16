@@ -11,13 +11,9 @@ import android.view.ViewGroup;
 import android.widget.Button;
 
 import net.kehui.www.t_907_origin.R;
-import net.kehui.www.t_907_origin.application.MyApplication;
 import net.kehui.www.t_907_origin.receiver.RestartAppReceiver;
 import net.kehui.www.t_907_origin.util.MultiLanguageUtil;
-import net.kehui.www.t_907_origin.view.MainActivity;
-import net.kehui.www.t_907_origin.view.SplashActivity;
-
-import java.util.Objects;
+import net.kehui.www.t_907_origin.view.z_SplashActivity;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -38,7 +34,7 @@ public class SettingFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        View settingLayout = inflater.inflate(R.layout.setting_layout, container, false);
+        View settingLayout = inflater.inflate(R.layout.z_setting_layout, container, false);
         unbinder = ButterKnife.bind(this, settingLayout);
         return settingLayout;
     }
@@ -81,7 +77,7 @@ public class SettingFragment extends Fragment {
         } else if (language.equals("es")) {
             MultiLanguageUtil.getInstance().updateLanguage("es");
         }
-        Intent intentSplash = new Intent(getActivity(), SplashActivity.class);
+        Intent intentSplash = new Intent(getActivity(), z_SplashActivity.class);
         intentSplash.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         getActivity().startActivity(intentSplash);
         android.os.Process.killProcess(android.os.Process.myPid());

@@ -8,7 +8,6 @@ import android.view.ViewGroup;
 import android.widget.Button;
 
 import net.kehui.www.t_907_origin.R;
-import net.kehui.www.t_907_origin.view.MainActivity;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -45,7 +44,7 @@ public class AdjustFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        View adjustLayout = inflater.inflate(R.layout.adj_layout, container, false);
+        View adjustLayout = inflater.inflate(R.layout.z_adj_layout, container, false);
         unbinder = ButterKnife.bind(this, adjustLayout);
         return adjustLayout;
     }

@@ -60,7 +60,6 @@ public class BaseActivity extends AppCompatActivity {
      */
     public int pulseWidth;
 
-
     /**
      * 波形原始数据数组
      */
@@ -138,12 +137,12 @@ public class BaseActivity extends AppCompatActivity {
      * ICM自动测距参数    //GC20191231
      */
     public boolean breakDown;
+
     /**
      * 测试缆信息添加    //GC20200103
      */
     public double leadLength;
     public double leadVop;
-
 
     /**
      * WiFi连接部分
@@ -371,4 +370,8 @@ public class BaseActivity extends AppCompatActivity {
 //GC20200106    光标定位修改
 //GC20200109    DC方式下自动测距单独实现
 //GC20200110    击穿点判断起始位置更改
-//GC20200306    帮助按钮功能添加
+
+//GC20200306    帮助按钮功能添加    //GT0306
+//GC20200312    布局修改
+//GC20200313    增益转为百分比
+//GC20200314    电量获取显示修改

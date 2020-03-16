@@ -8,7 +8,6 @@ import android.view.ViewGroup;
 import android.widget.Button;
 
 import net.kehui.www.t_907_origin.R;
-import net.kehui.www.t_907_origin.view.MainActivity;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -41,7 +40,7 @@ public class RangeFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        View rangeLayout = inflater.inflate(R.layout.range_layout, container, false);
+        View rangeLayout = inflater.inflate(R.layout.z_range_layout, container, false);
         unbinder = ButterKnife.bind(this, rangeLayout);
         return rangeLayout;
     }

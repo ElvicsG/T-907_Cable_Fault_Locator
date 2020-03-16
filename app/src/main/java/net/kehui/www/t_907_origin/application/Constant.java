@@ -13,6 +13,7 @@ public class Constant {
     public static int LastUnit = MiUnit;
     public static int CurrentUnit = MiUnit;
     public static int CurrentSaveUnit = MiUnit;
+
     public static final String PARAM_INFO_KEY = "param_info_key";
     //TODO wdx 20191218 波宽度本地存储的KEY值设定
     public static final String PULSE_WIDTH_INFO_KEY = "pulse_width_info_key";
@@ -36,6 +37,8 @@ public class Constant {
     public static int Phase;//代表相位编码
     public static int PositonV;//虚光标
     public static int PositionR;//实光标
+    //GC20200314
+    public static int batteryValue;
     public static String Tester;
     public static double CurrentLocation;
     public static double SaveLocation;

@@ -78,7 +78,6 @@ public class ConnectService extends Service {
     private ProcessThread processThread;
     //数据生产者队列，生产的数据放入队列。
     public static ArrayBlockingQueue bytesDataQueue;
-
     //重启语言时，连着设备无线的处理方式
     public static Boolean isWifiConnect = false;
 
@@ -269,9 +268,8 @@ public class ConnectService extends Service {
         Runnable runnable = new Runnable() {
             @Override
             public void run() {
-
-                //如果连接正常并且不在接收波形，则收取电量。
-                if (isConnected == true && canAskPower == true) {
+                //如果连接正常并且不在接收波形，则可以收取电量。
+                if (isConnected && canAskPower) {
                     command = 0x06;
                     dataTransfer = 0x08;
                     sendCommand();
@@ -517,8 +515,6 @@ public class ConnectService extends Service {
         } catch (Exception e) {
             e.printStackTrace();
         }
-
-
         super.onDestroy();
     }
 }

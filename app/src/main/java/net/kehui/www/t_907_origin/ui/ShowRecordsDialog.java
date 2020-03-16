@@ -26,7 +26,6 @@ import net.kehui.www.t_907_origin.util.ScreenUtils;
 import net.kehui.www.t_907_origin.util.UnitUtils;
 import net.kehui.www.t_907_origin.view.ModeActivity;
 
-import org.checkerframework.checker.units.qual.MixedUnits;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 
@@ -56,7 +55,7 @@ import static net.kehui.www.t_907_origin.base.BaseActivity.RANGE_64_KM;
 import static net.kehui.www.t_907_origin.base.BaseActivity.RANGE_8_KM;
 import static net.kehui.www.t_907_origin.base.BaseActivity.SIM;
 import static net.kehui.www.t_907_origin.base.BaseActivity.TDR;
-import static net.kehui.www.t_907_origin.view.ListActivity.DISPLAY_ACTION;
+import static net.kehui.www.t_907_origin.view.z_ListActivity.DISPLAY_ACTION;
 
 
 /**
@@ -104,6 +103,7 @@ public class ShowRecordsDialog extends BaseDialog implements View.OnClickListene
     private int mode;
     private boolean fromMain;
     private TextView tvCableLengthUnit;
+    private TextView tvFalutLocationUnit;;
 
     public void setFromMain(boolean fromMain) {
         this.fromMain = fromMain;
@@ -160,6 +160,8 @@ public class ShowRecordsDialog extends BaseDialog implements View.OnClickListene
         tvNoRecords = view.findViewById(R.id.tv_no_records);
         rlHasRecords = view.findViewById(R.id.rl_has_records);
         tvCableLengthUnit = view.findViewById(R.id.tv_cable_length_unit);
+        //GC20200312
+        tvFalutLocationUnit = view.findViewById(R.id.tv_fault_location_unit);
         ivClose.setOnClickListener(this);
         tvDisplay.setOnClickListener(this);
         tvDelete.setOnClickListener(this);
@@ -387,9 +389,13 @@ public class ShowRecordsDialog extends BaseDialog implements View.OnClickListene
                 tvCableLength.setText("0");
             }
             tvCableLengthUnit.setText(R.string.ft);
+            //GC20200312
+            tvFalutLocationUnit.setText(R.string.ft);
         } else {
             tvCableLength.setText(data.line);
             tvCableLengthUnit.setText(R.string.mi);
+            //GC20200312
+            tvFalutLocationUnit.setText(R.string.mi);
         }
 
         tvDate.setText(data.date);
