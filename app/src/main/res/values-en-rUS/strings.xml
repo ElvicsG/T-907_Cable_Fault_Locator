@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">T-907-ORIGIN</string>
+    <string name="app_name">T-907</string>
     <string name="btn_mtd">MTD</string>
     <string name="btn_range">RNG</string>
     <string name="btn_opt">OPT.</string>
@@ -158,7 +158,7 @@ Select the test mode after setting parameters properly.</string>
     <string name="update_later">Update Later.</string>
     <string name="maxpulsewidth">The maximum value of pulsewidth is 7000.</string>
     <!--新增GC-->
-    <string name="disconnect">Connection exception</string>
+    <string name="disconnect">Connection exception!</string>
     <string name="btn_next">NEXT</string>
     <string name="btn_previous">PRE.</string>
     <string name="safe_guide">Safety</string>

@@ -30,7 +30,7 @@ import io.reactivex.FlowableOnSubscribe;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.schedulers.Schedulers;
 
-public class z_ListActivity extends BaseActivity {
+public class ListActivity extends BaseActivity {
 
     @BindView(R.id.btn_Dele)
     Button       btnDele;

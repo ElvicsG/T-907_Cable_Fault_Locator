@@ -43,6 +43,7 @@ import net.kehui.www.t_907_origin.ui.MoveView;
 import net.kehui.www.t_907_origin.ui.MoveWaveView;
 import net.kehui.www.t_907_origin.ui.SaveRecordsDialog;
 import net.kehui.www.t_907_origin.ui.ShowRecordsDialog;
+import net.kehui.www.t_907_origin.ui.HelpModeDialog;
 import net.kehui.www.t_907_origin.ui.SparkView.SparkView;
 import net.kehui.www.t_907_origin.util.StateUtils;
 import net.kehui.www.t_907_origin.util.UnitUtils;
@@ -56,11 +57,11 @@ import static net.kehui.www.t_907_origin.ConnectService.BROADCAST_ACTION_DEVICE_
 import static net.kehui.www.t_907_origin.ConnectService.BROADCAST_ACTION_DOWIFI_COMMAND;
 import static net.kehui.www.t_907_origin.ConnectService.BROADCAST_ACTION_DOWIFI_WAVE;
 import static net.kehui.www.t_907_origin.ConnectService.INTENT_KEY_COMMAND;
-import static net.kehui.www.t_907_origin.ConnectService.INTENT_KEY_WAVA;
-import static net.kehui.www.t_907_origin.application.Constant.FtUnit;
-import static net.kehui.www.t_907_origin.application.Constant.MiUnit;
+import static net.kehui.www.t_907_origin.ConnectService.INTENT_KEY_WAVE;
+import static net.kehui.www.t_907_origin.application.Constant.FT_UNIT;
+import static net.kehui.www.t_907_origin.application.Constant.MI_UNIT;
 import static net.kehui.www.t_907_origin.application.Constant.batteryValue;
-import static net.kehui.www.t_907_origin.view.z_ListActivity.DISPLAY_ACTION;
+import static net.kehui.www.t_907_origin.view.ListActivity.DISPLAY_ACTION;
 
 public class ModeActivity extends BaseActivity {
 
@@ -185,8 +186,6 @@ public class ModeActivity extends BaseActivity {
     ImageView tvDelayMin;
     @BindView(R.id.ll_trigger_delay)
     LinearLayout llTriggerDelay;
-
-    //TODO wdx 20191218 波宽度添加保存信息
     /**
      * wdx 20191218 波宽度添加保存信息
      */
@@ -200,41 +199,708 @@ public class ModeActivity extends BaseActivity {
     ImageView ivWifiStatus;
     @BindView(R.id.iv_battery_status)
     ImageView ivBatteryStatus;
+    @BindView(R.id.tv_balance_text)
+    TextView tvBalanceText;
+    @BindView(R.id.tv_balance_space)
+    TextView tvBalanceSpace;
+    @BindView(R.id.iv_close_trigger_delay)
+    ImageView ivCloseTriggerDelay;
+    @BindView(R.id.tv_delay_space)
+    TextView tvDelaySpace;
+    @BindView(R.id.tv_wave_text)
+    TextView tvWaveText;
+    @BindView(R.id.tv_wave_value)
+    TextView tvWaveValue;
+    @BindView(R.id.tv_wave_space)
+    TextView tvWaveSpace;
+    @BindView(R.id.view_move_vertical_wave)
+    MoveWaveView viewMoveVerticalWave;
+    @BindView(R.id.tv_wave_pre)
+    ImageView tvWavePre;
+    @BindView(R.id.tv_wave_next)
+    ImageView tvWaveNext;
+    @BindView(R.id.tv_icm)
+    TextView tvIcm;
+    @BindView(R.id.tv_distance_unit)
+    TextView tvDistanceUnit;
+    @BindView(R.id.rl_wave)
+    RelativeLayout rlWave;
+    @BindView(R.id.tv_vop_unit)
+    TextView tvVopUnit;
+    @BindView(R.id.mv_wave)
+    MoveView mvWave;
+    @BindView(R.id.tv_cable_vop_unit)
+    TextView tvCableVopUnit;
+    @BindView(R.id.tv_pulse_width_save)
+    ImageView tvPulseWidthSave;
+    @BindView(R.id.ll_horizontal_view)
+    LinearLayout llHorizontalView;
+
+    private int index;
+    //计算滑动时的基数
+    private int fenzi1;
+    //初始化滑块位置
+    private int fenzi2;
+    private int CurrentActionDownValue = 0;
+
+    private boolean alreadyDisplayWave;
+    //设置是否需要进入页面接收数据，此处是为了适配从主页面展示波形时重复接收数据
+    private boolean isReceiveData = true;
+
+    private TDialog tDialog;
+
+    /**
+     * 定义bundle的key-value
+     */
+    public static final String BUNDLE_COMMAND_KEY = "command";
+    public static final String BUNDLE_MODE_KEY = "mode";
+    public static final String BUNDLE_DATA_TRANSFER_KEY = "dataTransfer";
+    public static final String BUNDLE_PARAM_KEY = "bundle_param_key";
 
     /**
      * 全局的handler对象用来执行UI更新
      */
-    public static final int DEVICE_CONNECTED = 1;
-    public static final int DEVICE_DISCONNECTED = 2;
-    public static final int SEND_SUCCESS = 3;
-    public static final int SEND_ERROR = 4;
-    public static final int GET_COMMAND = 5;
-    public static final int GET_WAVE = 6;
-    public static final int VIEW_REFRESH = 7;
-    public static final int DISPLAY_DATABASE = 8;
-    public static final int DEVICE_CONNECT = 9;
-    public static final int DO_WAVE = 10;
-    public static final int ORGNIZE_WAVE = 11;
+    public static final int DO_WAVE = 1;
+    public static final int ORGANIZE_WAVE = 2;
+    public static final int VIEW_REFRESH = 3;
+    public static final int DISPLAY_DATABASE = 4;
 
-    //定义bundle 里参数command 的key
-    public static final String BUNDLE_COMMAND_KEY = "bundle_command_key";
-    public static final String MODE_KEY = "mode_key";
-    public static final String DATA_TRANSFER_KEY = "dataTransfer";
-    //定义intent bundle的key
-    public static final String BUNDLE_PARAM_KEY = "bundle_param_key";
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_mode);
+        ButterKnife.bind(this);
+
+        alreadyDisplayWave = false;
+        mode = getIntent().getIntExtra(BUNDLE_MODE_KEY, 0);
+        isReceiveData = getIntent().getBooleanExtra("isReceiveData", true);
+        initUnit();
+        initSparkView();
+        initViewMoveWave();
+        initBtnRangeView();
+        //读取脉宽信息    //GC20200331    位置提前
+        initPulseWidth();
+        //20191217将获取设置中范围的函数调整到上方，用于读取设置中的位置
+        initRange();
+        initFrame();
+        setChartListener();
+        initMode();
+        initBroadcastReceiver();
+        //发送广播——处理从主页中显示的本地数据
+        if (getIntent().getIntExtra("display_action", 0) == DISPLAY_DATABASE) {
+            isReceiveData = false;
+            Intent intent = new Intent(DISPLAY_ACTION);
+            intent.putExtra("display_action", ModeActivity.DISPLAY_DATABASE);
+            sendBroadcast(intent);
+        }
+
+    }
+
+    /**
+     * 计量单位初始化 (m ft)
+     */
+    private void initUnit() {
+        Constant.CurrentUnit = StateUtils.getInt(ModeActivity.this, AppConfig.CURRENT_UNIT, Constant.MI_UNIT);
+        Constant.CurrentSaveUnit = StateUtils.getInt(ModeActivity.this, AppConfig.CURRENT_SAVE_UNIT, Constant.MI_UNIT);
+        if (Constant.CurrentUnit == Constant.MI_UNIT) {
+            tvDistanceUnit.setText(R.string.mi);
+            tvVopUnit.setText(R.string.mius);
+        } else {
+            tvDistanceUnit.setText(R.string.ft);
+            tvVopUnit.setText(R.string.ftus);
+        }
+    }
+
+    /**
+     * 初始化sparkView //GC20181227
+     */
+    public void initSparkView() {
+        for (int i = 0; i < 510; i++) {
+            waveArray[i] = 128;
+            //Constant.WaveData[i] = 128;
+        }
+        myChartAdapterMainWave = new MyChartAdapterBase(waveArray, null,
+                false, 0, false, dataMax);
+        myChartAdapterFullWave = new MyChartAdapterBase(waveArray, null,
+                false, 0, false, dataMax);
+        fullWave.setAdapter(myChartAdapterMainWave);
+        setMoveView();
+        Log.i("Draw", "初始化绘制结束");
+    }
+
+    /**
+     * 初始化波形移动监听事件
+     */
+    int moverMoveValue = 0;
+    int currentMoverPosition510 = 0;    //当前滑块左侧在510个点的数值
+    private void initViewMoveWave() {
+
+        viewMoveVerticalWave.setViewMoveWaveListener(new MoveWaveView.ViewMoveWaveListener() {
+            @Override
+            public void onMoved(float x, float y) {
+                //上下移动波形
+                fullWave.setSparkViewMove(y);
+                Log.e("ModeActivity", y + "");
+            }
+            @Override
+            public void onMoveEnded() {
+
+            }
+        });
+        fenzi1 = (dataLength / (densityMax / density)) - 510;
+
+        mvWave.setViewMoveWaveListener(new MoveView.ViewMoveWaveListener() {
+
+            @Override
+            public void onMoved(float x) {
+                Log.e("【滑块】", "当前X：" + x + "/长度：" + mvWave.getParentWidth() + "/510Value:" + get510Value(x, mvWave.getParentWidth()));
+                //滑块X在510个点中的位置
+                int currentMoverX = get510Value(x, mvWave.getParentWidth());
+                //计算滑块移动的数值，在波形框宽度510中的对应数值
+                moverMoveValue = currentMoverX - currentMoverPosition510;
+                //因当前波形是缩放时从某个点开始取的，因此滑块左侧的位置就是重新抽点的起始点，按照比例可以算出来
+                organizeMoveWaveData(currentMoverX * dataLength / 510);
+                //比对波形
+                try {
+                    organizeCompareWaveData(currentMoverX * dataLength / 510);
+                } catch (Exception l_Ex) {
+                }
+                Log.e("【滑块】", "currentMoverX:" + currentMoverX + "moverMoveValue：" + moverMoveValue);
+                //重新绘制波形
+                displayWave();
+
+                //滑块移动时变换虚光标位置
+                positionVirtual = positionVirtual - moverMoveValue * (densityMax / density);
+                //滑块移动时变换实光标位置
+                positionReal = positionReal - moverMoveValue * (densityMax / density);
+                //滑块移动时变换紫色实光标位置    //GC20200330
+                positionSim = positionSim - moverMoveValue * (densityMax / density);
+
+                //重新设置当前的滑块左侧位置数值
+                //重新定位实光标
+                if (positionReal > 0 && positionReal <= 510) {
+                    fullWave.setScrubLineReal(positionReal);
+                } else {
+                    fullWave.setScrubLineRealDisappear();
+                }
+
+                //重新定位紫色实光标    //GC20200330
+                if (positionSim > 0 && positionSim <= 510) {
+                    fullWave.setScrubLineSim(positionSim);
+                } else {
+                    fullWave.setScrubLineSimDisappear();
+                }
+
+                //重新定位虚光标
+                if (positionVirtual >= 0 && positionVirtual <= 510) {
+                    fullWave.setScrubLineVirtual(positionVirtual);
+                } else {
+                    fullWave.setScrubLineVirtualDisappear();
+                }
+
+                //如果零点为0，而且当前绘制波形的起点也是0，说明波形在最左侧，需要在0位置显示实光标。
+                if (zero == 0 & currentMoverPosition510 == 0) {
+                    fullWave.setScrubLineReal(0);
+                }
+
+                //重新赋值当前波形的绘制起始位置
+                currentMoverPosition510 = currentMoverX;
+                if (zero == 0 & currentMoverPosition510 == 0) {
+                    fullWave.setScrubLineReal(0);
+                }
+                Log.e("【光标参数】", "positionReal：" + positionReal + "/zero:" + zero + "/positionVirtual:" + positionVirtual + "/pointDistance:" + pointDistance + "/MoverPosition:" + (currentMoverX * dataLength / 510));
+
+            }
+        });
+
+    }
+
+    /**
+     * 初始化英尺状态下范围按钮文字
+     */
+    private void initBtnRangeView() {
+        if (Constant.CurrentUnit == Constant.FT_UNIT) {
+            tv250m.setText(getResources().getString(R.string.btn_250m_to_ft));
+            tv500m.setText(getResources().getString(R.string.btn_500m_to_ft));
+            tv1km.setText(getResources().getString(R.string.btn_1km_to_yingli));
+            tv2km.setText(getResources().getString(R.string.btn_2km_to_yingli));
+            tv4km.setText(getResources().getString(R.string.btn_4km_to_yingli));
+            tv8km.setText(getResources().getString(R.string.btn_8km_to_yingli));
+            tv16km.setText(getResources().getString(R.string.btn_16km_to_yingli));
+            tv32km.setText(getResources().getString(R.string.btn_32km_to_yingli));
+            tv64km.setText(getResources().getString(R.string.btn_64km_to_yingli));
+        }
+    }
+
+    /**
+     * 读取主页设置中存储的范围数据，并初始化
+     */
+    private void initRange() {
+        ParamInfo paramInfo = (ParamInfo) StateUtils.getObject(ModeActivity.this, Constant.PARAM_INFO_KEY);
+        double localRange;
+        if (paramInfo != null && paramInfo.getCableLength() != null && !TextUtils.isEmpty(paramInfo.getCableLength())) {
+            localRange = Double.valueOf(paramInfo.getCableLength());
+            //如果数据库里存的是英尺值则转换为米
+            if (Constant.CurrentSaveUnit == FT_UNIT) {
+                localRange = Double.valueOf(UnitUtils.ftToMi(localRange));
+            }
+
+            if (localRange == 0.0 || localRange == 0) {
+                range = (0x11);
+                gain = 13;
+                if (Constant.CurrentUnit == Constant.FT_UNIT) {
+                    tvRangeValue.setText(getResources().getString(R.string.btn_500m_to_ft));
+                } else {
+                    tvRangeValue.setText(getResources().getString(R.string.btn_500m));
+                }
+                //脉宽未设置时根据范围初始化显示 //GC20200331
+                if (!hasPulseWidth) {
+                    handler.postDelayed(() -> {
+                        setPulseWidth(40);
+                    }, 20);
+                    etPulseWidth.setText(String.valueOf(40));
+                }
+            } else if (localRange <= 250) {
+                range = (0x99);
+                gain = 13;
+                if (Constant.CurrentUnit == Constant.FT_UNIT) {
+                    tvRangeValue.setText(getResources().getString(R.string.btn_250m_to_ft));
+                } else {
+                    tvRangeValue.setText(getResources().getString(R.string.btn_250m));
+                }
+                //脉宽未设置时根据范围初始化显示 //GC20200331
+                if (!hasPulseWidth) {
+                    handler.postDelayed(() -> {
+                        setPulseWidth(40);
+                    }, 20);
+                    etPulseWidth.setText(String.valueOf(40));
+                }
+            } else if (localRange > 250 && localRange <= 500) {
+                range = (0x11);
+                gain = 13;
+                if (Constant.CurrentUnit == Constant.FT_UNIT) {
+                    tvRangeValue.setText(getResources().getString(R.string.btn_500m_to_ft));
+                } else {
+                    tvRangeValue.setText(getResources().getString(R.string.btn_500m));
+                }
+                //脉宽未设置时根据范围初始化显示 //GC20200331
+                if (!hasPulseWidth) {
+                    handler.postDelayed(() -> {
+                        setPulseWidth(40);
+                    }, 20);
+                    etPulseWidth.setText(String.valueOf(40));
+                }
+            } else if (localRange > 500 && localRange <= 1000) {
+                range = (0x22);
+                gain = 13;
+                if (Constant.CurrentUnit == Constant.FT_UNIT) {
+                    tvRangeValue.setText(getResources().getString(R.string.btn_1km_to_yingli));
+                } else {
+                    tvRangeValue.setText(getResources().getString(R.string.btn_1km));
+                }
+                //脉宽未设置时根据范围初始化显示 //GC20200331
+                if (!hasPulseWidth) {
+                    handler.postDelayed(() -> {
+                        setPulseWidth(80);
+                    }, 20);
+                    etPulseWidth.setText(String.valueOf(80));
+                }
+            } else if (localRange > 1000 && localRange <= 2000) {
+                range = (0x33);
+                gain = 10;
+                if (Constant.CurrentUnit == Constant.FT_UNIT) {
+                    tvRangeValue.setText(getResources().getString(R.string.btn_2km_to_yingli));
+                } else {
+                    tvRangeValue.setText(getResources().getString(R.string.btn_2km));
+                }
+                //脉宽未设置时根据范围初始化显示 //GC20200331
+                if (!hasPulseWidth) {
+                    handler.postDelayed(() -> {
+                        setPulseWidth(160);
+                    }, 20);
+                    etPulseWidth.setText(String.valueOf(160));
+                }
+            } else if (localRange > 2000 && localRange <= 4000) {
+                range = (0x44);
+                gain = 10;
+                if (Constant.CurrentUnit == Constant.FT_UNIT) {
+                    tvRangeValue.setText(getResources().getString(R.string.btn_4km_to_yingli));
+                } else {
+                    tvRangeValue.setText(getResources().getString(R.string.btn_4km));
+                }
+                //脉宽未设置时根据范围初始化显示 //GC20200331
+                if (!hasPulseWidth) {
+                    handler.postDelayed(() -> {
+                        setPulseWidth(320);
+                    }, 20);
+                    etPulseWidth.setText(String.valueOf(320));
+                }
+            } else if (localRange > 4000 && localRange <= 8000) {
+                range = (0x55);
+                gain = 10;
+                if (Constant.CurrentUnit == Constant.FT_UNIT) {
+                    tvRangeValue.setText(getResources().getString(R.string.btn_8km_to_yingli));
+                } else {
+                    tvRangeValue.setText(getResources().getString(R.string.btn_8km));
+                }
+                //脉宽未设置时根据范围初始化显示 //GC20200331
+                if (!hasPulseWidth) {
+                    handler.postDelayed(() -> {
+                        setPulseWidth(640);
+                    }, 20);
+                    etPulseWidth.setText(String.valueOf(640));
+                }
+            } else if (localRange > 8000 && localRange <= 16000) {
+                range = (0x66);
+                gain = 9;
+                if (Constant.CurrentUnit == Constant.FT_UNIT) {
+                    tvRangeValue.setText(getResources().getString(R.string.btn_16km_to_yingli));
+                } else {
+                    tvRangeValue.setText(getResources().getString(R.string.btn_16km));
+                }
+                //脉宽未设置时根据范围初始化显示 //GC20200331
+                if (!hasPulseWidth) {
+                    handler.postDelayed(() -> {
+                        setPulseWidth(1280);
+                    }, 20);
+                    etPulseWidth.setText(String.valueOf(1280));
+                }
+            } else if (localRange > 16000 && localRange <= 32000) {
+                range = (0x77);
+                gain = 9;
+                if (Constant.CurrentUnit == Constant.FT_UNIT) {
+                    tvRangeValue.setText(getResources().getString(R.string.btn_32km_to_yingli));
+                } else {
+                    tvRangeValue.setText(getResources().getString(R.string.btn_32km));
+                }
+                //脉宽未设置时根据范围初始化显示 //GC20200331
+                if (!hasPulseWidth) {
+                    handler.postDelayed(() -> {
+                        setPulseWidth(2560);
+                    }, 20);
+                    etPulseWidth.setText(String.valueOf(2560));
+                }
+            } else if (localRange > 32000) {
+                range = (0x88);
+                gain = 9;
+                if (Constant.CurrentUnit == Constant.FT_UNIT) {
+                    tvRangeValue.setText(getResources().getString(R.string.btn_64km_to_yingli));
+                } else {
+                    tvRangeValue.setText(getResources().getString(R.string.btn_64km));
+                }
+                //脉宽未设置时根据范围初始化显示 //GC20200331
+                if (!hasPulseWidth) {
+                    handler.postDelayed(() -> {
+                        setPulseWidth(5120);
+                    }, 20);
+                    etPulseWidth.setText(String.valueOf(5120));
+                }
+            }
+        } else {
+            //没有设置的距离
+            range = (0x11);
+            if (Constant.CurrentUnit == Constant.FT_UNIT) {
+                tvRangeValue.setText(getResources().getString(R.string.btn_500m_to_ft));
+            } else {
+                tvRangeValue.setText(getResources().getString(R.string.btn_500m));
+            }
+            //脉宽未设置时根据范围初始化显示 //GC20200331
+            if (!hasPulseWidth) {
+                handler.postDelayed(() -> {
+                    setPulseWidth(40);
+                }, 20);
+                etPulseWidth.setText(String.valueOf(40));
+            }
+        }
+        Constant.RangeValue = range;
+
+    }
+
+    /**
+     * 初始化界面框架
+     */
+    public void initFrame() {
+        Constant.ModeValue = TDR;
+        tvGainValue.setText(String.valueOf(gain));
+        Constant.Gain = gain;
+        velocity = getLocalValue();
+        setVelocity(velocity);
+        Constant.Velocity = velocity;
+        tvBalanceValue.setText(String.valueOf(balance));
+        tvZoomValue.setText("1 : " + density);
+        tvDelayValue.setText(delay + "μs");
+        //初始化距离显示
+        calculateDistance(Math.abs(pointDistance - zero));
+        //自动测距显示    //GC20190708
+        tvInformation.setVisibility(View.GONE);
+        //SIM光标位置初始化    //GC20190712
+        simZero = StateUtils.getInt(ModeActivity.this, AppConfig.CURRENT_CURSOR_POSITION, 12);
+        //GC20200330
+        simPosition = 12;
+        //测试缆信息添加    //GC20200103
+        leadLength = getLocalLength();
+        leadVop = getLocalVop();
+        //电量图标初始化 //GC20200314
+        if (batteryValue == 0) {
+            ivBatteryStatus.setImageResource(R.drawable.ic_battery_zero);
+        } else if (batteryValue == 1) {
+            ivBatteryStatus.setImageResource(R.drawable.ic_battery_one);
+        } else if (batteryValue == 2) {
+            ivBatteryStatus.setImageResource(R.drawable.ic_battery_two);
+        } else if (batteryValue == 3) {
+            ivBatteryStatus.setImageResource(R.drawable.ic_battery_three);
+        } else if (batteryValue == 4) {
+            ivBatteryStatus.setImageResource(R.drawable.ic_battery_four);
+        }
+
+    }
+
+    /**
+     * 监听虚光标位置变化
+     */
+    private void setChartListener() {
+        //波形下发区域拿出，做波形的左右滑动
+        fullWave.setScrubListener(new SparkView.OnScrubListener() {
+            @Override
+            public void onActionDown(Object x, float y) {
+                Log.e("【ActionDown】", "ActionDown:" + x + "/Y:" + y);
+                //手指按下记录位置
+                CurrentActionDownValue = (Integer) x;
+            }
+
+            @Override
+            public void onScrubbed(Object value, float y) {
+                //手触摸区域判断，值越小，波形滑动区域越大
+                if (y < 400) {
+                    if ((Integer) value <= 510) {
+                        //画虚光标
+                        fullWave.setScrubLineVirtual((Integer) value);
+                        //虚光标移动的点数  //GC20191218
+                        cursorMoveValue = (int) value - positionVirtual;
+                        Log.e("【虚光标】", "滑动开始：value:" + value + "/positionVirtual:" + positionVirtual + "/cursorMoveValue:" + cursorMoveValue + "/pointDistance" + pointDistance + "/zero:" + zero); //GN 数值变化0-509
+                        //在原始数据中的位置
+                        pointDistance = pointDistance + cursorMoveValue * density;
+                        Log.e("【虚光标】", "滑动中：value:" + value + "/positionVirtual:" + positionVirtual + "/cursorMoveValue:" + cursorMoveValue + "/pointDistance" + pointDistance + "/zero:" + zero); //GN 数值变化0-509
+                        //记忆移动后虚光标在画布中的位置
+                        positionVirtual = (int) value;
+                        int WaveDataStart = currentMoverPosition510 * dataLength / 510;
+                        Log.e("【虚光标】", "滑动结束：value:" + value + "/positionVirtual:" + positionVirtual + "/cursorMoveValue:" + cursorMoveValue + "/pointDistance" + pointDistance + "/zero:" + zero + "/WaveDataStart:" + WaveDataStart); //GN 数值变化0-509
+
+                        if (positionVirtual == 0 && zero == 0 && WaveDataStart < 510) {
+                            pointDistance = 0;
+                        }
+                        //距离显示
+                        calculateDistance(Math.abs(pointDistance - zero));
+                    }
+                } else {
+                    Log.e("【新滑块】", "value：" + value);
+                    Log.e("【新滑块】", "CurrentActionDownValue：" + CurrentActionDownValue);
+                    //计算手指滑动的距离
+                    moverMoveValue = (Integer) value - CurrentActionDownValue;
+                    Log.e("【新滑块】", "moverMoveValue：" + moverMoveValue);
+                    Log.e("【新滑块】", "前currentMoverPosition510：" + currentMoverPosition510);
+
+                    //滑块X位置
+                    currentMoverPosition510 = currentMoverPosition510 + moverMoveValue;
+                    //滑块x位置大于等于0且滑块X位置+滑块宽度不超过波形区域，则允许波形滑动。
+                    if (currentMoverPosition510 >= 0 && (currentMoverPosition510 + (mvWave.getWidth() * 510 / mvWave.getParentWidth())) <= 510 && density != densityMax) {
+                        Log.e("【新滑块】", "后currentMoverPosition510：" + currentMoverPosition510);
+
+                        //因当前波形是缩放时从某个点开始取的，因此滑块左侧的位置就是重新抽点的起始点，按照比例可以算出来
+                        organizeMoveWaveData(currentMoverPosition510 * dataLength / 510);
+                        //比对波形
+                        try {
+                            organizeCompareWaveData(currentMoverPosition510 * dataLength / 510);
+                        } catch (Exception l_Ex) {
+                        }
+                        Log.e("【滑块】", "currentMoverX:" + currentMoverPosition510 + "moverMoveValue：" + moverMoveValue);
+                        //重新绘制波形
+                        displayWave();
+                        //滑块移动时变换虚光标位置
+                        positionVirtual = positionVirtual - moverMoveValue * (densityMax / density);
+                        //滑块移动时变换实光标位置
+                        positionReal = positionReal - moverMoveValue * (densityMax / density);
+                        //滑块移动时变换紫色实光标位置    //GC20200330
+                        positionSim = positionSim - moverMoveValue * (densityMax / density);
+
+                        //重新设置当前的滑块左侧位置数值
+                        //重新定位实光标
+                        if (positionReal > 0 && positionReal <= 510) {
+                            fullWave.setScrubLineReal(positionReal);
+                        } else {
+                            fullWave.setScrubLineRealDisappear();
+                        }
+
+                        //重新定位紫色实光标    //GC20200330
+                        if (positionSim > 0 && positionSim <= 510) {
+                            fullWave.setScrubLineSim(positionSim);
+                        } else {
+                            fullWave.setScrubLineSimDisappear();
+                        }
+
+                        //重新定位虚光标
+                        if (positionVirtual >= 0 && positionVirtual <= 510) {
+                            fullWave.setScrubLineVirtual(positionVirtual);
+                        } else {
+                            fullWave.setScrubLineVirtualDisappear();
+                        }
+
+                        if (zero == 0 & currentMoverPosition510 == 0) {
+                            fullWave.setScrubLineReal(0);
+                        }
+
+                        //手指拖动时关联移动滑块到指定位置
+                        int moverPositon;
+                        moverPositon = mvWave.getParentWidth() * currentMoverPosition510 / 510;
+                        setMoverPostion(moverPositon);
+                    } else {
+                        currentMoverPosition510 = currentMoverPosition510 - moverMoveValue;
+                    }
+                    CurrentActionDownValue = (Integer) value;
+                }
+
+            }
+        });
+    }
+
+    //初始化模式
+    private void initMode() {
+        switch (mode) {
+            case TDR:
+                initTDRView();
+                break;
+            case ICM:
+                initICMSURGEView();
+                break;
+            case ICM_DECAY:
+                initICMDECAYView();
+                break;
+            case SIM:
+                initSIMView();
+                break;
+            case DECAY:
+                initDecayView();
+                break;
+            default:
+                break;
+        }
+    }
+
+    /**
+     * 初始化广播接收器
+     */
+    private void initBroadcastReceiver() {
+        IntentFilter ifDisplay = new IntentFilter();
+        ifDisplay.addAction(BROADCAST_ACTION_DEVICE_CONNECTED);
+        ifDisplay.addAction(BROADCAST_ACTION_DEVICE_CONNECT_FAILURE);
+        ifDisplay.addAction(BROADCAST_ACTION_DOWIFI_COMMAND);
+        ifDisplay.addAction(BROADCAST_ACTION_DOWIFI_WAVE);
+        ifDisplay.addAction(DISPLAY_ACTION);
+        registerReceiver(receiver, ifDisplay);
+        //判断服务里连接状态，如果已经连接，则发送广播，改变连接状态
+        if (ConnectService.isConnected) {
+            Intent intent = new Intent(BROADCAST_ACTION_DEVICE_CONNECTED);
+            sendBroadcast(intent);
+        }
+    }
+
+    /**
+     * 监听广播并做相应处理
+     */
+    private BroadcastReceiver receiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            //G?? 作用是啥
+            handler.sendEmptyMessage(intent.getIntExtra("display_action", 0));
+
+            String action = intent.getAction();
+            assert action != null;
+            switch (action) {
+                case BROADCAST_ACTION_DEVICE_CONNECTED:
+                    Log.e("ModeActivity", "连接成功");
+                    //网络连接，更换网络图标   //GC20200325
+                    ConnectService.isConnected = true;
+                    ivWifiStatus.setImageResource(R.drawable.ic_wifi_connected);
+                    //重连有对话框消对话框    //GC20200319
+                    if (tDialog != null) {
+                        tDialog.dismiss();
+                        Log.e("DIA", "重连先取消对话框");
+                    }
+                    //如果网络连接后于读取本地波形数据，则再网络连接时设置读出的几个参数。
+                    if (!isReceiveData || isDatabase) {
+                        setModeNoCmd(Constant.Para[0]);
+                        setRangeNoCmd(Constant.Para[1]);
+                        setGain(Constant.Para[2]);
+                        setVelocityNoCmd(Constant.Para[3]);
+                    } else {
+                        //第一次连接设备初始化
+                        //方式
+                        setMode(mode);
+                        handler.postDelayed(() -> {
+                            //范围
+                            setRange(range);
+                        }, 20);
+                        handler.postDelayed(() -> {
+                            //增益
+                            setGain(gain);
+                        }, 20);
+                        handler.postDelayed(() -> {
+                            //脉宽  //GC20200331
+                            setPulseWidth(pulseWidth);
+                        }, 20);
+                        handler.postDelayed(() -> {
+                            //延时0
+                            setDelay(0);
+                        }, 20);
+                        //延时100毫秒发送测试命令，100毫秒是等待设备回复命令信息，如果不延时，有可能设备执行不完命令。
+                        handler.postDelayed(ModeActivity.this::clickTest, 100);
+                    }
+                    break;
+                case BROADCAST_ACTION_DEVICE_CONNECT_FAILURE:
+                    //网络断开，更换网络图标、电量图标
+                    ConnectService.isConnected = false;
+                    ivWifiStatus.setImageResource(R.drawable.ic_no_wifi_connect);
+                    ivBatteryStatus.setImageResource(R.drawable.ic_battery_no);
+                    break;
+                case BROADCAST_ACTION_DOWIFI_COMMAND:
+                    //处理获取到的命令数据
+                    wifiStream = intent.getIntArrayExtra(INTENT_KEY_COMMAND);
+                    assert wifiStream != null;
+                    doWifiCommand(wifiStream);
+                    break;
+                case BROADCAST_ACTION_DOWIFI_WAVE:
+                    //64公里波形数据过大，正常的广播无法传递，改成全局变量。
+                    //int[] wifiStreamNew = ConnectService.mExtra;
+                    //wifiStream = ConnectService.mExtra;
+                    //assert wifiStreamNew != null;
+                    int[] wifiStreamNew = intent.getIntArrayExtra(INTENT_KEY_WAVE);
+                    if (wifiStreamNew[3] == WAVE_SIM || wifiStreamNew[3] == WAVE_TDR_ICM_DECAY) {
+                        setWaveParameter();
+                    }
+                    Message message = Message.obtain();
+                    message.what = ModeActivity.DO_WAVE;
+                    Bundle bundle = new Bundle();
+                    bundle.putIntArray("WAVE", wifiStreamNew);
+                    message.setData(bundle);
+                    handler.sendMessage(message);
+                    break;
+                default:
+                    break;
+            }
+
+        }
+
+    };
 
     public Handler handler = new Handler(msg -> {
         switch (msg.what) {
-            //设备连接
-            case DEVICE_CONNECT:
-                ivWifiStatus.setImageResource(R.drawable.ic_wifi_connected);
-                break;
             case DO_WAVE:
                 int[] wifiStreamNew = msg.getData().getIntArray("WAVE");
-                assert wifiStream != null;
+                assert wifiStreamNew != null;
                 doWifiWave(wifiStreamNew);
                 break;
-            case ORGNIZE_WAVE:
+            case ORGANIZE_WAVE:
                 if (density < densityMax) {
                     organizeNormalWaveData();
                 } else {
@@ -273,13 +939,105 @@ public class ModeActivity extends BaseActivity {
         return false;
     });
 
-    private boolean alreadyDisplayWave;
+    /**
+     * wdx 20191218 波宽度属性值初始化
+     */
+    private void initPulseWidth() {
+        ParamInfo paramInfo = (ParamInfo) StateUtils.getObject(ModeActivity.this, Constant.PULSE_WIDTH_INFO_KEY);
+        if (paramInfo != null) {
+            pulseWidth = paramInfo.getPulseWidth();
+            etPulseWidth.setText(String.valueOf(pulseWidth));
+            //GC20200331
+            hasPulseWidth = true;
+        }
+
+        etPulseWidth.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                if (!TextUtils.isEmpty(s.toString())) {
+                    int pulseWidth = Integer.parseInt(s.toString());
+                    int maxPulseWidth = 7000;
+                    if (pulseWidth > maxPulseWidth) {
+                        Toast.makeText(ModeActivity.this, getResources().getString(R.string
+                                .maxpulsewidth), Toast.LENGTH_SHORT).show();
+                        etPulseWidth.setText(maxPulseWidth + "");
+                    }
+                }
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+
+            }
+        });
+
+    }
+
+    //读取本地存储的波速度信息，默认为172，计算距离时要求是米单位，所以如果数据库里存的是英尺数，应该转换为米数。
+    private double getLocalValue() {
+        double vopValue = 172;
+        ParamInfo paramInfo = (ParamInfo) StateUtils.getObject(ModeActivity.this, Constant.PARAM_INFO_KEY);
+        if (paramInfo != null) {
+            if (paramInfo.getCableVop() != null && !TextUtils.isEmpty(paramInfo.getCableVop())) {
+                if (Constant.CurrentSaveUnit == MI_UNIT) {
+                    vopValue = Double.valueOf(paramInfo.getCableVop());
+                } else {
+                    vopValue = Double.valueOf(UnitUtils.ftToMi(Double.valueOf(paramInfo.getCableVop())));
+                }
+            }
+        }
+        if (vopValue == 0 || vopValue == 0.0) {
+            vopValue = 172;
+        }
+        return vopValue;
+    }
+
+    /**
+     * 读取本地存储的测试缆状态
+     */
+    private double getLocalLength() {
+        ParamInfo paramInfo = (ParamInfo) StateUtils.getObject(ModeActivity.this, Constant.PARAM_INFO_KEY);
+        if (paramInfo != null) {
+            if (paramInfo.getLength() != null && !TextUtils.isEmpty(paramInfo.getLength())) {
+                if (Constant.CurrentSaveUnit == MI_UNIT) {
+                    leadLength = Double.valueOf(paramInfo.getLength());
+                } else {
+                    leadLength = Double.valueOf(UnitUtils.ftToMi(Double.valueOf(paramInfo.getLength())));
+                }
+            }
+        }
+        return leadLength;
+    }
+
+    /**
+     * 读取本地存储的测试缆状态
+     */
+    private double getLocalVop() {
+        ParamInfo paramInfo = (ParamInfo) StateUtils.getObject(ModeActivity.this, Constant.PARAM_INFO_KEY);
+        if (paramInfo != null) {
+            if (paramInfo.getVop() != null && !TextUtils.isEmpty(paramInfo.getVop())) {
+                if (Constant.CurrentSaveUnit == MI_UNIT) {
+                    leadVop = Double.valueOf(paramInfo.getVop());
+                } else {
+                    leadVop = Double.valueOf(UnitUtils.ftToMi(Double.valueOf(paramInfo.getVop())));
+                }
+            }
+        }
+        if (leadVop == 0 || leadVop == 0.0) {
+            leadVop = 172;
+        }
+        return leadVop;
+    }
 
     /**
      * 相同范围下点测试获取新波形数据
      */
     private void organizeNormalWaveData() {
-
         for (int i = currentMoverPosition510 * dataLength / 510, j = 0; j < 510; i = i + density, j++) {
             //组织TDR、ICM、ICM_DECAY、DECAY和SIM的第一条波形的数据
             waveDraw[j] = Constant.WaveData[i + index];
@@ -299,713 +1057,6 @@ public class ModeActivity extends BaseActivity {
             }
         }
     }
-
-    @BindView(R.id.tv_balance_text)
-    TextView tvBalanceText;
-    @BindView(R.id.tv_balance_space)
-    TextView tvBalanceSpace;
-    @BindView(R.id.iv_close_trigger_delay)
-    ImageView ivCloseTriggerDelay;
-    @BindView(R.id.tv_delay_space)
-    TextView tvDelaySpace;
-    @BindView(R.id.tv_wave_text)
-    TextView tvWaveText;
-    @BindView(R.id.tv_wave_value)
-    TextView tvWaveValue;
-    @BindView(R.id.tv_wave_space)
-    TextView tvWaveSpace;
-    @BindView(R.id.view_move_vertical_wave)
-    MoveWaveView viewMoveVerticalWave;
-    @BindView(R.id.tv_wave_pre)
-    ImageView tvWavePre;
-    @BindView(R.id.tv_wave_next)
-    ImageView tvWaveNext;
-    @BindView(R.id.tv_icm)
-    TextView tvIcm;
-    @BindView(R.id.tv_distance_unit)
-    TextView tvDistanceUnit;
-    @BindView(R.id.rl_wave)
-    RelativeLayout rlWave;
-    @BindView(R.id.tv_vop_unit)
-    TextView tvVopUnit;
-    @BindView(R.id.mv_wave)
-    MoveView mvWave;
-    @BindView(R.id.tv_cable_vop_unit)
-    TextView tvCableVopUnit;
-    @BindView(R.id.tv_pulse_width_save)
-    ImageView tvPulseWidthSave;
-    @BindView(R.id.ll_horizontal_view)
-    LinearLayout llHorizontalView;
-
-    //设置是否需要进入页面接收数据，此处是为了适配从主页面展示波形时重复接收数据
-    private boolean isReceiveData = true;
-    //判断读取本地数据，网络连接后是否已经发送了初始化命令
-    private boolean readLocalDataSendCmd = false;
-    private int localRangeCommend;
-    private int index;
-    private int modeIntent;
-    //计算滑动时的基数
-    private int fenzi1;
-    //初始化滑块位置
-    private int fenzi2;
-    private int CurrentActionDownValue = 0;
-
-
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_mode);
-        ButterKnife.bind(this);
-
-        alreadyDisplayWave = false;
-        modeIntent = getIntent().getIntExtra(MODE_KEY, 0);
-        mode = getIntent().getIntExtra(MODE_KEY, 0);
-        isReceiveData = getIntent().getBooleanExtra("isReceiveData", true);
-        initUnit();
-        initSparkView();
-        initViewMoveWave();
-        initBtnRangeView();
-        //20191217将获取设置中范围的函数调整到上方，用于读取设置中的位置
-        initRange();
-        initFrame();
-        setChartListener();
-        initMode();
-        initBroadcastReceiver();
-        //从主页中显示的本地数据，发送广播处理。
-        if (getIntent().getIntExtra("display_action", 0) == DISPLAY_DATABASE) {
-            isReceiveData = false;
-            Intent intent = new Intent(DISPLAY_ACTION);
-            intent.putExtra("display_action", ModeActivity.DISPLAY_DATABASE);
-            sendBroadcast(intent);
-        }
-        //读取上次保存的脉宽。
-        initPulseWidth();
-
-    }
-
-    /**
-     * 计量单位初始化 (m ft)
-     */
-    private void initUnit() {
-        Constant.CurrentUnit = StateUtils.getInt(ModeActivity.this, AppConfig.CURRENT_UNIT, Constant.MiUnit);
-        Constant.CurrentSaveUnit = StateUtils.getInt(ModeActivity.this, AppConfig.CURRENT_SAVE_UNIT, Constant.MiUnit);
-        if (Constant.CurrentUnit == Constant.MiUnit) {
-            tvDistanceUnit.setText(R.string.mi);
-            tvVopUnit.setText(R.string.mius);
-        } else {
-            tvDistanceUnit.setText(R.string.ft);
-            tvVopUnit.setText(R.string.ftus);
-        }
-    }
-
-    /**
-     * 初始化sparkView //GC20181227
-     */
-    public void initSparkView() {
-        for (int i = 0; i < 510; i++) {
-            waveArray[i] = 128;
-            //Constant.WaveData[i] = 128;
-        }
-        myChartAdapterMainWave = new MyChartAdapterBase(waveArray, null,
-                false, 0, false, dataMax);
-        myChartAdapterFullWave = new MyChartAdapterBase(waveArray, null,
-                false, 0, false, dataMax);
-        fullWave.setAdapter(myChartAdapterMainWave);
-        setMoveView();
-//        fullWave.setAdapter(myChartAdapterFullWave);
-        Log.i("Draw", "初始化绘制结束");
-        //初始化光标按钮颜色
-//        btnCursor.setTextColor(ContextCompat.getColor(ModeActivity.this, R.color.T_purple));
-    }
-
-    int moverMoveValue = 0;
-    //当前滑块左侧在510个点的数值
-    int currentMoverPosition510 = 0;
-
-    /**
-     * 初始化波形移动监听事件
-     */
-    private void initViewMoveWave() {
-
-        viewMoveVerticalWave.setViewMoveWaveListener(new MoveWaveView.ViewMoveWaveListener() {
-            @Override
-            public void onMoved(float x, float y) {
-                //上下移动波形
-                fullWave.setSparkViewMove(y);
-                Log.e("ModeActivity", y + "");
-            }
-
-            @Override
-            public void onMoveEnded() {
-
-            }
-        });
-        fenzi1 = (dataLength / (densityMax / density)) - 510;
-
-//        mvWave.setViewMoveSizeChangedListener(new MoveView.ViewMoveSizeChangedListener() {
-//            @Override
-//            public void onSizeChanged() {
-//                fenzi2 = positionVirtual * mvWave.getParentWidth() / 510;
-//                //移动滑块位置
-//                if (fenzi1 != 0) {
-//                    setHorizontalMoveViewPosition(positionVirtual * mvWave.getParentWidth() / fenzi1);
-//                }
-//            }
-//        });
-
-        mvWave.setViewMoveWaveListener(new MoveView.ViewMoveWaveListener() {
-
-            @Override
-            public void onMoved(float x) {
-                //int moveRange = mvWave.getParentWidth() - mvWave.getWidth();
-                //int position = (int) (fenzi1 * x / moveRange);
-                Log.e("【滑块】", "当前X：" + x + "/长度：" + mvWave.getParentWidth() + "/510Value:" + get510Value(x, mvWave.getParentWidth()));
-                //滑块X在510个点中的位置
-                int currentMoverX = get510Value(x, mvWave.getParentWidth());
-                //计算滑块移动的数值，在波形框宽度510中的对应数值
-                moverMoveValue = currentMoverX - currentMoverPosition510;
-                //因当前波形是缩放时从某个点开始取的，因此滑块左侧的位置就是重新抽点的起始点，按照比例可以算出来
-                organizeMoveWaveData(currentMoverX * dataLength / 510);
-                //比对波形
-                try {
-                    organizeCompareWaveData(currentMoverX * dataLength / 510);
-                } catch (Exception l_Ex) {
-                }
-                Log.e("【滑块】", "currentMoverX:" + currentMoverX + "moverMoveValue：" + moverMoveValue);
-                //重新绘制波形
-                displayWave();
-/*                int movePositionReal = (zero - (currentMoverX * dataLength / 510)) / density;
-                int movePositionVirtual = (pointDistance - (currentMoverX * dataLength / 510)) / density;
-                //int movePositionReal = (510 * (zero - (currentMoverX * dataLength / 510)) / (dataLength - (currentMoverX * dataLength / 510))) / density;
-                //int movePositionVirtual = (510 * (pointDistance - (currentMoverX * dataLength / 510)) / (dataLength - (currentMoverX * dataLength / 510))) / density;
-                if (movePositionReal >= 0)
-                    fullWave.setScrubLineReal(movePositionReal);
-                else
-                    fullWave.setScrubLineRealDisappear();
-
-                if (movePositionVirtual >= 0)
-                    fullWave.setScrubLineVirtual(movePositionVirtual);
-                else
-                    fullWave.setScrubLineVirtualDisappear();*/
-
-                //滑块移动时变换虚光标位置
-                positionVirtual = positionVirtual - moverMoveValue * (densityMax / density);
-                //滑块移动时变换实光标位置
-                positionReal = positionReal - moverMoveValue * (densityMax / density);
-
-                //重新设置当前的滑块左侧位置数值
-                //重新定位实光标
-                if (positionReal > 0 && positionReal <= 510) {
-                    fullWave.setScrubLineReal(positionReal);
-                } else {
-                    fullWave.setScrubLineRealDisappear();
-                }
-
-                //重新定位虚光标
-                if (positionVirtual >= 0 && positionVirtual <= 510) {
-                    fullWave.setScrubLineVirtual(positionVirtual);
-                } else {
-                    fullWave.setScrubLineVirtualDisappear();
-                }
-
-                //如果零点为0，而且当前绘制波形的起点也是0，说明波形在最左侧，需要在0位置显示实光标。
-                if (zero == 0 & currentMoverPosition510 == 0) {
-                    fullWave.setScrubLineReal(0);
-                }
-
-                //重新赋值当前波形的绘制起始位置
-                currentMoverPosition510 = currentMoverX;
-                if (zero == 0 & currentMoverPosition510 == 0) {
-                    fullWave.setScrubLineReal(0);
-                }
-                Log.e("【光标参数】", "positionReal：" + positionReal + "/zero:" + zero + "/positionVirtual:" + positionVirtual + "/pointDistance:" + pointDistance + "/MoverPosition:" + (currentMoverX * dataLength / 510));
-
-            }
-        });
-
-    }
-
-    /**
-     * 初始化英尺状态下范围按钮文字
-     */
-    private void initBtnRangeView() {
-        if (Constant.CurrentUnit == Constant.FtUnit) {
-            tv250m.setText(getResources().getString(R.string.btn_250m_to_ft));
-            tv500m.setText(getResources().getString(R.string.btn_500m_to_ft));
-            tv1km.setText(getResources().getString(R.string.btn_1km_to_yingli));
-            tv2km.setText(getResources().getString(R.string.btn_2km_to_yingli));
-            tv4km.setText(getResources().getString(R.string.btn_4km_to_yingli));
-            tv8km.setText(getResources().getString(R.string.btn_8km_to_yingli));
-            tv16km.setText(getResources().getString(R.string.btn_16km_to_yingli));
-            tv32km.setText(getResources().getString(R.string.btn_32km_to_yingli));
-            tv64km.setText(getResources().getString(R.string.btn_64km_to_yingli));
-        }
-    }
-
-    /**
-     * 读取主页设置中存储的范围数据，并初始化
-     */
-    private void initRange() {
-        ParamInfo paramInfo = (ParamInfo) StateUtils.getObject(ModeActivity.this, Constant.PARAM_INFO_KEY);
-        double localRange = 500;
-        if (paramInfo != null && paramInfo.getCableLength() != null && !TextUtils.isEmpty(paramInfo.getCableLength())) {
-            localRange = Double.valueOf(paramInfo.getCableLength());
-            //如果数据库里存的是英尺值则转换为米
-            if (Constant.CurrentSaveUnit == FtUnit)
-                localRange = Double.valueOf(UnitUtils.ftToMi(localRange));
-
-            if (localRange == 0.0 || localRange == 0) {
-                range = (0x11);
-                gain = 13;
-                if (Constant.CurrentUnit == Constant.FtUnit)
-                    tvRangeValue.setText(getResources().getString(R.string.btn_500m_to_ft));
-                else
-                    tvRangeValue.setText(getResources().getString(R.string.btn_500m));
-            } else if (localRange <= 250) {
-                range = (0x99);
-                gain = 13;
-                if (Constant.CurrentUnit == Constant.FtUnit)
-                    tvRangeValue.setText(getResources().getString(R.string.btn_250m_to_ft));
-                else
-                    tvRangeValue.setText(getResources().getString(R.string.btn_250m));
-            } else if (localRange > 250 && localRange <= 500) {
-                range = (0x11);
-                gain = 13;
-                if (Constant.CurrentUnit == Constant.FtUnit)
-                    tvRangeValue.setText(getResources().getString(R.string.btn_500m_to_ft));
-                else
-                    tvRangeValue.setText(getResources().getString(R.string.btn_500m));
-            } else if (localRange > 500 && localRange <= 1000) {
-                range = (0x22);
-                gain = 13;
-                if (Constant.CurrentUnit == Constant.FtUnit)
-                    tvRangeValue.setText(getResources().getString(R.string.btn_1km_to_yingli));
-                else
-                    tvRangeValue.setText(getResources().getString(R.string.btn_1km));
-            } else if (localRange > 1000 && localRange <= 2000) {
-                range = (0x33);
-                gain = 10;
-                if (Constant.CurrentUnit == Constant.FtUnit)
-                    tvRangeValue.setText(getResources().getString(R.string.btn_2km_to_yingli));
-                else
-                    tvRangeValue.setText(getResources().getString(R.string.btn_2km));
-            } else if (localRange > 2000 && localRange <= 4000) {
-                range = (0x44);
-                gain = 10;
-                if (Constant.CurrentUnit == Constant.FtUnit)
-                    tvRangeValue.setText(getResources().getString(R.string.btn_4km_to_yingli));
-                else
-                    tvRangeValue.setText(getResources().getString(R.string.btn_4km));
-            } else if (localRange > 4000 && localRange <= 8000) {
-                range = (0x55);
-                gain = 10;
-                if (Constant.CurrentUnit == Constant.FtUnit)
-                    tvRangeValue.setText(getResources().getString(R.string.btn_8km_to_yingli));
-                else
-                    tvRangeValue.setText(getResources().getString(R.string.btn_8km));
-            } else if (localRange > 8000 && localRange <= 16000) {
-                range = (0x66);
-                gain = 9;
-                if (Constant.CurrentUnit == Constant.FtUnit)
-                    tvRangeValue.setText(getResources().getString(R.string.btn_16km_to_yingli));
-                else
-                    tvRangeValue.setText(getResources().getString(R.string.btn_16km));
-            } else if (localRange > 16000 && localRange <= 32000) {
-                range = (0x77);
-                gain = 9;
-
-                if (Constant.CurrentUnit == Constant.FtUnit)
-                    tvRangeValue.setText(getResources().getString(R.string.btn_32km_to_yingli));
-                else
-                    tvRangeValue.setText(getResources().getString(R.string.btn_32km));
-            } else if (localRange > 32000) {
-                range = (0x88);
-                gain = 9;
-
-                if (Constant.CurrentUnit == Constant.FtUnit)
-                    tvRangeValue.setText(getResources().getString(R.string.btn_64km_to_yingli));
-                else
-                    tvRangeValue.setText(getResources().getString(R.string.btn_64km));
-            }
-        } else {
-            range = (0x11);
-            if (Constant.CurrentUnit == Constant.FtUnit)
-                tvRangeValue.setText(getResources().getString(R.string.btn_500m_to_ft));
-            else
-                tvRangeValue.setText(getResources().getString(R.string.btn_500m));
-        }
-        Constant.RangeValue = range;
-
-    }
-
-    /**
-     * 初始化界面框架
-     */
-    public void initFrame() {
-        Constant.ModeValue = TDR;
-        //Constant.RangeValue = 0x11;
-        //setRange(0x11);
-        tvGainValue.setText(String.valueOf(gain));
-        Constant.Gain = gain;
-        velocity = getLocalValue();
-        setVelocity(velocity);
-        Constant.Velocity = velocity;
-        tvBalanceValue.setText(String.valueOf(balance));
-        tvZoomValue.setText("1 : " + density);
-        tvDelayValue.setText(delay + "μs");
-        //初始化距离显示
-        calculateDistance(Math.abs(pointDistance - zero));
-        //自动测距显示    //GC20190708
-        tvInformation.setVisibility(View.GONE);
-        //SIM光标位置初始化    //GC20190712
-        simZero = StateUtils.getInt(ModeActivity.this, AppConfig.CURRENT_CURSOR_POSITION, 12);
-        //测试缆信息添加    //GC20200103
-        leadLength = getLocalLength();
-        leadVop = getLocalVop();
-        //GC20200314    电量获取显示修改
-        if (batteryValue == 0) {
-            ivBatteryStatus.setImageResource(R.drawable.ic_battery_zero);
-        } else if (batteryValue == 1) {
-            ivBatteryStatus.setImageResource(R.drawable.ic_battery_one);
-        } else if (batteryValue == 2) {
-            ivBatteryStatus.setImageResource(R.drawable.ic_battery_two);
-        } else if (batteryValue == 3) {
-            ivBatteryStatus.setImageResource(R.drawable.ic_battery_three);
-        } else if (batteryValue == 4) {
-            ivBatteryStatus.setImageResource(R.drawable.ic_battery_four);
-        }
-
-    }
-
-    /**
-     * 监听虚光标位置变化
-     */
-    int currentWaveXValue = 0;
-    private void setChartListener() {
-        //波形下发区域拿出，做波形的左右滑动
-        fullWave.setScrubListener(new SparkView.OnScrubListener() {
-            @Override
-            public void onActionDown(Object x, float y) {
-                Log.e("【ActionDown】", "ActionDown:" + x + "/Y:" + y);
-                //手指按下记录位置
-                CurrentActionDownValue = (Integer) x;
-            }
-
-            @Override
-            public void onScrubbed(Object value, float y) {
-                //手触摸区域判断，值越小，波形滑动区域越大
-                if (y < 400) {
-
-                    if ((Integer) value <= 510) {
-                        //画虚光标
-                        fullWave.setScrubLineVirtual((Integer) value);
-                        //虚光标移动的点数  //GC20191218
-                        cusorMoveValue = (int) value - positionVirtual;
-                        Log.e("【虚光标】", "滑动开始：value:" + value + "/positionVirtual:" + positionVirtual + "/cusorMoveValue:" + cusorMoveValue + "/pointDistance" + pointDistance + "/zero:" + zero); //GN 数值变化0-509
-                        //在原始数据中的位置
-                        pointDistance = pointDistance + cusorMoveValue * density;
-                        Log.e("【虚光标】", "滑动中：value:" + value + "/positionVirtual:" + positionVirtual + "/cusorMoveValue:" + cusorMoveValue + "/pointDistance" + pointDistance + "/zero:" + zero); //GN 数值变化0-509
-                        //记忆移动后虚光标在画布中的位置
-                        positionVirtual = (int) value;
-                        int WaveDataStart = currentMoverPosition510 * dataLength / 510;
-                        Log.e("【虚光标】", "滑动结束：value:" + value + "/positionVirtual:" + positionVirtual + "/cusorMoveValue:" + cusorMoveValue + "/pointDistance" + pointDistance + "/zero:" + zero + "/WaveDataStart:" + WaveDataStart); //GN 数值变化0-509
-
-                        if (positionVirtual == 0 && zero == 0 && WaveDataStart < 510)
-                            pointDistance = 0;
-                        //距离显示
-                        calculateDistance(Math.abs(pointDistance - zero));
-                    }
-                } else {
-                    Log.e("【新滑块】", "value：" + value);
-                    Log.e("【新滑块】", "CurrentActionDownValue：" + CurrentActionDownValue);
-                    //计算手指滑动的距离
-                    moverMoveValue = (Integer) value - CurrentActionDownValue;
-                    Log.e("【新滑块】", "moverMoveValue：" + moverMoveValue);
-                    Log.e("【新滑块】", "前currentMoverPosition510：" + currentMoverPosition510);
-
-                    //滑块X位置
-                    currentMoverPosition510 = currentMoverPosition510 + moverMoveValue;
-
-                    //滑块x位置大于等于0且滑块X位置+滑块宽度不超过波形区域，则允许波形滑动。
-                    if (currentMoverPosition510 >= 0 && (currentMoverPosition510 + (mvWave.getWidth() * 510 / mvWave.getParentWidth())) <= 510 && density != densityMax) {
-                        Log.e("【新滑块】", "后currentMoverPosition510：" + currentMoverPosition510);
-
-                        //因当前波形是缩放时从某个点开始取的，因此滑块左侧的位置就是重新抽点的起始点，按照比例可以算出来
-                        organizeMoveWaveData(currentMoverPosition510 * dataLength / 510);
-                        //比对波形
-                        try {
-                            organizeCompareWaveData(currentMoverPosition510 * dataLength / 510);
-                        } catch (Exception l_Ex) {
-                        }
-                        Log.e("【滑块】", "currentMoverX:" + currentMoverPosition510 + "moverMoveValue：" + moverMoveValue);
-                        //重新绘制波形
-                        displayWave();
-                        //滑块移动时变换虚光标位置
-                        positionVirtual = positionVirtual - moverMoveValue * (densityMax / density);
-                        //滑块移动时变换实光标位置
-                        positionReal = positionReal - moverMoveValue * (densityMax / density);
-
-                        //重新设置当前的滑块左侧位置数值
-
-                        //重新定位实光标
-                        if (positionReal > 0 && positionReal <= 510)
-                            fullWave.setScrubLineReal(positionReal);
-                        else {
-                            fullWave.setScrubLineRealDisappear();
-                        }
-
-
-                        //重新定位虚光标
-                        if (positionVirtual >= 0 && positionVirtual <= 510)
-                            fullWave.setScrubLineVirtual(positionVirtual);
-                        else {
-                            fullWave.setScrubLineVirtualDisappear();
-                        }
-
-                        if (zero == 0 & currentMoverPosition510 == 0)
-                            fullWave.setScrubLineReal(0);
-
-                        //手指拖动时关联移动滑块到指定位置
-                        int moverPositon;
-                        moverPositon = mvWave.getParentWidth() * currentMoverPosition510 / 510;
-                        setMoverPostion(moverPositon);
-                    } else
-                        currentMoverPosition510 = currentMoverPosition510 - moverMoveValue;
-
-                    CurrentActionDownValue = (Integer) value;
-                }
-
-            }
-        });
-       /* fullWave.setScrubListener(value -> {
-
-
-        });*/
-    }
-
-    //初始化模式
-    private void initMode() {
-        switch (mode) {
-            case TDR:
-                initTDRView();
-                break;
-            case ICM:
-                initICMSURGEView();
-                break;
-            case ICM_DECAY:
-                initICMDECAYView();
-                break;
-            case SIM:
-                initSIMView();
-                break;
-            case DECAY:
-                initDecayView();
-                break;
-            default:
-                break;
-        }
-    }
-
-    /**
-     * 初始化wifi监听广播
-     */
-    private void initBroadcastReceiver() {
-        IntentFilter ifDisplay = new IntentFilter();
-        ifDisplay.addAction(DISPLAY_ACTION);
-        ifDisplay.addAction(BROADCAST_ACTION_DOWIFI_COMMAND);
-        ifDisplay.addAction(BROADCAST_ACTION_DEVICE_CONNECT_FAILURE);
-        ifDisplay.addAction(BROADCAST_ACTION_DOWIFI_WAVE);
-        ifDisplay.addAction(BROADCAST_ACTION_DEVICE_CONNECTED);
-        registerReceiver(receiver, ifDisplay);
-        //如果跳转之前在MainActivity就已经连接设备需要重新发送连接成功广播
-        /*if (ConnectService.isConnected && isReceiveData) {
-            Intent intent = new Intent(BROADCAST_ACTION_DEVICE_CONNECTED);
-            sendBroadcast(intent);
-        }*/
-        //TODO 20191222 修改为接收数据和读取本地数据都重发广播
-        if (ConnectService.isConnected) {
-            Intent intent = new Intent(BROADCAST_ACTION_DEVICE_CONNECTED);
-            sendBroadcast(intent);
-        }
-    }
-
-    //TODO wdx 20191218 波宽度属性值初始化
-    /**
-     * 波宽度属性值初始化
-     */
-    private void initPulseWidth() {
-        ParamInfo paramInfo = (ParamInfo) StateUtils.getObject(ModeActivity.this, Constant.PULSE_WIDTH_INFO_KEY);
-        if (paramInfo != null) {
-            pulseWidth = paramInfo.getPulseWidth();
-            etPulseWidth.setText(String.valueOf(pulseWidth));
-        }
-        etPulseWidth.addTextChangedListener(new TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-
-            }
-
-            @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {
-                if (!TextUtils.isEmpty(s.toString())) {
-                    int pulsewidth = Integer.parseInt(s.toString());
-                    int maxPulsewidth = 7000;
-                    if (pulsewidth > maxPulsewidth) {
-                        Toast.makeText(ModeActivity.this, getResources().getString(R.string
-                                .maxpulsewidth), Toast.LENGTH_SHORT).show();
-                        etPulseWidth.setText(maxPulsewidth + "");
-                    }
-                }
-            }
-
-            @Override
-            public void afterTextChanged(Editable s) {
-
-            }
-        });
-
-    }
-
-    //读取本地存储的波速度信息，默认为172，计算距离时要求是米单位，所以如果数据库里存的是英尺数，应该转换为米数。
-    private double getLocalValue() {
-        double vopValue = 172;
-        ParamInfo paramInfo = (ParamInfo) StateUtils.getObject(ModeActivity.this, Constant.PARAM_INFO_KEY);
-        if (paramInfo != null) {
-            if (paramInfo.getCableVop() != null && !TextUtils.isEmpty(paramInfo.getCableVop())) {
-                if (Constant.CurrentSaveUnit == MiUnit)
-                    vopValue = Double.valueOf(paramInfo.getCableVop());
-                else
-                    vopValue = Double.valueOf(UnitUtils.ftToMi(Double.valueOf(paramInfo.getCableVop())));
-            }
-        }
-        if (vopValue == 0 || vopValue == 0.0)
-            vopValue = 172;
-        return vopValue;
-    }
-
-    /**
-     * 读取本地存储的测试缆状态
-     */
-    private double getLocalLength() {
-        ParamInfo paramInfo = (ParamInfo) StateUtils.getObject(ModeActivity.this, Constant.PARAM_INFO_KEY);
-        if (paramInfo != null) {
-            if (paramInfo.getLength() != null && !TextUtils.isEmpty(paramInfo.getLength())) {
-                if (Constant.CurrentSaveUnit == MiUnit) {
-                    leadLength = Double.valueOf(paramInfo.getLength());
-                } else {
-                    leadLength = Double.valueOf(UnitUtils.ftToMi(Double.valueOf(paramInfo.getLength())));
-                }
-            }
-        }
-        return leadLength;
-    }
-
-    /**
-     * 读取本地存储的测试缆状态
-     */
-    private double getLocalVop() {
-        ParamInfo paramInfo = (ParamInfo) StateUtils.getObject(ModeActivity.this, Constant.PARAM_INFO_KEY);
-        if (paramInfo != null) {
-            if (paramInfo.getVop() != null && !TextUtils.isEmpty(paramInfo.getVop())) {
-                if (Constant.CurrentSaveUnit == MiUnit) {
-                    leadVop = Double.valueOf(paramInfo.getVop());
-                } else {
-                    leadVop = Double.valueOf(UnitUtils.ftToMi(Double.valueOf(paramInfo.getVop())));
-                }
-            }
-        }
-        if (leadVop == 0 || leadVop == 0.0) {
-            leadVop = 172;
-        }
-        return leadVop;
-    }
-
-    private TDialog tDialog;
-
-    /**
-     * 监听网络广播，匹配SSID后开启线程
-     * IF190305
-     */
-    private BroadcastReceiver receiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            handler.sendEmptyMessage(intent.getIntExtra("display_action", 0));
-
-            String action = intent.getAction();
-            assert action != null;
-            if (action.equals(BROADCAST_ACTION_DOWIFI_COMMAND)) {
-                wifiStream = intent.getIntArrayExtra(INTENT_KEY_COMMAND);
-                assert wifiStream != null;
-                doWifiCommand(wifiStream);
-            } else if (action.equals(BROADCAST_ACTION_DOWIFI_WAVE)) {
-
-                /*wifiStream = intent.getIntArrayExtra(INTENT_KEY_WAVA);
-                if (intent.getIntArrayExtra(INTENT_KEY_WAVA) == null) {
-                    wifiStream = ConnectService.mExtra;
-                }*/
-                //64公里波形数据过大，正常的广播无法传递，改成全局变量。
-                //int[] wifiStreamNew = ConnectService.mExtra;
-                //wifiStream = ConnectService.mExtra;
-                //assert wifiStreamNew != null;
-                int[] wifiStreamNew = intent.getIntArrayExtra(INTENT_KEY_WAVA);
-                if (wifiStreamNew[3] == WAVE_SIM || wifiStreamNew[3] == WAVE_TDR_ICM_DECAY)
-                    setWaveParameter();
-
-                Message message = Message.obtain();
-                message.what = ModeActivity.DO_WAVE;
-                Bundle bundle = new Bundle();
-                bundle.putIntArray("WAVE", wifiStreamNew);
-                message.setData(bundle);
-                handler.sendMessage(message);
-            } else if (action.equals(BROADCAST_ACTION_DEVICE_CONNECTED)) {
-                Log.e("ModeActivity", "连接成功");
-                ivWifiStatus.setImageResource(R.drawable.ic_wifi_connected);
-                //如果网络连接后于读取本地波形数据，则再网络连接时设置读出的几个参数。
-                if (isReceiveData == false || isDatabase == true) {
-                    setModeNoCmd(Constant.Para[0]);
-                    setRangeNoCmd(Constant.Para[1]);
-                    setGain(Constant.Para[2]);
-                    setVelocityNoCmd(Constant.Para[3]);
-                } else {
-                    //第一次连接设备初始化方式
-                    //模式
-                    setMode(mode);
-                    handler.postDelayed(() -> {
-                        //范围
-                        setRange(range);
-                    }, 20);
-                    handler.postDelayed(() -> {
-                        //增益
-                        setGain(gain);
-                    }, 20);
-                    handler.postDelayed(() -> {
-                        //脉宽0
-                        setPulseWidth(pulseWidth);
-                    }, 20);
-
-                    handler.postDelayed(() -> {
-                        //脉宽0
-                        setDelay(0);
-                    }, 20);
-
-                  /*  //范围
-                    handler.postDelayed(() -> {
-                        setRange(range);
-                    }, 20);*/
-
-                    //clickTest();
-                    //延时100毫秒发送测试命令，100毫秒是等待设备回复命令信息，如果不延时，有可能设备执行不完命令。
-                    handler.postDelayed(ModeActivity.this::clickTest, 100);
-                }
-            } else if (action.equals(BROADCAST_ACTION_DEVICE_CONNECT_FAILURE)) {
-                ivWifiStatus.setImageResource(R.drawable.ic_no_wifi_connect);
-                ivBatteryStatus.setImageResource(R.drawable.ic_battery_no);
-                ConnectService.isConnected = false;
-            }
-
-        }
-
-    };
 
     /**
      * 处理APP接收的命令
@@ -1031,7 +1082,7 @@ public class ModeActivity extends BaseActivity {
                     .create()
                     .show();
             Log.e("DIA", " 正在接受数据显示" + " ICM/SIM/DECAY");
-        } else if (wifiArray[5] == POWERDISPLAY) {
+        } else if (wifiArray[5] == POWER_DISPLAY) {
             int batteryValue = wifiArray[6] * 256 + wifiArray[7];
             if (batteryValue <= 2600) {
                 ivBatteryStatus.setImageResource(R.drawable.ic_battery_zero);
@@ -1050,24 +1101,12 @@ public class ModeActivity extends BaseActivity {
 
     //缩放时重新组织记忆的波形数据
     private void organizeCompareWaveData(int start) {
-
         //按比例抽出510个点
         for (int i = start, j = 0; j < 510; i = i + density, j++) {
             //组织TDR、ICM、ICM_DECAY、DECAY和SIM的第一条波形的数据
             waveCompareDraw[j] = waveCompare[i];
         }
-
         int[] waveDraw250 = new int[255];
-        int[] waveCompare250 = new int[255];
-        int[] simDraw2501 = new int[255];
-        int[] simDraw2502 = new int[255];
-        int[] simDraw2503 = new int[255];
-        int[] simDraw2504 = new int[255];
-        int[] simDraw2505 = new int[255];
-        int[] simDraw2506 = new int[255];
-        int[] simDraw2507 = new int[255];
-        int[] simDraw2508 = new int[255];
-
         //需要操作的数据长度
         if ((mode == TDR) || (mode == SIM)) {
             //GC20191223
@@ -1085,20 +1124,18 @@ public class ModeActivity extends BaseActivity {
                     waveCompareDraw[2 * j] = waveDraw250[i];
                 }
             }
-
         }
-
 
     }
 
     //滑块移动过程中，重新组织需要绘制的波形数据
     private void organizeMoveWaveData(int start) {
-
         //按比例抽出510个点
         for (int i = start, j = 0; j < 510; i = i + density, j++) {
             //组织TDR、ICM、ICM_DECAY、DECAY和SIM的第一条波形的数据
-            if (i < Constant.WaveData.length)
+            if (i < Constant.WaveData.length) {
                 waveDraw[j] = Constant.WaveData[i];
+            }
             //组织SIM的第二条波形的数据
             if (mode == SIM) {
                 waveCompare[j] = Constant.SimData[i];
@@ -1261,7 +1298,7 @@ public class ModeActivity extends BaseActivity {
         //TODO 2019-1223-0947 显示的距离也存下来，保存波形的时候使用
         Constant.CurrentLocation = distance;
         //距离界面显示
-        if (Constant.CurrentUnit == Constant.MiUnit) {
+        if (Constant.CurrentUnit == Constant.MI_UNIT) {
             tvDistance.setText(new DecimalFormat("0.00").format(distance));
         } else {
             tvDistance.setText(UnitUtils.miToFt(distance));
@@ -1307,24 +1344,21 @@ public class ModeActivity extends BaseActivity {
 
     /**
      * 组织需要绘制的放大缩小波形数组（抽点510个）  //GC20191219
+     * 缩放时重新组织绘制的波形数据，重新绘制虚实光标。
      */
     public int currentStart = 0;
-
-
-    //缩放时重新组织绘制的波形数据，重新绘制虚实光标。
     private void organizeZoomWaveData() {
-
         //抽点的起始位置和虚光标位置
         currentStart = 0;
         //Log.e("【滑块相关】-开始处理缩放数据前", "densityMax:" + densityMax + "/density:" + density + "/pointDistance:" + pointDistance + "/positionVirtual" + positionVirtual + "/positionReal:" + positionReal + "/zero:" + zero + "/datalength:" + dataLength + "/start:" + currentStart);
-        if (pointDistance < 255 * density) {                                      //波形靠最右侧
+        if (pointDistance < 255 * density) {
+            //波形靠最右侧
             positionVirtual = pointDistance / density;
             Log.e("GT", "1：start：" + currentStart);
             //根据起始点判断是否画实光标
             if (zero > 510 * density) {
                 //不画实光标
                 positionReal = zero / density;
-
                 fullWave.setScrubLineRealDisappear();
             } else {
                 //画实光标
@@ -1332,8 +1366,19 @@ public class ModeActivity extends BaseActivity {
                 Log.e("GT", "1：positionReal：" + positionReal);
                 fullWave.setScrubLineReal(positionReal);
             }
+            //GC20200330
+            if (simPosition > 510 * density) {
+                //不画紫色实光标
+                positionSim = simPosition / density;
+                fullWave.setScrubLineSimDisappear();
+            } else {
+                //画紫色实光标
+                positionSim = simPosition / density;
+                fullWave.setScrubLineSim(positionSim);
+            }
 
-        } else if ((pointDistance >= 255 * density) && (pointDistance < dataLength - 255 * density)) {    //波形靠以虚光标原始位置为中心
+        } else if ((pointDistance >= 255 * density) && (pointDistance < dataLength - 255 * density)) {
+            //波形靠以虚光标原始位置为中心
             Log.e("GT", "2：dataLength：" + dataLength);
             Log.e("GT", "2：pointDistance：" + pointDistance);
             currentStart = pointDistance - 255 * density;
@@ -1342,12 +1387,10 @@ public class ModeActivity extends BaseActivity {
             //根据虚光标位置判断是否画实光标
             if ((pointDistance - zero) > 255 * density) {
                 positionReal = positionVirtual - (pointDistance - zero) / density;
-
                 //不画实光标
                 fullWave.setScrubLineRealDisappear();
             } else if ((zero - pointDistance) >= 254 * density) {
                 positionReal = positionVirtual - (pointDistance - zero) / density;
-
                 //不画实光标
                 fullWave.setScrubLineRealDisappear();
             } else {
@@ -1356,8 +1399,20 @@ public class ModeActivity extends BaseActivity {
                 Log.e("GT", "2：positionReal：" + positionReal);
                 fullWave.setScrubLineReal(positionReal);
             }
+            //GC20200330
+            if ((pointDistance - simPosition) > 255 * density) {
+                fullWave.setScrubLineSimDisappear();
+            } else if ((simPosition - pointDistance) >= 254 * density) {
+                //不画紫色实光标
+                fullWave.setScrubLineSimDisappear();
+            } else {
+                //画紫色实光标
+                positionSim = positionVirtual - (pointDistance - simPosition) / density;
+                fullWave.setScrubLineSim(positionSim);
+            }
 
-        } else if (pointDistance >= dataLength - 255 * density) {                             //波形靠最左侧
+        } else if (pointDistance >= dataLength - 255 * density) {
+            //波形靠最左侧
             currentStart = dataLength - 510 * density;
             positionVirtual = 510 - (dataLength - pointDistance) / density;
             Log.e("GT", "3：positionVirtual：" + positionVirtual);
@@ -1365,16 +1420,23 @@ public class ModeActivity extends BaseActivity {
             //根据起始点判断是否画实光标
             if (zero > dataLength - 510 * density) {
                 //画实光标
-                //positionReal = zero / density;
                 positionReal = 510 - (dataLength - zero) / density;
-
                 Log.e("GT", "3：positionReal：" + positionReal);
                 fullWave.setScrubLineReal(positionReal);
             } else {
                 //不画实光标
                 positionReal = 510 - (dataLength - zero) / density;
-
                 fullWave.setScrubLineRealDisappear();
+            }
+            //GC20200330
+            if (simPosition > dataLength - 510 * density) {
+                //画紫色实光标
+                positionSim = 510 - (dataLength - simPosition) / density;
+                fullWave.setScrubLineReal(positionReal);
+            } else {
+                //不画紫色实光标
+                positionSim = 510 - (dataLength - simPosition) / density;
+                fullWave.setScrubLineSimDisappear();
             }
         }
         //还原状态
@@ -1384,6 +1446,9 @@ public class ModeActivity extends BaseActivity {
             positionReal = zero / densityMax;
             //画实光标
             fullWave.setScrubLineReal(positionReal);
+            //画紫色实光标    //GC20200330
+            positionSim = simPosition / densityMax;
+            fullWave.setScrubLineSim(positionSim);
             Log.e("GT", "4：还原");
         }
         //画虚光标
@@ -1427,7 +1492,6 @@ public class ModeActivity extends BaseActivity {
         setHorizontalMoveView();
         //移动滑块到指定位置
         setMoverPostion(moverXValue);
-
         // Log.e("【光标参数】", "positionReal：" + positionReal + "/zero:" + zero + "/positionVirtual:" + positionVirtual + "/pointDistance:" + pointDistance);
 
     }
@@ -2006,8 +2070,7 @@ public class ModeActivity extends BaseActivity {
     /**
      * @param samplingPoints
      */
-    int pointToDistance(int samplingPoints)
-    {
+    int pointToDistance(int samplingPoints) {
         int Fx1;
         int k = 1;
         //脉冲电流方式下range=6(32km)和range=7(64km)实时25M采样率，其余方式和范围实时100M采样率，此时相对其它方式采样周期扩大4倍
@@ -2169,34 +2232,6 @@ public class ModeActivity extends BaseActivity {
     /**
      * 脉冲电流方式光标自动定位 //GC20190708
      */
-   /* private void icmAutoCursor() {
-        //GC20200106
-        zero = breakBk;
-        pointDistance = breakBk + faultResult;
-        //positionReal = zero / densityMax;
-        //positionVirtual = pointDistance / densityMax;
-        // sc 20200109   光标定位
-
-        density = getDensity();
-        Log.e("cursor", "位置" + density);
-        positionReal = zero / (densityMax / density);
-        //positionReal = zero / density;
-        positionVirtual = pointDistance / (densityMax / density);
-                //超出范围居中画光标
-        if (positionVirtual > 510) {
-            positionVirtual = 255;
-        }
-
-        //光标定位
-        fullWave.setScrubLineReal(positionReal);
-        fullWave.setScrubLineVirtual(positionVirtual);
-        //距离显示
-        calculateDistance(Math.abs(pointDistance - zero));
-    }*/
-    //20200110 光标定位重新
-    /**
-     * 脉冲电流方式光标自动定位 //GC20190708
-     */
     private void icmAutoCursor() {
         //GC20200106
         zero = breakBk;
@@ -2209,20 +2244,12 @@ public class ModeActivity extends BaseActivity {
         if(density == densityMax){
             positionReal = zero / densityMax;
             positionVirtual = pointDistance / densityMax;
-        }else{
-            //positionReal = zero / density;
-            //positionReal = zero / density;
-            //positionVirtual = pointDistance / density;
-            //超出范围居中画光标
-        /*if (positionVirtual > 510) {
-            positionVirtual = 255;
-        }*/}
+        }
         //重新定位实光标
         if (zero >= (currentMoverPosition510 * dataLength / 510) && zero <= ((currentMoverPosition510 * dataLength / 510) + (510*density))) {
             positionReal = (zero - (currentMoverPosition510 * dataLength / 510)) / density;
             fullWave.setScrubLineReal(positionReal);
-        }
-        else {
+        } else {
             fullWave.setScrubLineRealDisappear();
         }
         //重新定位虚光标
@@ -2495,8 +2522,9 @@ public class ModeActivity extends BaseActivity {
         } else if ((mode == ICM) || (mode == DECAY) || (mode == ICM_DECAY)) {
 
             dataLength = dataMax - removeIcmDecay[rangeState];
-            if (range == RANGE_250)
+            if (range == RANGE_250) {
                 dataLength = dataLength / 2;
+            }
         }
 
         //移动滑块到指定位置
@@ -2617,43 +2645,43 @@ public class ModeActivity extends BaseActivity {
             if (wifiArray[3] == 0x99) {
                 System.arraycopy(wifiArray, 8, simArray2, 0, dataMax);
                 Constant.TempData2 = simArray2;
-                handler.sendEmptyMessage(ORGNIZE_WAVE);
+                handler.sendEmptyMessage(ORGANIZE_WAVE);
                 Log.e("【MIM】", "第3条");
             }
             if (wifiArray[3] == 0xAA) {
                 System.arraycopy(wifiArray, 8, simArray3, 0, dataMax);
                 Constant.TempData3 = simArray3;
-                handler.sendEmptyMessage(ORGNIZE_WAVE);
+                handler.sendEmptyMessage(ORGANIZE_WAVE);
                 Log.e("【MIM】", "第4条");
             }
             if (wifiArray[3] == 0xBB) {
                 System.arraycopy(wifiArray, 8, simArray4, 0, dataMax);
                 Constant.TempData4 = simArray4;
-                handler.sendEmptyMessage(ORGNIZE_WAVE);
+                handler.sendEmptyMessage(ORGANIZE_WAVE);
                 Log.e("【MIM】", "第5条");
             }
             if (wifiArray[3] == 0xCC) {
                 System.arraycopy(wifiArray, 8, simArray5, 0, dataMax);
                 Constant.TempData5 = simArray5;
-                handler.sendEmptyMessage(ORGNIZE_WAVE);
+                handler.sendEmptyMessage(ORGANIZE_WAVE);
                 Log.e("【MIM】", "第6条");
             }
             if (wifiArray[3] == 0xDD) {
                 System.arraycopy(wifiArray, 8, simArray6, 0, dataMax);
                 Constant.TempData6 = simArray6;
-                handler.sendEmptyMessage(ORGNIZE_WAVE);
+                handler.sendEmptyMessage(ORGANIZE_WAVE);
                 Log.e("【MIM】", "第7条");
             }
             if (wifiArray[3] == 0xEE) {
                 System.arraycopy(wifiArray, 8, simArray7, 0, dataMax);
                 Constant.TempData7 = simArray7;
-                handler.sendEmptyMessage(ORGNIZE_WAVE);
+                handler.sendEmptyMessage(ORGANIZE_WAVE);
                 Log.e("【MIM】", "第8条");
             }
             if (wifiArray[3] == 0xFF) {
                 System.arraycopy(wifiArray, 8, simArray8, 0, dataMax);
                 Constant.TempData8 = simArray8;
-                handler.sendEmptyMessage(ORGNIZE_WAVE);
+                handler.sendEmptyMessage(ORGANIZE_WAVE);
                 ConnectService.canAskPower = true;
                 Log.e("【MIM】", "第9条");
             }
@@ -2712,7 +2740,6 @@ public class ModeActivity extends BaseActivity {
         Constant.Gain = Constant.Para[2];
         Constant.Velocity = Constant.Para[3];
 
-
         //TODO 2019-1222-2256 初始化虚光标、实光标、零点、比例等参数，否则缩放失效
         //读取零点和虚光标在原始数据中的位置，重新绘制光标
         zero = Constant.PositionR;
@@ -2727,14 +2754,14 @@ public class ModeActivity extends BaseActivity {
         //pointDistance = positionVirtual * densityMax;
 
         //显示数据库中存储的位置
-        if (Constant.CurrentUnit == Constant.MiUnit) {
-            if (Constant.CurrentSaveUnit == Constant.MiUnit) {
+        if (Constant.CurrentUnit == Constant.MI_UNIT) {
+            if (Constant.CurrentSaveUnit == Constant.MI_UNIT) {
                 tvDistance.setText(new DecimalFormat("0.00").format(Constant.SaveLocation));
             } else {
                 tvDistance.setText(UnitUtils.ftToMi(Constant.SaveLocation));
             }
         } else {
-            if (Constant.CurrentSaveUnit == Constant.FtUnit) {
+            if (Constant.CurrentSaveUnit == Constant.FT_UNIT) {
                 tvDistance.setText(new DecimalFormat("0.00").format(Constant.SaveLocation));
             } else {
                 tvDistance.setText(UnitUtils.miToFt(Constant.SaveLocation));
@@ -2771,11 +2798,6 @@ public class ModeActivity extends BaseActivity {
                 initCursor();
                 break;
             case ICM:
-               /* if (modeIntent == ICM_DECAY) {
-                    tvMode.setText(getResources().getString(R.string.btn_icm_decay));
-                } else {
-                    tvMode.setText(getResources().getString(R.string.btn_icm));
-                }*/
                 tvMode.setText(getResources().getString(R.string.btn_icm));
                 switchDensity();
                 initCursor();
@@ -2815,11 +2837,6 @@ public class ModeActivity extends BaseActivity {
                 break;
             case ICM:
                 switchDensity();
-                /*if (modeIntent == ICM_DECAY) {
-                    tvMode.setText(getResources().getString(R.string.btn_icm_decay));
-                } else {
-                    tvMode.setText(getResources().getString(R.string.btn_icm));
-                }*/
                 tvMode.setText(getResources().getString(R.string.btn_icm));
 
                 break;
@@ -2857,28 +2874,14 @@ public class ModeActivity extends BaseActivity {
         tvZoomValue.setText("1 : " + density);
         density = getDensity();
 
-
         //TODO 默认显示滚动条 wdx 20191218
         tvZoomMin.setEnabled(true);
         llHorizontalView.setVisibility(View.VISIBLE);
 
-        //TODO 默认显示滚动条，以下代码注释 wdx 20191218
-//        if (density > 1) {
-//            tvZoomMin.setEnabled(true);
-//            viewMoveHorizontalWave.setVisibility(View.VISIBLE);
-//        } else {
-//            tvZoomMin.setEnabled(false);
-//            viewMoveHorizontalWave.setVisibility(View.GONE);
-//        }
-//        if (density < Constant.DensityMax) {
         tvZoomPlus.setEnabled(true);
         tvZoomMin.setEnabled(true);
-//        //设置滑动块的宽度
+        //设置滑动块的宽度
         setHorizontalMoveViewOnlyHeight();
-//        //移动滑块位置
-//        if (fenzi1 != 0) {
-//            setHorizontalMoveViewPosition(positionVirtual * mvWave.getParentWidth() / fenzi1);
-//        }
     }
 
     /**
@@ -2917,6 +2920,7 @@ public class ModeActivity extends BaseActivity {
      * 光标位置和距离显示初始化 //GC20190709
      */
     private void initCursor() {
+        int zero2 = 0;
         //光标距离
         if (mode == SIM) {
             //GC20190712
@@ -2924,7 +2928,11 @@ public class ModeActivity extends BaseActivity {
             if (range == RANGE_250) {
                 zero = zero * 2;
             }
-            Log.e("TEST", "位置" + positionReal);
+            //GC20200330
+            zero2 = simPosition;
+            if (range == RANGE_250) {
+                zero2 = simPosition * 2;
+            }
         } else {
             zero = 0;
         }
@@ -2933,15 +2941,20 @@ public class ModeActivity extends BaseActivity {
         calculateDistance(Math.abs(pointDistance - zero));
         //界面定位
         positionReal = zero / densityMax;
-        if (mode == SIM && range == RANGE_250) {
-            // positionReal = positionReal * 2;
-        }
         positionVirtual = pointDistance / densityMax;
+
         if (positionReal >= 0) {
+            //G?? 条件是不是没用
             fullWave.setScrubLineReal(positionReal);
         }
         fullWave.setScrubLineVirtual(positionVirtual);
-
+        //GC20200330
+        if (mode == SIM) {
+            positionSim = zero2 / densityMax;
+            fullWave.setScrubLineSim(positionSim);
+        } else {
+            fullWave.setScrubLineSimDisappear();
+        }
     }
 
     /**
@@ -2958,13 +2971,13 @@ public class ModeActivity extends BaseActivity {
                 //GC20190709
                 switchDensity();
                 initCursor();
-                if (Constant.CurrentUnit == Constant.MiUnit) {
+                if (Constant.CurrentUnit == Constant.MI_UNIT) {
                     tvRangeValue.setText(getResources().getString(R.string.btn_250m));
-                } else if (Constant.CurrentUnit == Constant.FtUnit) {
+                } else if (Constant.CurrentUnit == Constant.FT_UNIT) {
                     tvRangeValue.setText(getResources().getString(R.string.btn_250m_to_ft));
                 }
                 gain = 13;
-                //GC20200313    增益转为百分比
+                //增益转为百分比   //GC20200313
                 tvGainValue.setText("41");
                 break;
             case RANGE_500:
@@ -2972,7 +2985,7 @@ public class ModeActivity extends BaseActivity {
                 //GC20190709
                 switchDensity();
                 initCursor();
-                if (Constant.CurrentUnit == Constant.MiUnit) {
+                if (Constant.CurrentUnit == Constant.MI_UNIT) {
                     tvRangeValue.setText(getResources().getString(R.string.btn_500m));
                 } else {
                     tvRangeValue.setText(getResources().getString(R.string.btn_500m_to_ft));
@@ -2984,7 +2997,7 @@ public class ModeActivity extends BaseActivity {
                 rangeState = 2;
                 switchDensity();
                 initCursor();
-                if (Constant.CurrentUnit == Constant.MiUnit) {
+                if (Constant.CurrentUnit == Constant.MI_UNIT) {
                     tvRangeValue.setText(getResources().getString(R.string.btn_1km));
                 } else {
                     tvRangeValue.setText(getResources().getString(R.string.btn_1km_to_yingli));
@@ -2996,7 +3009,7 @@ public class ModeActivity extends BaseActivity {
                 rangeState = 3;
                 switchDensity();
                 initCursor();
-                if (Constant.CurrentUnit == Constant.MiUnit) {
+                if (Constant.CurrentUnit == Constant.MI_UNIT) {
                     tvRangeValue.setText(getResources().getString(R.string.btn_2km));
                 } else {
                     tvRangeValue.setText(getResources().getString(R.string.btn_2km_to_yingli));
@@ -3008,7 +3021,7 @@ public class ModeActivity extends BaseActivity {
                 rangeState = 4;
                 switchDensity();
                 initCursor();
-                if (Constant.CurrentUnit == Constant.MiUnit) {
+                if (Constant.CurrentUnit == Constant.MI_UNIT) {
                     tvRangeValue.setText(getResources().getString(R.string.btn_4km));
                 } else {
                     tvRangeValue.setText(getResources().getString(R.string.btn_4km_to_yingli));
@@ -3020,7 +3033,7 @@ public class ModeActivity extends BaseActivity {
                 rangeState = 5;
                 switchDensity();
                 initCursor();
-                if (Constant.CurrentUnit == Constant.MiUnit) {
+                if (Constant.CurrentUnit == Constant.MI_UNIT) {
                     tvRangeValue.setText(getResources().getString(R.string.btn_8km));
                 } else {
                     tvRangeValue.setText(getResources().getString(R.string.btn_8km_to_yingli));
@@ -3032,7 +3045,7 @@ public class ModeActivity extends BaseActivity {
                 rangeState = 6;
                 switchDensity();
                 initCursor();
-                if (Constant.CurrentUnit == Constant.MiUnit) {
+                if (Constant.CurrentUnit == Constant.MI_UNIT) {
                     tvRangeValue.setText(getResources().getString(R.string.btn_16km));
                 } else {
                     tvRangeValue.setText(getResources().getString(R.string.btn_16km_to_yingli));
@@ -3044,7 +3057,7 @@ public class ModeActivity extends BaseActivity {
                 rangeState = 7;
                 switchDensity();
                 initCursor();
-                if (Constant.CurrentUnit == Constant.MiUnit) {
+                if (Constant.CurrentUnit == Constant.MI_UNIT) {
                     tvRangeValue.setText(getResources().getString(R.string.btn_32km));
                 } else {
                     tvRangeValue.setText(getResources().getString(R.string.btn_32km_to_yingli));
@@ -3056,7 +3069,7 @@ public class ModeActivity extends BaseActivity {
                 rangeState = 8;
                 switchDensity();
                 initCursor();
-                if (Constant.CurrentUnit == Constant.MiUnit) {
+                if (Constant.CurrentUnit == Constant.MI_UNIT) {
                     tvRangeValue.setText(getResources().getString(R.string.btn_64km));
                 } else {
                     tvRangeValue.setText(getResources().getString(R.string.btn_64km_to_yingli));
@@ -3076,15 +3089,14 @@ public class ModeActivity extends BaseActivity {
 
     public void setRangeNoCmd(int range) {
         this.range = range;
-
         switch (range) {
             case RANGE_250:
                 rangeState = 0;
                 switchDensity();
                 //GC20190709
-                if (Constant.CurrentUnit == Constant.MiUnit) {
+                if (Constant.CurrentUnit == Constant.MI_UNIT) {
                     tvRangeValue.setText(getResources().getString(R.string.btn_250m));
-                } else if (Constant.CurrentUnit == Constant.FtUnit) {
+                } else if (Constant.CurrentUnit == Constant.FT_UNIT) {
                     tvRangeValue.setText(getResources().getString(R.string.btn_250m_to_ft));
                 }
                 break;
@@ -3092,7 +3104,7 @@ public class ModeActivity extends BaseActivity {
                 rangeState = 1;
                 switchDensity();
                 //GC20190709
-                if (Constant.CurrentUnit == Constant.MiUnit) {
+                if (Constant.CurrentUnit == Constant.MI_UNIT) {
                     tvRangeValue.setText(getResources().getString(R.string.btn_500m));
                 } else {
                     tvRangeValue.setText(getResources().getString(R.string.btn_500m_to_ft));
@@ -3101,7 +3113,7 @@ public class ModeActivity extends BaseActivity {
             case RANGE_1_KM:
                 rangeState = 2;
                 switchDensity();
-                if (Constant.CurrentUnit == Constant.MiUnit) {
+                if (Constant.CurrentUnit == Constant.MI_UNIT) {
                     tvRangeValue.setText(getResources().getString(R.string.btn_1km));
                 } else {
                     tvRangeValue.setText(getResources().getString(R.string.btn_1km_to_yingli));
@@ -3110,7 +3122,7 @@ public class ModeActivity extends BaseActivity {
             case RANGE_2_KM:
                 rangeState = 3;
                 switchDensity();
-                if (Constant.CurrentUnit == Constant.MiUnit) {
+                if (Constant.CurrentUnit == Constant.MI_UNIT) {
                     tvRangeValue.setText(getResources().getString(R.string.btn_2km));
                 } else {
                     tvRangeValue.setText(getResources().getString(R.string.btn_2km_to_yingli));
@@ -3119,7 +3131,7 @@ public class ModeActivity extends BaseActivity {
             case RANGE_4_KM:
                 rangeState = 4;
                 switchDensity();
-                if (Constant.CurrentUnit == Constant.MiUnit) {
+                if (Constant.CurrentUnit == Constant.MI_UNIT) {
                     tvRangeValue.setText(getResources().getString(R.string.btn_4km));
                 } else {
                     tvRangeValue.setText(getResources().getString(R.string.btn_4km_to_yingli));
@@ -3128,7 +3140,7 @@ public class ModeActivity extends BaseActivity {
             case RANGE_8_KM:
                 rangeState = 5;
                 switchDensity();
-                if (Constant.CurrentUnit == Constant.MiUnit) {
+                if (Constant.CurrentUnit == Constant.MI_UNIT) {
                     tvRangeValue.setText(getResources().getString(R.string.btn_8km));
                 } else {
                     tvRangeValue.setText(getResources().getString(R.string.btn_8km_to_yingli));
@@ -3137,7 +3149,7 @@ public class ModeActivity extends BaseActivity {
             case RANGE_16_KM:
                 rangeState = 6;
                 switchDensity();
-                if (Constant.CurrentUnit == Constant.MiUnit) {
+                if (Constant.CurrentUnit == Constant.MI_UNIT) {
                     tvRangeValue.setText(getResources().getString(R.string.btn_16km));
                 } else {
                     tvRangeValue.setText(getResources().getString(R.string.btn_16km_to_yingli));
@@ -3146,7 +3158,7 @@ public class ModeActivity extends BaseActivity {
             case RANGE_32_KM:
                 rangeState = 7;
                 switchDensity();
-                if (Constant.CurrentUnit == Constant.MiUnit) {
+                if (Constant.CurrentUnit == Constant.MI_UNIT) {
                     tvRangeValue.setText(getResources().getString(R.string.btn_32km));
                 } else {
                     tvRangeValue.setText(getResources().getString(R.string.btn_32km_to_yingli));
@@ -3155,7 +3167,7 @@ public class ModeActivity extends BaseActivity {
             case RANGE_64_KM:
                 rangeState = 8;
                 switchDensity();
-                if (Constant.CurrentUnit == Constant.MiUnit) {
+                if (Constant.CurrentUnit == Constant.MI_UNIT) {
                     tvRangeValue.setText(getResources().getString(R.string.btn_64km));
                 } else {
                     tvRangeValue.setText(getResources().getString(R.string.btn_64km_to_yingli));
@@ -3183,13 +3195,13 @@ public class ModeActivity extends BaseActivity {
         Constant.Gain = gain;
         command = COMMAND_GAIN;
         dataTransfer = gain;
-        //GC20200313    增益转为百分比
+        //增益转为百分比   //GC20200313
         int temp = s2b(gain);
         tvGainValue.setText(String.valueOf(temp));
         startService();
     }
 
-    //31转100
+    //增益转为百分比31转100    //GC20200313
     public int s2b(int s) {
         int b;
         float v = (float) s / 31.0f;
@@ -3215,7 +3227,7 @@ public class ModeActivity extends BaseActivity {
      */
     public void setVelocity(double velocity) {
         this.velocity = velocity;
-        if (Constant.CurrentUnit == Constant.MiUnit) {
+        if (Constant.CurrentUnit == Constant.MI_UNIT) {
             tvVopValue.setText(String.valueOf(velocity));
         } else {
             tvVopValue.setText(UnitUtils.miToFt(velocity));
@@ -3229,7 +3241,7 @@ public class ModeActivity extends BaseActivity {
     }
 
     public void setVelocityNoCmd(int velocity) {
-        if (Constant.CurrentUnit == Constant.MiUnit) {
+        if (Constant.CurrentUnit == Constant.MI_UNIT) {
             tvVopValue.setText(String.valueOf(velocity));
         } else {
             tvVopValue.setText(UnitUtils.miToFt(velocity));
@@ -3345,7 +3357,6 @@ public class ModeActivity extends BaseActivity {
                 savePulseWidth();
                 break;
             case R.id.tv_file_records:
-                //GT0306
                 showRecordsDialog();
                 break;
             case R.id.tv_records_save:
@@ -3354,6 +3365,13 @@ public class ModeActivity extends BaseActivity {
             case R.id.tv_250m:
                 setRange(0x99);
                 setGain(gain);
+                //GC20200331
+                if (!hasPulseWidth) {
+                    handler.postDelayed(() -> {
+                        setPulseWidth(40);
+                    }, 20);
+                    etPulseWidth.setText(String.valueOf(40));
+                }
                 handler.postDelayed(this::clickTest, 50);
                 tvGainAdd.setEnabled(true);
                 tvGainMin.setEnabled(true);
@@ -3361,6 +3379,13 @@ public class ModeActivity extends BaseActivity {
             case R.id.tv_500m:
                 setRange(0x11);
                 setGain(gain);
+                //GC20200331
+                if (!hasPulseWidth) {
+                    handler.postDelayed(() -> {
+                        setPulseWidth(40);
+                    }, 20);
+                    etPulseWidth.setText(String.valueOf(40));
+                }
                 handler.postDelayed(this::clickTest, 50);
                 tvGainAdd.setEnabled(true);
                 tvGainMin.setEnabled(true);
@@ -3368,6 +3393,13 @@ public class ModeActivity extends BaseActivity {
             case R.id.tv_1km:
                 setRange(0x22);
                 setGain(gain);
+                //GC20200331
+                if (!hasPulseWidth) {
+                    handler.postDelayed(() -> {
+                        setPulseWidth(80);
+                    }, 20);
+                    etPulseWidth.setText(String.valueOf(80));
+                }
                 handler.postDelayed(this::clickTest, 50);
                 tvGainAdd.setEnabled(true);
                 tvGainMin.setEnabled(true);
@@ -3375,6 +3407,13 @@ public class ModeActivity extends BaseActivity {
             case R.id.tv_2km:
                 setRange(0x33);
                 setGain(gain);
+                //GC20200331
+                if (!hasPulseWidth) {
+                    handler.postDelayed(() -> {
+                        setPulseWidth(160);
+                    }, 20);
+                    etPulseWidth.setText(String.valueOf(160));
+                }
                 handler.postDelayed(this::clickTest, 50);
                 tvGainAdd.setEnabled(true);
                 tvGainMin.setEnabled(true);
@@ -3382,6 +3421,13 @@ public class ModeActivity extends BaseActivity {
             case R.id.tv_4km:
                 setRange(0x44);
                 setGain(gain);
+                //GC20200331
+                if (!hasPulseWidth) {
+                    handler.postDelayed(() -> {
+                        setPulseWidth(320);
+                    }, 20);
+                    etPulseWidth.setText(String.valueOf(320));
+                }
                 handler.postDelayed(this::clickTest, 50);
                 tvGainAdd.setEnabled(true);
                 tvGainMin.setEnabled(true);
@@ -3389,6 +3435,13 @@ public class ModeActivity extends BaseActivity {
             case R.id.tv_8km:
                 setRange(0x55);
                 setGain(gain);
+                //GC20200331
+                if (!hasPulseWidth) {
+                    handler.postDelayed(() -> {
+                        setPulseWidth(640);
+                    }, 20);
+                    etPulseWidth.setText(String.valueOf(640));
+                }
                 handler.postDelayed(this::clickTest, 50);
                 tvGainAdd.setEnabled(true);
                 tvGainMin.setEnabled(true);
@@ -3396,6 +3449,13 @@ public class ModeActivity extends BaseActivity {
             case R.id.tv_16km:
                 setRange(0x66);
                 setGain(gain);
+                //GC20200331
+                if (!hasPulseWidth) {
+                    handler.postDelayed(() -> {
+                        setPulseWidth(1280);
+                    }, 20);
+                    etPulseWidth.setText(String.valueOf(1280));
+                }
                 handler.postDelayed(this::clickTest, 50);
                 tvGainAdd.setEnabled(true);
                 tvGainMin.setEnabled(true);
@@ -3403,6 +3463,13 @@ public class ModeActivity extends BaseActivity {
             case R.id.tv_32km:
                 setRange(0x77);
                 setGain(gain);
+                //GC20200331
+                if (!hasPulseWidth) {
+                    handler.postDelayed(() -> {
+                        setPulseWidth(2560);
+                    }, 20);
+                    etPulseWidth.setText(String.valueOf(2560));
+                }
                 handler.postDelayed(this::clickTest, 50);
                 tvGainAdd.setEnabled(true);
                 tvGainMin.setEnabled(true);
@@ -3410,13 +3477,19 @@ public class ModeActivity extends BaseActivity {
             case R.id.tv_64km:
                 setRange(0x88);
                 setGain(gain);
+                //GC20200331
+                if (!hasPulseWidth) {
+                    handler.postDelayed(() -> {
+                        setPulseWidth(5120);
+                    }, 20);
+                    etPulseWidth.setText(String.valueOf(5120));
+                }
                 handler.postDelayed(this::clickTest, 50);
                 tvGainAdd.setEnabled(true);
                 tvGainMin.setEnabled(true);
 
                 break;
             case R.id.tv_gain_add:
-                //GC20200312
                 int gain = getGain();
                 if (gain < 31) {
                     gain++;
@@ -3424,7 +3497,6 @@ public class ModeActivity extends BaseActivity {
                     setGain(gain);
                     tvGainMin.setEnabled(true);
                 }
-
                 //增益命令到最大，按钮点击无效
                 if (gain == 31) {
                     tvGainAdd.setEnabled(false);
@@ -3438,7 +3510,6 @@ public class ModeActivity extends BaseActivity {
                     setGain(gain);
                     tvGainAdd.setEnabled(true);
                 }
-
                 if (gain == 0) {
                     tvGainMin.setEnabled(false);
                 }
@@ -3478,24 +3549,7 @@ public class ModeActivity extends BaseActivity {
                     velocity--;
                     setVelocity(velocity);
                     saveVop();
-
                 }
-               /* if (Constant.CurrentUnit == Constant.FtUnit) {
-                    if (velocity > Double.valueOf(UnitUtils.miToFt(90))) {
-                        velocity--;
-                        setVelocity(velocity);
-                        saveVop();
-
-                    }
-                } else {
-                    if (velocity > 90) {
-                        velocity--;
-                        setVelocity(velocity);
-                        saveVop();
-
-                    }
-                }*/
-
                 break;
             case R.id.tv_vop_plus:
                 int velocity = (int) getVelocity();
@@ -3503,23 +3557,7 @@ public class ModeActivity extends BaseActivity {
                     velocity++;
                     setVelocity(velocity);
                     saveVop();
-
                 }
-                /*if (Constant.CurrentUnit == Constant.FtUnit) {
-                    if (velocity < Double.valueOf(UnitUtils.miToFt(300))) {
-                        velocity++;
-                        setVelocity(velocity);
-                        saveVop();
-
-                    }
-                } else {
-                    if (velocity < 300) {
-                        velocity++;
-                        setVelocity(velocity);
-                        saveVop();
-
-                    }
-                }*/
                 break;
             case R.id.tv_pulse_width:
                 showPulseWidth();
@@ -3540,7 +3578,6 @@ public class ModeActivity extends BaseActivity {
                 showRangeView();
                 break;
             case R.id.tv_file:
-                //GT0306
                 showFileView();
                 break;
             case R.id.tv_home:
@@ -3548,18 +3585,15 @@ public class ModeActivity extends BaseActivity {
                 break;
             case R.id.tv_zero:
                 closeAllView();
-
                 //20191217重新计算距离
                 fullWave.setScrubLineReal(positionVirtual);
                 positionReal = positionVirtual;
                 //在原始数据中的位置 //GC20191218
                 zero = pointDistance;
                 calculateDistance(0);
-
                 break;
             case R.id.tv_cursor_min:
                 closeAllView();
-
                 if (positionVirtual > 0) {
                     int positionVirtualtemp = positionVirtual;
                     positionVirtualtemp -= 1;
@@ -3572,11 +3606,9 @@ public class ModeActivity extends BaseActivity {
                     }
                     calculateDistance(Math.abs(pointDistance - zero));
                 }
-
                 break;
             case R.id.tv_cursor_plus:
                 closeAllView();
-
                 if (positionVirtual < 509) {
                     int positionVirtualtemp = positionVirtual;
                     positionVirtualtemp += 1;
@@ -3603,17 +3635,14 @@ public class ModeActivity extends BaseActivity {
                 break;
             case R.id.tv_zoom_min:
                 closeAllView();
-
                 density = getDensity();
                 if (density < Constant.DensityMax) {
                     density = density * 2;
                     setDensity(density);
                     tvZoomPlus.setEnabled(true);
                 }
-
                 if (density == Constant.DensityMax) {
                     tvZoomMin.setEnabled(false);
-
                 }
                 break;
             case R.id.tv_test:
@@ -3622,9 +3651,22 @@ public class ModeActivity extends BaseActivity {
                 break;
             case R.id.tv_help:
                 closeAllView();
+                //GC20200327
+                showHelpModeDialog();
                 break;
             default:
                 break;
+        }
+    }
+
+    /**
+     * 测试界面帮助对话框    //GC20200327
+     */
+    private void showHelpModeDialog() {
+        HelpModeDialog helpModeDialog = new HelpModeDialog(this);
+        Constant.ModeValue = mode;
+        if (!helpModeDialog.isShowing()) {
+            helpModeDialog.show();
         }
     }
 
@@ -3704,73 +3746,26 @@ public class ModeActivity extends BaseActivity {
 
     }
 
-
     private void saveVop() {
         ParamInfo paramInfo = (ParamInfo) StateUtils.getObject(ModeActivity.this, Constant.PARAM_INFO_KEY);
         if (paramInfo != null) {
-            if (Constant.CurrentSaveUnit == MiUnit)
+            if (Constant.CurrentSaveUnit == MI_UNIT) {
                 paramInfo.setCableVop(String.valueOf(velocity));
-            else
+            } else {
                 paramInfo.setCableVop(UnitUtils.miToFt(Double.valueOf(String.valueOf(velocity))));
+            }
         } else {
             paramInfo = new ParamInfo();
-            if (Constant.CurrentSaveUnit == MiUnit)
+            if (Constant.CurrentSaveUnit == MI_UNIT) {
                 paramInfo.setCableVop(String.valueOf(velocity));
-            else
+            } else {
                 paramInfo.setCableVop(UnitUtils.miToFt(Double.valueOf(String.valueOf(velocity))));
+            }
         }
         Constant.Velocity = velocity;
         StateUtils.setObject(ModeActivity.this, paramInfo, Constant.PARAM_INFO_KEY);
 
     }
-
-
-//    @Override
-//    public boolean dispatchTouchEvent(MotionEvent ev) {
-//        if (ev.getAction() == MotionEvent.ACTION_DOWN) {
-//
-//            if (touchEventInView(llTriggerDelay, ev.getX(), ev.getY())) {
-//                return super.dispatchTouchEvent(ev);
-//            }
-//            if (touchEventInView(llCal, ev.getX(), ev.getY())) {
-//                return super.dispatchTouchEvent(ev);
-//            }
-//            if (touchEventInView(llRange, ev.getX(), ev.getY())) {
-//                return super.dispatchTouchEvent(ev);
-//            }
-//            if (touchEventInView(llCompare, ev.getX(), ev.getY())) {
-//                return super.dispatchTouchEvent(ev);
-//            }
-//            //TODO 波宽度保存按钮触点事件激活
-//            /**
-//             *  波宽度保存按钮触点事件激活 wdx 20191218
-//             */
-//            if (touchEventInView(llPulseWidth, ev.getX(), ev.getY())) {
-//                return super.dispatchTouchEvent(ev);
-//            }
-//
-//            if (touchEventInView(llRecords, ev.getX(), ev.getY())) {
-//                return super.dispatchTouchEvent(ev);
-//            }
-//            //TODO 波宽度保存按钮触点事件激活
-//            /**
-//             *  波宽度保存按钮触点事件激活 wdx 20191218
-//             */
-//            if (llPulseWidth.getVisibility() == View.VISIBLE || llTriggerDelay.getVisibility() == View.VISIBLE || llCal.getVisibility() == View.VISIBLE || llCompare.getVisibility() == View.VISIBLE || llRange.getVisibility() == View.VISIBLE || llRecords.getVisibility() == View.VISIBLE) {
-//                closeTriggerDelayView();
-//                closeCalView();
-//                closeRangeView();
-//                closeCompareView();
-//                closeFileView();
-//                closePulseWidthView();
-//                return true;
-//            }
-//
-//
-//        }
-//        return super.dispatchTouchEvent(ev);
-//    }
-
 
     /**
      * 该方法检测一个点击事件是否落入在一个View内，换句话说，检测这个点击事件是否发生在该View上。
@@ -3892,14 +3887,10 @@ public class ModeActivity extends BaseActivity {
         closePulseWidthView();
     }
 
-
-    //TODO wdx 20191218 设置波宽度
-
     /**
      * 设置波宽度，存储本地保存，wdx 20191218
      */
     private void showPulseWidth() {
-
         llPulseWidth.setOnClickListener(null);
         llPulseWidth.setVisibility(View.VISIBLE);
         closeFileView();
@@ -3907,29 +3898,28 @@ public class ModeActivity extends BaseActivity {
         closeCompareView();
         closeCalView();
         closeTriggerDelayView();
-
     }
-
-    //TODO wdx 20191218 界面操作波宽度本地存储保存
 
     /**
      * 界面操作存储本地保存，wdx 20191218
      */
     private void savePulseWidth() {
         // 01 初始化操作值
-        if (etPulseWidth.getText().toString().isEmpty())
+        if (etPulseWidth.getText().toString().isEmpty()) {
             pulseWidth = 0;
-        else
+            //GC20200331
+            hasPulseWidth = false;
+        } else {
             pulseWidth = Integer.valueOf(etPulseWidth.getText().toString());
+            //GC20200331
+            hasPulseWidth = true;
+        }
         // 02 本地保存波宽度信息
         savePulseWidthInfo();
         // 03 指令下达
-        //sendPulseWidthCommand();
         setPulseWidth(pulseWidth);
         closePulseWidthView();
     }
-
-    //TODO wdx 20191218 波宽度本地存储保存
 
     /**
      * 存储本地保存，wdx 20191218
@@ -3942,32 +3932,18 @@ public class ModeActivity extends BaseActivity {
             paramInfo = new ParamInfo();
             paramInfo.setPulseWidth(pulseWidth);
         }
-
         StateUtils.setObject(ModeActivity.this, paramInfo, Constant.PULSE_WIDTH_INFO_KEY);
 
-
     }
-
-    //TODO wdx 20191218 波宽度指令下发
 
     /**
      * 波宽度指令下发，wdx 20191218
      */
-    private void sendPulseWidthCommand() {
-        command = COMMAND_PULSE_WIDTH;
-        dataTransfer = calPulseWidth(pulseWidth);
-
-        startService();
-    }
-
     private void setPulseWidth(int pulseWidth) {
         command = COMMAND_PULSE_WIDTH;
         dataTransfer = calPulseWidth(pulseWidth);
         startService();
-//        tvGainValue.setText("13");
     }
-
-    //TODO wdx 20191218 计算波宽度数值
 
     /**
      * 计算波宽度数值，计算公式为255-X/40;X为输入值
@@ -3981,17 +3957,14 @@ public class ModeActivity extends BaseActivity {
         return pulseWidth;
     }
 
-    private SaveRecordsDialog saveRecordsDialog;
-    private ShowRecordsDialog showRecordsDialog;
-
+    /**
+     * 弹出波形存储对话框
+     */
     private void showSaveDialog() {
         closeFileView();
-        saveRecordsDialog = new SaveRecordsDialog(this);
+        SaveRecordsDialog saveRecordsDialog = new SaveRecordsDialog(this);
         Constant.ModeValue = mode;
-
-        //saveRecordsDialog.setPositionReal(positionReal);
-        //saveRecordsDialog.setPositionVirtual(positionVirtual);
-        //TODO 20191226 存储zero 和poinitDistance
+        //TODO 20191226 存储zero和pointDistance
         saveRecordsDialog.setPositionReal(zero);
         saveRecordsDialog.setPositionVirtual(pointDistance);
         if (!saveRecordsDialog.isShowing()) {
@@ -3999,29 +3972,12 @@ public class ModeActivity extends BaseActivity {
         }
     }
 
+    /**
+     * 弹出波形记录对话框
+     */
     private void showRecordsDialog() {
         closeFileView();
-        String modeStr = null;
-        switch (mode) {
-            case TDR:
-                modeStr = getResources().getString(R.string.btn_tdr);
-                break;
-            case ICM:
-                modeStr = getResources().getString(R.string.btn_icm);
-                break;
-            case ICM_DECAY:
-                modeStr = getResources().getString(R.string.btn_icm_decay);
-                break;
-            case SIM:
-                modeStr = getResources().getString(R.string.btn_sim);
-                break;
-            case DECAY:
-                modeStr = getResources().getString(R.string.btn_decay);
-                break;
-            default:
-                break;
-        }
-        showRecordsDialog = new ShowRecordsDialog(this);
+        ShowRecordsDialog showRecordsDialog = new ShowRecordsDialog(this);
         showRecordsDialog.setMode(mode);
         if (!showRecordsDialog.isShowing()) {
             showRecordsDialog.show();
@@ -4036,13 +3992,6 @@ public class ModeActivity extends BaseActivity {
         Constant.SaveToDBGain = Constant.Gain;
         closeAllView();
         llRange.setVisibility(View.INVISIBLE);
-        //TODO 2019-1222-2224 点击测试后，zoom值恢复默认值
-        //switchDensity();
-        /*if (isDatabase) {
-
-            initCursor();
-        }*/
-
         //初始化距离
         if (mode == TDR) {
             tDialog = new TDialog.Builder(getSupportFragmentManager())
@@ -4089,7 +4038,7 @@ public class ModeActivity extends BaseActivity {
                         public void onViewClick(BindViewHolder viewHolder, View view,
                                                 TDialog tDialog) {
 
-                            if (alreadyDisplayWave == false) {
+                            if (!alreadyDisplayWave) {
                                 tvZoomMin.setEnabled(false);
                                 tvZoomPlus.setEnabled(false);
                                 tvWaveNext.setEnabled(false);
@@ -4110,8 +4059,7 @@ public class ModeActivity extends BaseActivity {
             command = COMMAND_TEST;
             dataTransfer = TESTING;
             startService();
-//            ConnectService.canAskPower = false;
-
+            ConnectService.canAskPower = false;  //GC20200317
             //Log.e("【时效测试】", "命令发送测试命令");
             Constant.isCancelAim = false;
         }
@@ -4165,8 +4113,8 @@ public class ModeActivity extends BaseActivity {
         //发送指令
         Bundle bundle = new Bundle();
         bundle.putInt(BUNDLE_COMMAND_KEY, command);
-        bundle.putInt(MODE_KEY, mode);
-        bundle.putInt(DATA_TRANSFER_KEY, dataTransfer);
+        bundle.putInt(BUNDLE_MODE_KEY, mode);
+        bundle.putInt(BUNDLE_DATA_TRANSFER_KEY, dataTransfer);
         intent.putExtra(BUNDLE_PARAM_KEY, bundle);
         startService(intent);
     }

@@ -271,7 +271,7 @@ public class z_MainActivity extends BaseActivity {
         intentFilter.addAction(ConnectivityManager.CONNECTIVITY_ACTION);
         registerReceiver(receiver, intentFilter);
         //初始化画数据库监听广播   //GC20190713
-        IntentFilter ifDisplay = new IntentFilter(z_ListActivity.DISPLAY_ACTION);
+        IntentFilter ifDisplay = new IntentFilter(ListActivity.DISPLAY_ACTION);
         registerReceiver(receiver, ifDisplay);
     }
 

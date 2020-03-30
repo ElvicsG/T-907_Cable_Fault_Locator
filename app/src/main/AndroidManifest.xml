@@ -34,14 +34,10 @@
             android:name=".view.ModeActivity"
             android:screenOrientation="sensorLandscape"></activity>
         <activity
-            android:name=".view.z_ListActivity"
+            android:name=".view.ListActivity"
             android:configChanges="screenSize|keyboardHidden|orientation"
             android:screenOrientation="sensorLandscape"
             android:theme="@style/AlertNoActionBar"></activity>
-        <activity
-            android:name=".view.HelpActivity"
-            android:configChanges="screenSize|keyboardHidden|orientation"
-            android:screenOrientation="sensorLandscape" />
         <activity
             android:name=".view.z_SearchActivity"
             android:configChanges="screenSize|keyboardHidden|orientation"

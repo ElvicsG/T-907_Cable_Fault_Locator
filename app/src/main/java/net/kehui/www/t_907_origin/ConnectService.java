@@ -11,17 +11,14 @@ import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
-import android.os.RemoteException;
 import android.util.Log;
 import android.widget.Toast;
 
-import androidx.localbroadcastmanager.content.LocalBroadcastManager;
-
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 
+import net.kehui.www.t_907_origin.base.BaseActivity;
 import net.kehui.www.t_907_origin.application.Constant;
 import net.kehui.www.t_907_origin.thread.ConnectThread;
-import net.kehui.www.t_907_origin.thread.ConnectThread_20200102_OK;
 import net.kehui.www.t_907_origin.thread.ProcessThread;
 import net.kehui.www.t_907_origin.util.WifiUtil;
 
@@ -39,75 +36,123 @@ import java.util.concurrent.TimeUnit;
 
 import static net.kehui.www.t_907_origin.view.ModeActivity.BUNDLE_COMMAND_KEY;
 import static net.kehui.www.t_907_origin.view.ModeActivity.BUNDLE_PARAM_KEY;
-import static net.kehui.www.t_907_origin.view.ModeActivity.DATA_TRANSFER_KEY;
-import static net.kehui.www.t_907_origin.view.ModeActivity.MODE_KEY;
+import static net.kehui.www.t_907_origin.view.ModeActivity.BUNDLE_DATA_TRANSFER_KEY;
+import static net.kehui.www.t_907_origin.view.ModeActivity.BUNDLE_MODE_KEY;
 
 
+/**
+ * @author 34238
+ */
 public class ConnectService extends Service {
-    //是否与T-907建立连接
+
+    public int mode;
+    public int command;
+    public int dataTransfer;
+    public int[] wifiStream;
+    public static final int PORT = 9000;
+    public static int[] mExtra;
+    /**
+     *是否已经与T-907建立连接
+     */
     public static boolean isConnected;
-    public static boolean needReconnect = true;
     //测试未收到波形时，不要请求电量。
     public static boolean canAskPower = true;
-    public int dataTransfer;
-    public int command;
-    public int[] wifiStream;
-    public boolean isSuccessful;
-    public static final int PORT = 9000;
-    public int mode;
-    public static int[] mExtra;
+
     /**
      * 全局的handler对象用来执行UI更新
      */
     public static final int DEVICE_CONNECTED = 1;
     public static final int DEVICE_DISCONNECTED = 2;
-    public static final int DEVICE_RECONNECT = 8;
-    public static final int DEVICE_CONNECTED_FAILURE = 7;
-    public static final int SEND_SUCCESS = 3;
-    public static final int SEND_ERROR = 4;
-    public static final int GET_COMMAND = 5;
-    public static final int GET_WAVE = 6;
-    public final static String BROADCAST_ACTION_DOWIFI_COMMAND = "broadcast_action_dowifi_command";
-    public final static String BROADCAST_ACTION_DOWIFI_WAVE = "broadcast_action_dowifi_wave";
+    public static final int DEVICE_DO_CONNECT = 3;
+    public static final int GET_COMMAND = 4;
+    public static final int GET_WAVE = 5;
+
     public final static String BROADCAST_ACTION_DEVICE_CONNECTED = "device_connected";
     public final static String BROADCAST_ACTION_DEVICE_CONNECT_FAILURE = "device_failure";
+    public final static String BROADCAST_ACTION_DOWIFI_COMMAND = "broadcast_action_dowifi_command";
+    public final static String BROADCAST_ACTION_DOWIFI_WAVE = "broadcast_action_dowifi_wave";
     public final static String INTENT_KEY_COMMAND = "CMD";
-    public final static String INTENT_KEY_WAVA = "WAVE";
+    public final static String INTENT_KEY_WAVE = "WAVE";
+
     private BufferedReader br;
     private ConnectThread connectThread;
     private ProcessThread processThread;
     //数据生产者队列，生产的数据放入队列。
     public static ArrayBlockingQueue bytesDataQueue;
-    //重启语言时，连着设备无线的处理方式
     public static Boolean isWifiConnect = false;
 
     static Socket socket;
-    //处理收到的数据
+
+    @Override
+    public void onCreate() {
+        WifiUtil wifiUtil = new WifiUtil(getApplicationContext());
+        //WIFI网卡可用
+        if (wifiUtil.checkState() == 3) {
+            if (wifiUtil.getSSID().contains(Constant.SSID)) {
+                //更换语言重启时，连着设备无线
+                isWifiConnect = true;
+                handler.sendEmptyMessage(DEVICE_DO_CONNECT);
+            } else {
+                handler.sendEmptyMessage(DEVICE_DO_CONNECT);
+            }
+        } else {
+            handler.sendEmptyMessage(DEVICE_DO_CONNECT);
+        }
+        //EN20200324
+        Log.e("【SOCKET连接】", "服务启动");
+
+        IntentFilter intentFilter = new IntentFilter();
+        intentFilter.addAction(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION);
+        intentFilter.addAction(WifiManager.WIFI_STATE_CHANGED_ACTION);
+        intentFilter.addAction(WifiManager.NETWORK_STATE_CHANGED_ACTION);
+        intentFilter.addAction(ConnectivityManager.CONNECTIVITY_ACTION);
+        registerReceiver(receiver, intentFilter);
+        this.bytesDataQueue = new ArrayBlockingQueue(100);
+
+        Runnable runnable = new Runnable() {
+            @Override
+            public void run() {
+                //如果连接正常并且允许收取电量。
+                if (isConnected && canAskPower) {
+                    //EN20200324    //G??   有必要么
+                    canAskPower = false;
+                    command = 0x06;
+                    dataTransfer = 0x08;
+                    sendCommand();
+                }
+                handler.postDelayed(this, 30000);
+            }
+        };
+        handler.postDelayed(runnable, 30000);
+        super.onCreate();
+    }
+
+    @Override
+    public IBinder onBind(Intent intent) {
+        //GN 服务启动相关
+        return null;
+    }
+
     public Handler handler = new Handler(msg -> {
         switch (msg.what) {
-            case DEVICE_CONNECTED_FAILURE:
-                Toast.makeText(ConnectService.this, getResources().getString(R.string.communication_failed), Toast.LENGTH_LONG).show();
-
-                break;
-            case DEVICE_RECONNECT:
-                //Toast.makeText(ConnectService.this, getResources().getString(R.string.communication_failed), Toast.LENGTH_LONG).show();
-                if (needReconnect) {
-                    ConnectWifi();
-                    ConnectDevice();
-                }
-                break;
-            case DEVICE_DISCONNECTED:
-                //Toast.makeText(ConnectService.this, getResources().getString(R.string.disconnect), Toast.LENGTH_LONG).show();
-                break;
             case DEVICE_CONNECTED:
-                Toast.makeText(this, getResources().getString(R.string
-                        .connect_success), Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, getResources().getString(R.string.connect_success), Toast.LENGTH_SHORT).show();
                 sendBroadcast(BROADCAST_ACTION_DEVICE_CONNECTED, null, null);
                 break;
+            case DEVICE_DISCONNECTED:
+//                Toast.makeText(ConnectService.this, getResources().getString(R.string.disconnect), Toast.LENGTH_LONG).show();
+                //连接断开时，重置变量 //EN20200324
+                socket = null;
+                connectThread = null;
+                processThread = null;
+                break;
+            case DEVICE_DO_CONNECT:
+                //Toast.makeText(ConnectService.this, getResources().getString(R.string.communication_failed), Toast.LENGTH_LONG).show();
+                //连接条件修改    //GC20200325
+                connectWifi();
+                connectDevice();
+                break;
             case GET_COMMAND:
-                if (!isSuccessful) {
-                    isSuccessful = true;
-                }
                 wifiStream = msg.getData().getIntArray("CMD");
                 assert wifiStream != null;
                 sendBroadcast(BROADCAST_ACTION_DOWIFI_COMMAND, INTENT_KEY_COMMAND, wifiStream);
@@ -116,8 +161,7 @@ public class ConnectService extends Service {
                 wifiStream = msg.getData().getIntArray("WAVE");
                 assert wifiStream != null;
                 mExtra = wifiStream;
-                sendBroadcast(BROADCAST_ACTION_DOWIFI_WAVE, INTENT_KEY_WAVA, wifiStream);
-                //sendBroadcast(BROADCAST_ACTION_DOWIFI_WAVE, INTENT_KEY_WAVA, null);
+                sendBroadcast(BROADCAST_ACTION_DOWIFI_WAVE, INTENT_KEY_WAVE, wifiStream);
                 break;
             default:
                 break;
@@ -125,81 +169,8 @@ public class ConnectService extends Service {
         return false;
     });
 
-    private void ConnectWifi() {
-        WifiUtil wifiUtil = new WifiUtil(this);
-        if (wifiUtil.checkState() != 3)
-            wifiUtil.openWifi();
-        try {
-            if (!wifiUtil.getSSID().contains(Constant.SSID)) {
-                wifiUtil.addNetwork(wifiUtil.createWifiInfo(Constant.SSID, "123456789", 3));
-            }
-        } catch (Exception l_Ex) {
-        }
-    }
-
-    private void ConnectDevice() {
-        ThreadFactory threadFactory = new ThreadFactoryBuilder()
-                .setNameFormat("connect-pool-%d").build();
-        ExecutorService singleThreadPool = new ThreadPoolExecutor(3, 3,
-                0L, TimeUnit.MILLISECONDS,
-                new LinkedBlockingQueue<>(1024), threadFactory,
-                new ThreadPoolExecutor.AbortPolicy());
-
-        singleThreadPool.execute(() -> {
-            try {
-               /* ArrayList<String> connectedIP = getConnectedIP();
-                for (String ip : connectedIP) {
-                    if (ip.contains(".")) {
-                        if (!ConnectService.isConnected) {
-                            Log.w("AAA", "IP:" + ip);
-                            Socket socket = new Socket(ip, PORT);
-                            socket.setKeepAlive(true);
-                            connectThread = new ConnectThread(socket, handler, ip);
-                            connectThread.start();
-
-                            processThread = new ProcessThread(handler);
-                            processThread.start();
-                        }
-
-                    }
-                }*/
-                if (!ConnectService.isConnected) {
-                    socket= new Socket(Constant.DeviceIP, PORT);
-                    socket.setKeepAlive(true);
-                    connectThread = new ConnectThread(socket, handler, Constant.DeviceIP);
-                    connectThread.start();
-
-                    processThread = new ProcessThread(handler);
-                    processThread.start();
-                }
-                /*ArrayList<String> connectedIP = getConnectedIP();
-                for (String ip : connectedIP) {
-                    if (ip.contains(".")) {
-
-
-                    }
-                }*/
-            } catch (IOException e) {
-                e.printStackTrace();
-                try {
-                    connectThread.getOutputStream().flush();
-                    connectThread.getOutputStream().close();
-                    connectThread.getSocket().close();
-                } catch (Exception e1) {
-                    e1.printStackTrace();
-                }
-                sendBroadcast(BROADCAST_ACTION_DEVICE_CONNECT_FAILURE, null, null);
-                handler.sendEmptyMessage(DEVICE_DISCONNECTED);
-                handler.sendEmptyMessage(DEVICE_RECONNECT);
-            }
-        });
-        Log.e("DIA", "WIFI连接：" + "隐藏");
-        singleThreadPool.shutdown();
-    }
-
     /**
-     * 监听网络广播，匹配SSID后开启线程
-     * IF190305
+     * 监听网络广播
      */
     private BroadcastReceiver receiver = new BroadcastReceiver() {
         @Override
@@ -213,17 +184,23 @@ public class ConnectService extends Service {
                 NetworkInfo info = connectivityManager.getActiveNetworkInfo();
                 /*if (info != null && isWifiConnect == false) {*/
                 if (info != null) {
-                    if ((info.isConnected() == true && info.getExtraInfo().contains(Constant.SSID)) && isWifiConnect == false) {
-                        handler.sendEmptyMessage(DEVICE_RECONNECT);
+                    if ((info.isConnected() && info.getExtraInfo().contains(Constant.SSID)) && !isWifiConnect) {
+                        //EN20200324
+                        Log.e("【SOCKET连接】", "网络连接状态变化，重连");
+                        handler.sendEmptyMessage(DEVICE_DO_CONNECT);
                     }
                 } else {
                     isWifiConnect = false;
                     //todo 断开链接的通知
+                    //GT1 无连接第一次走这里
                     handler.sendEmptyMessage(DEVICE_DISCONNECTED);
                     try {
                         connectThread.getOutputStream().flush();
                         connectThread.getOutputStream().close();
                         connectThread.getSocket().close();
+                        /*socket = null;
+                        connectThread = null;
+                        processThread = null;*/ //EN20200324    //G?? 可以去掉吧
                     } catch (Exception e1) {
                         e1.printStackTrace();
                     }
@@ -233,53 +210,64 @@ public class ConnectService extends Service {
         }
     };
 
-
-    @Override
-    public IBinder onBind(Intent intent) {
-        return null;
+    private void connectWifi() {
+        WifiUtil wifiUtil = new WifiUtil(this);
+        if (wifiUtil.checkState() != 3) {
+            //WIFI网卡不可用
+            wifiUtil.openWifi();
+        }
+        try {
+            if (!wifiUtil.getSSID().contains(Constant.SSID)) {
+                wifiUtil.addNetwork(wifiUtil.createWifiInfo(Constant.SSID, "123456789", 3));
+            }
+        } catch (Exception l_Ex) {
+        }
     }
 
-    @Override
-    public void onCreate() {
-        WifiUtil wifiUtil = new WifiUtil(getApplicationContext());
+    private void connectDevice() {
+        ThreadFactory threadFactory = new ThreadFactoryBuilder().setNameFormat("connect-pool-%d").build();
+        ExecutorService singleThreadPool = new ThreadPoolExecutor(3, 3,
+                0L, TimeUnit.MILLISECONDS,
+                new LinkedBlockingQueue<>(1024), threadFactory,
+                new ThreadPoolExecutor.AbortPolicy());
 
-        if (wifiUtil.checkState() == 3) {
-            if (wifiUtil.getSSID().contains(Constant.SSID)) {
-                isWifiConnect = true;
-                handler.sendEmptyMessage(DEVICE_RECONNECT);
-            } else {
-                handler.sendEmptyMessage(DEVICE_RECONNECT);
-            }
-        } else {
-            handler.sendEmptyMessage(DEVICE_RECONNECT);
-        }
-
-
-        IntentFilter intentFilter = new IntentFilter();
-        intentFilter.addAction(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION);
-        intentFilter.addAction(WifiManager.WIFI_STATE_CHANGED_ACTION);
-        intentFilter.addAction(WifiManager.NETWORK_STATE_CHANGED_ACTION);
-        intentFilter.addAction(ConnectivityManager.CONNECTIVITY_ACTION);
-        registerReceiver(receiver, intentFilter);
-        this.bytesDataQueue = new ArrayBlockingQueue(100);
-/*        if (wifiUtil.checkState() == 3)
-            if (wifiUtil.getSSID().contains(Constant.SSID))
-                handler.sendEmptyMessage(DEVICE_RECONNECT);*/
-        Runnable runnable = new Runnable() {
-            @Override
-            public void run() {
-                //如果连接正常并且不在接收波形，则可以收取电量。
-                if (isConnected && canAskPower) {
-                    command = 0x06;
-                    dataTransfer = 0x08;
-                    sendCommand();
+        singleThreadPool.execute(() -> {
+            try {
+                if (!isConnected) {
+                    //增加条件限制，避免极端条件下会多次尝试连接  //EN20200324
+                    Log.e("【SOCKET连接】", "开始连接");
+                    if (socket == null) {
+                        socket = new Socket(Constant.DEVICE_IP, PORT);
+                        socket.setKeepAlive(true);
+                    }
+                    if (connectThread == null) {
+                        connectThread = new ConnectThread(socket, handler, Constant.DEVICE_IP);
+                        connectThread.start();
+                    }
+                    if (processThread == null) {
+                        processThread = new ProcessThread(handler);
+                        processThread.start();
+                    }
+                    Log.e("【SOCKET连接】", "连接成功结束");
                 }
-                handler.postDelayed(this, 30000);
+            } catch (IOException e) {
+                e.printStackTrace();
+                try {
+                    connectThread.getOutputStream().flush();
+                    connectThread.getOutputStream().close();
+                    connectThread.getSocket().close();
+                } catch (Exception e1) {
+                    e1.printStackTrace();
+                }
+                sendBroadcast(BROADCAST_ACTION_DEVICE_CONNECT_FAILURE, null, null);
+                //GT2
+                handler.sendEmptyMessage(DEVICE_DISCONNECTED);
+                handler.sendEmptyMessage(DEVICE_DO_CONNECT);
+                Log.e("【SOCKET连接】", "连接失败重连");
             }
-        };
-        handler.postDelayed(runnable, 30000);
-
-        super.onCreate();
+        });
+        Log.e("DIA", "WIFI连接：" + "隐藏");
+        singleThreadPool.shutdown();
     }
 
     @Override
@@ -289,9 +277,9 @@ public class ConnectService extends Service {
             Bundle bundle = intent.getBundleExtra(BUNDLE_PARAM_KEY);
             //接收到发送指令的信息
             if (bundle != null && bundle.getInt(BUNDLE_COMMAND_KEY) != 0) {
-                mode = bundle.getInt(MODE_KEY);
+                mode = bundle.getInt(BUNDLE_MODE_KEY);
                 command = bundle.getInt(BUNDLE_COMMAND_KEY);
-                dataTransfer = bundle.getInt(DATA_TRANSFER_KEY);
+                dataTransfer = bundle.getInt(BUNDLE_DATA_TRANSFER_KEY);
                 sendCommand();
             }
 
@@ -304,6 +292,9 @@ public class ConnectService extends Service {
      * APP下发命令
      */
     public void sendCommand() {
+        //EN20200324    //GC20200317
+        canAskPower = false;
+
         byte[] request = new byte[8];
         //数据头部分
         request[0] = (byte) 0xeb;
@@ -313,15 +304,20 @@ public class ConnectService extends Service {
         //数据长度
         request[4] = (byte) 0x03;
         request[5] = (byte) command;
-        if (command == 0x03 && dataTransfer == 0x99)
-            dataTransfer = 0x11;
-        if (command == 0x02 && dataTransfer == 0x55)
-            dataTransfer = 0x22;
+        if (command == BaseActivity.COMMAND_RANGE && dataTransfer == BaseActivity.RANGE_250) {
+            //需要发送250m范围命令时改为500m范围命令
+            dataTransfer = BaseActivity.RANGE_500;
+        }
+        if (command == BaseActivity.COMMAND_MODE && dataTransfer == BaseActivity.ICM_DECAY) {
+            //需要发送ICM-DECAY方式命令时改为ICM命令
+            dataTransfer = BaseActivity.ICM;
+        }
         request[6] = (byte) dataTransfer;
         int sum = request[4] + request[5] + request[6];
         request[7] = (byte) sum;
-        if (connectThread != null)
+        if (connectThread != null){
             connectThread.sendCommand(request);
+        }
         Log.e("【APP->设备】", "指令：" + getCommandStr(command) + " # 数据：" + getDataTransfer(command, dataTransfer));
     }
 
@@ -458,13 +454,16 @@ public class ConnectService extends Service {
         return returnStr;
     }
 
-    //发送广播
+    /**
+     *发送广播
+     */
     public void sendBroadcast(String action, String extraKey, int[] extra) {
         try {
             Intent intent = new Intent();
             intent.setAction(action);
-            if (extraKey != null)
+            if (extraKey != null) {
                 intent.putExtra(extraKey, extra);
+            }
             sendBroadcast(intent);
         } catch (Exception e) {
             Intent intent = new Intent();
@@ -517,4 +516,5 @@ public class ConnectService extends Service {
         }
         super.onDestroy();
     }
+
 }

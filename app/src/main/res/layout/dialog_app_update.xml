@@ -32,7 +32,7 @@
             android:orientation="horizontal">
 
             <TextView
-                android:id="@+id/tv_no_update"
+                android:id="@+id/tv_update_now"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginRight="@dimen/sp_15"
@@ -48,7 +48,7 @@
                 android:visibility="visible" />
 
             <TextView
-                android:id="@+id/tv_update_now"
+                android:id="@+id/tv_no_update"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginLeft="@dimen/dp_15"

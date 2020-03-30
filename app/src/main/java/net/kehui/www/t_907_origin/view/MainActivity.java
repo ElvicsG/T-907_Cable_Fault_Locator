@@ -18,7 +18,6 @@ import android.view.View;
 import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
@@ -30,16 +29,17 @@ import com.timmy.tdialog.TDialog;
 import com.timmy.tdialog.base.BindViewHolder;
 import com.timmy.tdialog.listener.OnBindViewListener;
 
+import net.kehui.www.t_907_origin.base.BaseActivity;
 import net.kehui.www.t_907_origin.ConnectService;
 import net.kehui.www.t_907_origin.R;
 import net.kehui.www.t_907_origin.application.AppConfig;
 import net.kehui.www.t_907_origin.application.Constant;
 import net.kehui.www.t_907_origin.application.MyApplication;
-import net.kehui.www.t_907_origin.base.BaseActivity;
 import net.kehui.www.t_907_origin.entity.ParamInfo;
 import net.kehui.www.t_907_origin.ui.AppUpdateDialog;
-import net.kehui.www.t_907_origin.ui.HelpCenterDialog;
+import net.kehui.www.t_907_origin.ui.HelpHomeDialog;
 import net.kehui.www.t_907_origin.ui.LanguageChangeDialog;
+import net.kehui.www.t_907_origin.ui.HelpCenterDialog;
 import net.kehui.www.t_907_origin.ui.ShowRecordsDialog;
 import net.kehui.www.t_907_origin.util.AppUtils;
 import net.kehui.www.t_907_origin.util.StateUtils;
@@ -69,13 +69,9 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 
-import static net.kehui.www.t_907_origin.ConnectService.BROADCAST_ACTION_DEVICE_CONNECTED;
-import static net.kehui.www.t_907_origin.ConnectService.BROADCAST_ACTION_DEVICE_CONNECT_FAILURE;
-import static net.kehui.www.t_907_origin.ConnectService.BROADCAST_ACTION_DOWIFI_COMMAND;
-import static net.kehui.www.t_907_origin.ConnectService.INTENT_KEY_COMMAND;
 import static net.kehui.www.t_907_origin.application.Constant.CurrentUnit;
-import static net.kehui.www.t_907_origin.application.Constant.FtUnit;
-import static net.kehui.www.t_907_origin.application.Constant.MiUnit;
+import static net.kehui.www.t_907_origin.application.Constant.FT_UNIT;
+import static net.kehui.www.t_907_origin.application.Constant.MI_UNIT;
 
 /**
  * @author JWJ
@@ -83,60 +79,16 @@ import static net.kehui.www.t_907_origin.application.Constant.MiUnit;
  */
 public class MainActivity extends BaseActivity {
 
-    @BindView(R.id.tv_cable_vop_text)
-    TextView tvCableVopText;
     @BindView(R.id.et_cable_vop)
     EditText etCableVop;
-    @BindView(R.id.tv_cable_length_text)
-    TextView tvCableLengthText;
     @BindView(R.id.et_cable_length)
     EditText etCableLength;
-    @BindView(R.id.tv_cable_id_text)
-    TextView tvCableIdText;
     @BindView(R.id.et_cable_id)
     EditText etCableId;
-    @BindView(R.id.tv_length_text)
-    TextView tvLengthText;
     @BindView(R.id.et_length)
     EditText etLength;
-    @BindView(R.id.ll_test)
-    LinearLayout llTest;
-    @BindView(R.id.tv_vop_text)
-    TextView tvVopText;
     @BindView(R.id.et_vop)
     EditText etVop;
-    @BindView(R.id.tv_unit_text)
-    TextView tvUnitText;
-    @BindView(R.id.ll_length)
-    LinearLayout llLength;
-    @BindView(R.id.tv_vop_save)
-    TextView tvSave;
-    @BindView(R.id.ll_setting)
-    LinearLayout llSetting;
-    @BindView(R.id.iv_tdr_mode)
-    ImageView ivTdrMode;
-    @BindView(R.id.iv_icms_mode)
-    ImageView ivIcmsMode;
-    @BindView(R.id.iv_icmd_mode)
-    ImageView ivIcmdMode;
-    @BindView(R.id.iv_mim_mode)
-    ImageView ivMimMode;
-    @BindView(R.id.iv_decay_mode)
-    ImageView ivDecayMode;
-    @BindView(R.id.ll_mode)
-    LinearLayout llMode;
-    @BindView(R.id.btn_language)
-    ImageView btnLanguage;
-    @BindView(R.id.btn_update)
-    ImageView btnUpdate;
-    @BindView(R.id.btn_help)
-    ImageView btnHelp;
-    @BindView(R.id.btn_records)
-    ImageView btnRecords;
-    @BindView(R.id.btn_remote)
-    ImageView btnRemote;
-    @BindView(R.id.ll_featured)
-    LinearLayout llFeatured;
     @BindView(R.id.tv_msg)
     TextView tvMsg;
     @BindView(R.id.cb_test_lead)
@@ -151,51 +103,32 @@ public class MainActivity extends BaseActivity {
     TextView tvCableVopUnit;
     @BindView(R.id.tv_cable_length_unit)
     TextView tvCableLengthUnit;
-    @BindView(R.id.tv_test_lead_text)
-    TextView tvTestLeadText;
     @BindView(R.id.tv_length_unit)
     TextView tvLengthUnit;
     @BindView(R.id.tv_vop_unit)
     TextView tvVopUnit;
-    @BindView(R.id.rl_info)
-    LinearLayout rlInfo;
     @BindView(R.id.iv_wifi_status)
     ImageView ivWifiStatus;
     @BindView(R.id.iv_battery_status)
     ImageView ivBatteryStatus;
 
-    private String cableVop;
-    private String cableLength;
-    private String cableId;
-    /**
-     * 测试缆信息
-     */
-    private Boolean testLead;
-    private String length;
-    private String vop;
-
-    private ProgressBar progressBar;
-    private TextView tvProgress;
-
-    private ShowRecordsDialog customDialog;
-    private LanguageChangeDialog languageChangeDialog;
-    private TDialog tDialog;
-    private HelpCenterDialog helpCenterDialog;
-
     private int unit;
-    private int saveUnit;
-    private AppUpdateDialog mAppUpdateDialog;
     private String version = "1";
     private String url = "baidu.com";
 
-    //定义bundle 里参数command 的key
-    public static final String BUNDLE_COMMAND_KEY = "bundle_command_key";
-    public static final String MODE_KEY = "mode_key";
-    public static final String DATA_TRANSFER_KEY = "dataTransfer";
-    //定义intent bundle的key
-    public static final String BUNDLE_PARAM_KEY = "bundle_param_key";
+    private ProgressBar progressBar;
+    private TextView tvProgress;
+    private LanguageChangeDialog languageChangeDialog;
+    private AppUpdateDialog mAppUpdateDialog;
+    private TDialog tDialog;
 
-    private boolean needStopService = true;
+    /**
+     * 定义bundle的key-value（bundle就是个容器）
+     */
+    public static final String BUNDLE_COMMAND_KEY = "command";
+    public static final String BUNDLE_MODE_KEY = "mode";
+    public static final String BUNDLE_DATA_TRANSFER_KEY = "dataTransfer";
+    public static final String BUNDLE_PARAM_KEY = "bundle_param_key";
 
 
     @Override
@@ -204,11 +137,11 @@ public class MainActivity extends BaseActivity {
         setContentView(R.layout.activity_main);
         ButterKnife.bind(this);
 
+        //启动服务
         startMainService();
-        ConnectService.needReconnect = true;
-        initPulseWidthInfo();
         initUnit();
         initParamInfo();
+        //初始化广播接收器
         initBroadcastReceiver();
     }
 
@@ -217,25 +150,14 @@ public class MainActivity extends BaseActivity {
         startService(intent);
     }
 
-    private void initPulseWidthInfo() {
-        ParamInfo paramInfo = (ParamInfo) StateUtils.getObject(MainActivity.this, Constant.PULSE_WIDTH_INFO_KEY);
-        if (paramInfo != null) {
-            paramInfo.setPulseWidth(0);
-        } else {
-            paramInfo = new ParamInfo();
-            paramInfo.setPulseWidth(0);
-        }
-        StateUtils.setObject(MainActivity.this, paramInfo, Constant.PULSE_WIDTH_INFO_KEY);
-    }
-
     /**
      * 计量单位初始化 (m ft)
      */
     int currentCheckedId = 0;
     private void initUnit() {
         tvMsg.setText(String.format(getString(R.string.main_notice), getString(R.string.mi)));
-        unit = StateUtils.getInt(MainActivity.this, AppConfig.CURRENT_UNIT, MiUnit);
-        if (unit == MiUnit) {
+        unit = StateUtils.getInt(MainActivity.this, AppConfig.CURRENT_UNIT, MI_UNIT);
+        if (unit == MI_UNIT) {
             rbMi.setChecked(true);
         } else {
             rbFt.setChecked(true);
@@ -246,12 +168,12 @@ public class MainActivity extends BaseActivity {
             public void onCheckedChanged(RadioGroup group, int checkedId) {
                 currentCheckedId = checkedId;
                 if (checkedId == rbFt.getId()) {
-                    StateUtils.setInt(MainActivity.this, AppConfig.CURRENT_UNIT, FtUnit);
-                    changeUnitView(FtUnit);
+                    StateUtils.setInt(MainActivity.this, AppConfig.CURRENT_UNIT, FT_UNIT);
+                    changeUnitView(FT_UNIT);
 
                 } else if (checkedId == rbMi.getId()) {
-                    StateUtils.setInt(MainActivity.this, AppConfig.CURRENT_UNIT, MiUnit);
-                    changeUnitView(MiUnit);
+                    StateUtils.setInt(MainActivity.this, AppConfig.CURRENT_UNIT, MI_UNIT);
+                    changeUnitView(MI_UNIT);
                 }
             }
         });
@@ -259,7 +181,7 @@ public class MainActivity extends BaseActivity {
 
     private void changeUnitView(int currentUnit) {
         CurrentUnit = currentUnit;
-        if (currentUnit == MiUnit) {
+        if (currentUnit == MI_UNIT) {
             tvCableVopUnit.setText(R.string.mius);
             tvCableLengthUnit.setText(R.string.mi);
             tvLengthUnit.setText(R.string.mi);
@@ -284,13 +206,14 @@ public class MainActivity extends BaseActivity {
      */
     private void initParamInfo() {
         ParamInfo paramInfo = (ParamInfo) StateUtils.getObject(MainActivity.this, Constant.PARAM_INFO_KEY);
-        unit = StateUtils.getInt(MainActivity.this, AppConfig.CURRENT_UNIT, MiUnit);
-        saveUnit = StateUtils.getInt(MainActivity.this, AppConfig.CURRENT_SAVE_UNIT, MiUnit);
+        unit = StateUtils.getInt(MainActivity.this, AppConfig.CURRENT_UNIT, MI_UNIT);
+        //获取当前存储的单位
+        int saveUnit = StateUtils.getInt(MainActivity.this, AppConfig.CURRENT_SAVE_UNIT, MI_UNIT);
         CurrentUnit = unit;
         if (paramInfo != null) {
             //如果单位是米
-            if (unit == MiUnit) {
-                if (saveUnit == MiUnit) {
+            if (unit == MI_UNIT) {
+                if (saveUnit == MI_UNIT) {
                     //改变数值
                     if (!TextUtils.isEmpty(paramInfo.getCableVop())) {
                         if (paramInfo.getCableVop().equals("0") || paramInfo.getCableVop().equals("0.0")) {
@@ -313,13 +236,15 @@ public class MainActivity extends BaseActivity {
                         if (!TextUtils.isEmpty(paramInfo.getLength())) {
                             etLength.setText(String.valueOf(paramInfo.getLength()));
                         }
-                        if(paramInfo.getLength().equals("0"))
+                        if(paramInfo.getLength().equals("0")) {
                             etLength.setText("");
+                        }
                         if (!TextUtils.isEmpty(paramInfo.getVop())) {
                             etVop.setText(String.valueOf(paramInfo.getVop()));
                         }
-                        if(paramInfo.getVop().equals("0"))
+                        if(paramInfo.getVop().equals("0")) {
                             etVop.setText("");
+                        }
                     }
                 } else {
                     //改变数值
@@ -344,17 +269,19 @@ public class MainActivity extends BaseActivity {
                         if (!TextUtils.isEmpty(paramInfo.getLength())) {
                             etLength.setText(String.valueOf(UnitUtils.ftToMi(Double.valueOf(paramInfo.getLength()))));
                         }
-                        if(paramInfo.getLength().equals("0"))
+                        if(paramInfo.getLength().equals("0")) {
                             etLength.setText("");
+                        }
                         if (!TextUtils.isEmpty(paramInfo.getVop())) {
                             etVop.setText(String.valueOf(UnitUtils.ftToMi(Double.valueOf(paramInfo.getVop()))));
                         }
-                        if(paramInfo.getVop().equals("0"))
+                        if(paramInfo.getVop().equals("0")) {
                             etVop.setText("");
+                        }
                     }
                 }
             } else {
-                if (saveUnit == FtUnit) {
+                if (saveUnit == FT_UNIT) {
                     //改变数值
                     if (!TextUtils.isEmpty(paramInfo.getCableVop())) {
                         if (paramInfo.getCableVop().equals("0") || paramInfo.getCableVop().equals("0.0")) {
@@ -377,13 +304,15 @@ public class MainActivity extends BaseActivity {
                         if (!TextUtils.isEmpty(paramInfo.getLength())) {
                             etLength.setText(String.valueOf(paramInfo.getLength()));
                         }
-                        if(paramInfo.getLength().equals("0"))
+                        if(paramInfo.getLength().equals("0")) {
                             etLength.setText("");
+                        }
                         if (!TextUtils.isEmpty(paramInfo.getVop())) {
                             etVop.setText(String.valueOf(paramInfo.getVop()));
                         }
-                        if(paramInfo.getVop().equals("0"))
+                        if(paramInfo.getVop().equals("0")) {
                             etVop.setText("");
+                        }
                     }
                 } else {
                     //改变数值
@@ -408,13 +337,15 @@ public class MainActivity extends BaseActivity {
                         if (!TextUtils.isEmpty(paramInfo.getLength())) {
                             etLength.setText(String.valueOf(UnitUtils.miToFt(Double.valueOf(paramInfo.getLength()))));
                         }
-                        if(paramInfo.getLength().equals("0"))
+                        if(paramInfo.getLength().equals("0")) {
                             etLength.setText("");
+                        }
                         if (!TextUtils.isEmpty(paramInfo.getVop())) {
                             etVop.setText(String.valueOf(UnitUtils.miToFt(Double.valueOf(paramInfo.getVop()))));
                         }
-                        if(paramInfo.getVop().equals("0"))
+                        if(paramInfo.getVop().equals("0")) {
                             etVop.setText("");
+                        }
                     }
                 }
             }
@@ -463,7 +394,7 @@ public class MainActivity extends BaseActivity {
                 if (!TextUtils.isEmpty(s.toString())) {
                     double vop = Double.parseDouble(s.toString());
                     double maxVop;
-                    if (CurrentUnit == MiUnit) {
+                    if (CurrentUnit == MI_UNIT) {
                         maxVop = 300;
                     } else {
                         maxVop = Double.valueOf(UnitUtils.miToFt(300));
@@ -482,99 +413,108 @@ public class MainActivity extends BaseActivity {
     }
 
     /**
-     * 注册广播接受服务发送的通知
+     * 广播接收器初始化
      */
     private void initBroadcastReceiver() {
-        //初始化数据库监听广播   //GC20190713
         IntentFilter ifDisplay = new IntentFilter();
-        ifDisplay.addAction(BROADCAST_ACTION_DEVICE_CONNECTED);
-        ifDisplay.addAction(BROADCAST_ACTION_DEVICE_CONNECT_FAILURE);
-        ifDisplay.addAction(BROADCAST_ACTION_DOWIFI_COMMAND);
-
+        ifDisplay.addAction(ConnectService.BROADCAST_ACTION_DEVICE_CONNECTED);
+        ifDisplay.addAction(ConnectService.BROADCAST_ACTION_DEVICE_CONNECT_FAILURE);
+        ifDisplay.addAction(ConnectService.BROADCAST_ACTION_DOWIFI_COMMAND);
         registerReceiver(receiver, ifDisplay);
-
-        //判断服务里连接状态，如果已经连接，则重发广播，改变连接状态
+        //判断服务里连接状态，如果已经连接，则发送广播，改变连接状态
         if (ConnectService.isConnected) {
-            Intent intent = new Intent(BROADCAST_ACTION_DEVICE_CONNECTED);
+            Intent intent = new Intent(ConnectService.BROADCAST_ACTION_DEVICE_CONNECTED);
             sendBroadcast(intent);
         }
     }
 
+    /**
+     * 监听广播并做相应处理
+     */
     private BroadcastReceiver receiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
             String action = intent.getAction();
             assert action != null;
-            //网络连接，更换网络图标
-            if (action.equals(BROADCAST_ACTION_DEVICE_CONNECTED)) {
-                //连接设备成功
-                //如果成功，在跳转ModeActivity时需要主动下发给设备指令
-                ConnectService.isConnected = true;
-                ivWifiStatus.setImageResource(R.drawable.ic_wifi_connected);
-                handler.postDelayed(() -> {
-                    //电量
-                    command = 0x06;
-                    dataTransfer = 0x08;
-                    startService();
-                }, 1000);   //GC20200314    电量获取显示修改
-            }
-            //网络断开，更换网络图标
-            else if (action.equals(BROADCAST_ACTION_DEVICE_CONNECT_FAILURE)) {
-                ConnectService.isConnected = false;
-                ivWifiStatus.setImageResource(R.drawable.ic_no_wifi_connect);
-                ivBatteryStatus.setImageResource(R.drawable.ic_battery_no);
-            } else if (action.equals(BROADCAST_ACTION_DOWIFI_COMMAND)) {
-                wifiStream = intent.getIntArrayExtra(INTENT_KEY_COMMAND);
-                assert wifiStream != null;
-                doWifiCommand(wifiStream);
+            switch (action) {
+                case ConnectService.BROADCAST_ACTION_DEVICE_CONNECTED:
+                    //网络连接，更换网络图标
+                    ConnectService.isConnected = true;
+                    ivWifiStatus.setImageResource(R.drawable.ic_wifi_connected);
+                    //发送获取电量命令  //EN20200324    //G??   有必要么
+                    if (ConnectService.canAskPower) {
+                        handler.postDelayed(() -> {
+                            ConnectService.canAskPower = false;
+                            //电量
+                            command = 0x06;
+                            dataTransfer = 0x08;
+                            startService();
+                        }, 100);
+                    }
+                    break;
+                case ConnectService.BROADCAST_ACTION_DEVICE_CONNECT_FAILURE:
+                    //网络断开，更换网络图标、电量图标
+                    ConnectService.isConnected = false;
+                    ivWifiStatus.setImageResource(R.drawable.ic_no_wifi_connect);
+                    ivBatteryStatus.setImageResource(R.drawable.ic_battery_no);
+                    break;
+                case ConnectService.BROADCAST_ACTION_DOWIFI_COMMAND:
+                    //处理获取到的电量数据
+                    wifiStream = intent.getIntArrayExtra(ConnectService.INTENT_KEY_COMMAND);
+                    assert wifiStream != null;
+                    doWifiCommand(wifiStream);
+                    break;
+                default:
+                    break;
             }
         }
 
     };
 
     /**
-     *去服务发送指令
+     *通过服务发送获取电量指令
      */
     public void startService() {
         Intent intent = new Intent(MainActivity.this, ConnectService.class);
         //发送指令
         Bundle bundle = new Bundle();
         bundle.putInt(BUNDLE_COMMAND_KEY, command);
-        bundle.putInt(MODE_KEY, mode);
-        bundle.putInt(DATA_TRANSFER_KEY, dataTransfer);
+        bundle.putInt(BUNDLE_MODE_KEY, mode);
+        bundle.putInt(BUNDLE_DATA_TRANSFER_KEY, dataTransfer);
         intent.putExtra(BUNDLE_PARAM_KEY, bundle);
         startService(intent);
     }
 
+    /**
+     * @param wifiArray 处理获取到的电量数据
+     */
     private void doWifiCommand(int[] wifiArray) {
-        //仪器触发时：APP发送接收数据命令
-        if (wifiArray[5] == POWERDISPLAY) {
+        if (wifiArray[5] == POWER_DISPLAY) {
+            //判断获取到的数据为电量数据
             int batteryValue = wifiArray[6] * 256 + wifiArray[7];
             if (batteryValue <= 2600) {
                 ivBatteryStatus.setImageResource(R.drawable.ic_battery_zero);
-                //GC20200314
+                //主界面电量状态记录   //GC20200314
                 Constant.batteryValue = 0;
-            } else if (batteryValue > 2600 && batteryValue <= 2818) {
+            } else if (batteryValue <= 2818) {
                 ivBatteryStatus.setImageResource(R.drawable.ic_battery_one);
                 Constant.batteryValue = 1;
-            } else if (batteryValue > 2818 && batteryValue <= 3018) {
+            } else if (batteryValue <= 3018) {
                 ivBatteryStatus.setImageResource(R.drawable.ic_battery_two);
                 Constant.batteryValue = 2;
-            } else if (batteryValue > 3018 && batteryValue <= 3120) {
+            } else if (batteryValue <= 3120) {
                 ivBatteryStatus.setImageResource(R.drawable.ic_battery_three);
                 Constant.batteryValue = 3;
-            } else if (batteryValue > 3120) {
+            } else {
                 ivBatteryStatus.setImageResource(R.drawable.ic_battery_four);
                 Constant.batteryValue = 4;
             }
-
         }
 
     }
 
     @OnClick({R.id.tv_vop_save, R.id.iv_tdr_mode, R.id.iv_icms_mode, R.id.iv_icmd_mode, R.id.iv_mim_mode, R.id.iv_decay_mode, R.id.btn_language, R.id.btn_update, R.id.btn_help, R.id.btn_records, R.id.btn_remote})
     public void onClick(View view) {
-        Intent intent = new Intent();
         switch (view.getId()) {
             case R.id.tv_vop_save:
                 //保存首页设置
@@ -605,9 +545,8 @@ public class MainActivity extends BaseActivity {
                 break;
             case R.id.btn_help:
 //                 showHelpCenterDialog();
-                //GC20200306
-                intent = new Intent(MainActivity.this, HelpActivity.class);
-                startActivity(intent);
+                //GC20200327
+                showHelpHomeDialog();
                 break;
             case R.id.btn_records:
                 showRecordsDialog();
@@ -619,64 +558,29 @@ public class MainActivity extends BaseActivity {
         }
     }
 
-    private void showProgressMode(int mode) {
-        showProgress();
-        //开启线程
-        ThreadFactory threadFactory = new ThreadFactoryBuilder()
-                .setNameFormat("splash-pool-%d").build();
-        ExecutorService singleThreadPool = new ThreadPoolExecutor(1, 1,
-                0L, TimeUnit.MILLISECONDS,
-                new LinkedBlockingQueue<Runnable>(1024), threadFactory,
-                new ThreadPoolExecutor.AbortPolicy());
-
-        singleThreadPool.execute(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    //使程序休眠5秒
-                    Intent intent = new Intent(getApplicationContext(), ModeActivity.class);
-                    intent.setClass(MainActivity.this, ModeActivity.class);
-                    intent.putExtra(MODE_KEY, mode);
-                    startActivity(intent);
-                    if (tDialog != null) {
-                        tDialog.dismiss();
-                    }
-                    //启动MainActivity
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-        });
-        singleThreadPool.shutdown();
-    }
-
     /**
-     * 等待进度progress创建并显示
+     * 参数设置
      */
-    private void showProgress() {
-        //进度条
-        tDialog = new TDialog.Builder(getSupportFragmentManager())
-                .setLayoutRes(R.layout.dialog_loading)
-                .setScreenWidthAspect(this, 0.8f)
-                .setCancelableOutside(false)
-                .setGravity(Gravity.BOTTOM)
-                .setOnBindViewListener(new OnBindViewListener() {
-                    @Override
-                    public void bindView(BindViewHolder viewHolder) {
-                        progressBar = viewHolder.getView(R.id.progressBar);
-                        tvProgress = viewHolder.getView(R.id.hardwareConnection);
-                    }
-                })
-                .create()
-                .show();
-    }
-
     private void saveParamInfo() {
+        //保存数据存储的单位状态
+        int currentunit = StateUtils.getInt(MainActivity.this, AppConfig.CURRENT_UNIT, MI_UNIT);
+        if (currentunit == FT_UNIT) {
+            StateUtils.setInt(MainActivity.this, AppConfig.CURRENT_SAVE_UNIT, FT_UNIT);
+        } else if (currentunit == MI_UNIT) {
+            StateUtils.setInt(MainActivity.this, AppConfig.CURRENT_SAVE_UNIT, MI_UNIT);
+        }
+
+        //待测电缆长度、波速度、ID
+        String cableLength = etCableLength.getText().toString();
+        String cableVop = etCableVop.getText().toString();
+        String cableId = etCableId.getText().toString();
+
+        //最大最小波速度限制
         if (!TextUtils.isEmpty(etCableVop.getText().toString())) {
             double vop = Double.parseDouble(etCableVop.getText().toString());
             double maxVop;
             double minVop;
-            if (CurrentUnit == MiUnit) {
+            if (CurrentUnit == MI_UNIT) {
                 maxVop = 300;
                 minVop = 90;
             } else {
@@ -686,41 +590,26 @@ public class MainActivity extends BaseActivity {
             if (vop > maxVop) {
                 etCableVop.setText(maxVop + "");
             }
-            if (vop < minVop)
+            if (vop < minVop) {
                 etCableVop.setText(minVop + "");
-
+            }
         }
 
-        //保存数据存储的单位状态
-        int currentunit = StateUtils.getInt(MainActivity.this, AppConfig.CURRENT_UNIT, MiUnit);
+        //是否有测试缆信息
+        boolean testLead;
+        testLead = cbTestLead.isChecked();
 
-        //保存数据库存储的数据单位状态
-        if (currentunit == FtUnit) {
-            StateUtils.setInt(MainActivity.this, AppConfig.CURRENT_SAVE_UNIT, FtUnit);
-
-        } else if (currentunit == MiUnit) {
-            StateUtils.setInt(MainActivity.this, AppConfig.CURRENT_SAVE_UNIT, MiUnit);
-        }
-
-        cableLength = etCableLength.getText().toString();
-        cableVop = etCableVop.getText().toString();
-        cableId = etCableId.getText().toString();
-        if (cbTestLead.isChecked()) {
-            testLead = true;
-        } else {
-            testLead = false;
-        }
-
-        length = etLength.getText().toString();
-        vop = etVop.getText().toString();
+        //测试线缆长度、波速度
+        String length = etLength.getText().toString();
+        String vop1 = etVop.getText().toString();
         ParamInfo paramInfo = (ParamInfo) StateUtils.getObject(MainActivity.this, Constant.PARAM_INFO_KEY);
         if (paramInfo == null) {
             paramInfo = new ParamInfo();
         }
         paramInfo.setCableId(cableId);
         paramInfo.setTestLead(testLead);
+
         //处理拿到不输入的情况
-        /*if (CurrentUnit == MiUnit) {*/
         if (TextUtils.isEmpty(cableLength)) {
             cableLength = "0";
             paramInfo.setCableLength(cableLength);
@@ -740,39 +629,67 @@ public class MainActivity extends BaseActivity {
         } else {
             paramInfo.setLength(length);
         }
-        if (TextUtils.isEmpty(vop)) {
-            vop = "0";
-            paramInfo.setVop(vop);
+        if (TextUtils.isEmpty(vop1)) {
+            vop1 = "0";
+            paramInfo.setVop(vop1);
 
         } else {
-            paramInfo.setVop(vop);
+            paramInfo.setVop(vop1);
         }
-
-        /*else {
-            if (TextUtils.isEmpty(cableLength)) {
-                cableLength = "0";
-            } else {
-                paramInfo.setCableLength(UnitUtils.ftToMi(Double.parseDouble(cableLength)));
-            }
-            if (TextUtils.isEmpty(cableVop)) {
-                cableVop = "0";
-            } else {
-                paramInfo.setCableVop(UnitUtils.ftToMi(Double.parseDouble(cableVop)));
-            }
-            if (TextUtils.isEmpty(length)) {
-                length = "0";
-            } else {
-                paramInfo.setLength(UnitUtils.ftToMi(Double.parseDouble(length)));
-            }
-            if (TextUtils.isEmpty(vop)) {
-                vop = "0";
-            } else {
-                paramInfo.setVop(UnitUtils.ftToMi(Double.parseDouble(vop)));
-            }
-        }*/
-
         StateUtils.setObject(MainActivity.this, paramInfo, Constant.PARAM_INFO_KEY);
         Toast.makeText(MainActivity.this, R.string.save_success, Toast.LENGTH_SHORT).show();
+    }
+
+    private void showProgressMode(int mode) {
+        showProgress();
+        //开启线程
+        ThreadFactory threadFactory = new ThreadFactoryBuilder()
+                .setNameFormat("splash-pool-%d").build();
+        ExecutorService singleThreadPool = new ThreadPoolExecutor(1, 1,
+                0L, TimeUnit.MILLISECONDS,
+                new LinkedBlockingQueue<Runnable>(1024), threadFactory,
+                new ThreadPoolExecutor.AbortPolicy());
+
+        singleThreadPool.execute(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    //使程序休眠5秒
+                    Intent intent = new Intent(getApplicationContext(), ModeActivity.class);
+                    intent.setClass(MainActivity.this, ModeActivity.class);
+                    intent.putExtra(BUNDLE_MODE_KEY, mode);
+                    startActivity(intent);
+                    if (tDialog != null) {
+                        tDialog.dismiss();
+                    }
+                    //启动MainActivity
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+        singleThreadPool.shutdown();
+    }
+
+    /**
+     * 等待进度progress创建并显示    //G?? 作用？
+     */
+    private void showProgress() {
+        //进度条
+        tDialog = new TDialog.Builder(getSupportFragmentManager())
+                .setLayoutRes(R.layout.dialog_loading)
+                .setScreenWidthAspect(this, 0.8f)
+                .setCancelableOutside(false)
+                .setGravity(Gravity.BOTTOM)
+                .setOnBindViewListener(new OnBindViewListener() {
+                    @Override
+                    public void bindView(BindViewHolder viewHolder) {
+                        progressBar = viewHolder.getView(R.id.progressBar);
+                        tvProgress = viewHolder.getView(R.id.hardwareConnection);
+                    }
+                })
+                .create()
+                .show();
     }
 
     private void showLanguageChangeDialog() {
@@ -784,13 +701,8 @@ public class MainActivity extends BaseActivity {
             @Override
             public void onDismiss(DialogInterface dialog) {
                 if (!languageChangeDialog.getCloseStatus()) {
-                    //不需要关闭服务
-                    needStopService = true;
-                    ConnectService.needReconnect = false;
                     Intent intent = new Intent(MainActivity.this, ConnectService.class);
                     stopService(intent);
-                    //finish();
-                    //Intent intentSplash = new Intent(MainActivity.this, z_SplashActivity.class);
                     Intent intentSplash = new Intent(MainActivity.this, MainActivity.class);
                     startActivity(intentSplash);
 
@@ -904,24 +816,37 @@ public class MainActivity extends BaseActivity {
     }
 
     private void showHelpCenterDialog() {
-        helpCenterDialog = new HelpCenterDialog(this);
+        HelpCenterDialog helpCenterDialog = new HelpCenterDialog(this);
         if (!helpCenterDialog.isShowing()) {
             helpCenterDialog.show();
         }
     }
 
+    /**
+     * 主页帮助对话框    //GC20200327
+     */
+    private void showHelpHomeDialog() {
+        HelpHomeDialog helpHomeDialog = new HelpHomeDialog(this);
+        if (!helpHomeDialog.isShowing()) {
+            helpHomeDialog.show();
+        }
+    }
+
     private void showRecordsDialog() {
-        customDialog = new ShowRecordsDialog(this);
+        ShowRecordsDialog customDialog = new ShowRecordsDialog(this);
         customDialog.setFromMain(true);
         if (!customDialog.isShowing()) {
             customDialog.show();
         }
     }
 
-    //隐藏虚拟按键，暂时用不到。
+    /**
+     *隐藏虚拟按键，暂时用不到。
+     */
     protected void hideBottomUIMenu() {
         //隐藏虚拟按键，并且全屏
-        if (Build.VERSION.SDK_INT > 11 && Build.VERSION.SDK_INT < 19) { // lower api
+        if (Build.VERSION.SDK_INT > 11 && Build.VERSION.SDK_INT < 19) {
+            // lower api
             View v = this.getWindow().getDecorView();
             v.setSystemUiVisibility(View.GONE);
         } else if (Build.VERSION.SDK_INT >= 19) {
@@ -955,16 +880,9 @@ public class MainActivity extends BaseActivity {
         if (receiver != null) {
             unregisterReceiver(receiver);
         }
-        //切换语言时不要关闭服务
-        if (needStopService == true) {
-            ConnectService.needReconnect = false;
-            Intent intent = new Intent(MainActivity.this, ConnectService.class);
-            stopService(intent);
-            //android.os.Process.killProcess(android.os.Process.myPid());
-
-        }
+        Intent intent = new Intent(MainActivity.this, ConnectService.class);
+        stopService(intent);
         super.onDestroy();
     }
-
 
 }

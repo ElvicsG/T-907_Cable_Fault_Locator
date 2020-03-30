@@ -6,22 +6,16 @@ package net.kehui.www.t_907_origin.application;
  */
 public class Constant {
     public static final String SSID = "T-907";
-    public static final String DeviceIP = "192.168.5.143";
+    public static final String DEVICE_IP = "192.168.5.143";
     public static final String BASE_API = "http://cfl.kehui.cn/";
-    public static final int MiUnit = 0;
-    public static final int FtUnit = 1;
-    public static int LastUnit = MiUnit;
-    public static int CurrentUnit = MiUnit;
-    public static int CurrentSaveUnit = MiUnit;
+    public static final int MI_UNIT = 0;
+    public static final int FT_UNIT = 1;
+    public static int CurrentUnit = MI_UNIT;
+    public static int CurrentSaveUnit = MI_UNIT;
 
     public static final String PARAM_INFO_KEY = "param_info_key";
-    //TODO wdx 20191218 波宽度本地存储的KEY值设定
     public static final String PULSE_WIDTH_INFO_KEY = "pulse_width_info_key";
-    public static final String TDR_KEY = "TDR_KEY";
-    public static final String ICM_SURGE_KEY = "ICM_SURGE_KEY";
-    public static final String ICM_DECAY_KEY = "ICM_DECAY_KEY";
-    public static final String MIM_KEY = "MIM_KEY";
-    public static final String DECAY_KEY = "DECAY_KEY";
+
     public static int ModeValue;
     public static int RangeValue;
     public static int Gain;
@@ -37,7 +31,10 @@ public class Constant {
     public static int Phase;//代表相位编码
     public static int PositonV;//虚光标
     public static int PositionR;//实光标
-    //GC20200314
+
+    /**
+     * 电量状态记录   //GC20200314
+     */
     public static int batteryValue;
     public static String Tester;
     public static double CurrentLocation;
@@ -59,4 +56,5 @@ public class Constant {
 
     //TODO 20191219 当前语言
     public static String currentLanguage = "";
+
 }

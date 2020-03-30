@@ -21,13 +21,11 @@ import androidx.annotation.Nullable;
 import net.kehui.www.t_907_origin.R;
 import net.kehui.www.t_907_origin.application.AppConfig;
 import net.kehui.www.t_907_origin.application.Constant;
-import net.kehui.www.t_907_origin.base.BaseActivity;
 import net.kehui.www.t_907_origin.entity.Data;
 import net.kehui.www.t_907_origin.entity.ParamInfo;
 import net.kehui.www.t_907_origin.util.ScreenUtils;
 import net.kehui.www.t_907_origin.util.StateUtils;
 import net.kehui.www.t_907_origin.util.UnitUtils;
-import net.kehui.www.t_907_origin.view.MainActivity;
 
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
@@ -47,9 +45,8 @@ import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.schedulers.Schedulers;
 
 import static net.kehui.www.t_907_origin.application.Constant.CurrentUnit;
-import static net.kehui.www.t_907_origin.application.Constant.FtUnit;
-import static net.kehui.www.t_907_origin.application.Constant.LastUnit;
-import static net.kehui.www.t_907_origin.application.Constant.MiUnit;
+import static net.kehui.www.t_907_origin.application.Constant.FT_UNIT;
+import static net.kehui.www.t_907_origin.application.Constant.MI_UNIT;
 import static net.kehui.www.t_907_origin.base.BaseActivity.DECAY;
 import static net.kehui.www.t_907_origin.base.BaseActivity.ICM;
 import static net.kehui.www.t_907_origin.base.BaseActivity.ICM_DECAY;
@@ -184,8 +181,8 @@ public class SaveRecordsDialog extends BaseDialog implements View.OnClickListene
 
     private void setCableLength() {
         if (paramInfo != null) {
-            if (CurrentUnit == MiUnit) {
-                if (Constant.CurrentSaveUnit == MiUnit)
+            if (CurrentUnit == MI_UNIT) {
+                if (Constant.CurrentSaveUnit == MI_UNIT)
                     if (paramInfo.getCableLength().equals("0") || paramInfo.getCableLength().equals("0.0"))
                         tvCableLength.setText("");
                     else
@@ -196,7 +193,7 @@ public class SaveRecordsDialog extends BaseDialog implements View.OnClickListene
                 else
                     tvCableLength.setText(UnitUtils.ftToMi(Double.valueOf(paramInfo.getCableLength())));
             } else {
-                if (Constant.CurrentSaveUnit == FtUnit)
+                if (Constant.CurrentSaveUnit == FT_UNIT)
                     if (paramInfo.getCableLength().equals("0") || paramInfo.getCableLength().equals("0.0"))
                         tvCableLength.setText("");
                     else
@@ -217,14 +214,13 @@ public class SaveRecordsDialog extends BaseDialog implements View.OnClickListene
     }
 
     private void initUnit() {
-        CurrentUnit = StateUtils.getInt(getContext(), AppConfig.CURRENT_UNIT, MiUnit);
+        CurrentUnit = StateUtils.getInt(getContext(), AppConfig.CURRENT_UNIT, MI_UNIT);
         changeUnitView(CurrentUnit);
 
     }
 
     private void changeUnitView(int currentUnit) {
-
-        if (currentUnit == MiUnit) {
+        if (currentUnit == MI_UNIT) {
             tvFalutLocationUnit.setText(R.string.mi);
             tvCableLengthUnit.setText(R.string.mi);
 
@@ -273,7 +269,8 @@ public class SaveRecordsDialog extends BaseDialog implements View.OnClickListene
                 });
                 dismiss();
                 break;
-
+            default:
+                break;
         }
     }
 
@@ -322,7 +319,7 @@ public class SaveRecordsDialog extends BaseDialog implements View.OnClickListene
         int range = Constant.RangeValue;
         switch (range) {
             case RANGE_250:
-                if (CurrentUnit == FtUnit) {
+                if (CurrentUnit == FT_UNIT) {
                     tvRange.setText(getContext().getResources().getString(R.string.btn_250m_to_ft));
                     Constant.Range = RANGE_250;
                 } else {
@@ -331,7 +328,7 @@ public class SaveRecordsDialog extends BaseDialog implements View.OnClickListene
                 }
                 break;
             case RANGE_500:
-                if (CurrentUnit == FtUnit) {
+                if (CurrentUnit == FT_UNIT) {
                     tvRange.setText(getContext().getResources().getString(R.string.btn_500m_to_ft));
                     Constant.Range = RANGE_500;
                 } else {
@@ -341,7 +338,7 @@ public class SaveRecordsDialog extends BaseDialog implements View.OnClickListene
                 }
                 break;
             case RANGE_1_KM:
-                if (CurrentUnit == FtUnit) {
+                if (CurrentUnit == FT_UNIT) {
                     tvRange.setText(getContext().getResources().getString(R.string.btn_1km_to_yingli));
                     Constant.Range = RANGE_1_KM;
                 } else {
@@ -351,7 +348,7 @@ public class SaveRecordsDialog extends BaseDialog implements View.OnClickListene
                 }
                 break;
             case RANGE_2_KM:
-                if (CurrentUnit == FtUnit) {
+                if (CurrentUnit == FT_UNIT) {
                     tvRange.setText(getContext().getResources().getString(R.string.btn_2km_to_yingli));
                     Constant.Range = RANGE_2_KM;
                 } else {
@@ -361,7 +358,7 @@ public class SaveRecordsDialog extends BaseDialog implements View.OnClickListene
                 }
                 break;
             case RANGE_4_KM:
-                if (CurrentUnit == FtUnit) {
+                if (CurrentUnit == FT_UNIT) {
                     tvRange.setText(getContext().getResources().getString(R.string.btn_4km_to_yingli));
                     Constant.Range = RANGE_4_KM;
                 } else {
@@ -371,7 +368,7 @@ public class SaveRecordsDialog extends BaseDialog implements View.OnClickListene
                 }
                 break;
             case RANGE_8_KM:
-                if (CurrentUnit == FtUnit) {
+                if (CurrentUnit == FT_UNIT) {
                     tvRange.setText(getContext().getResources().getString(R.string.btn_8km_to_yingli));
                 } else {
                     tvRange.setText(getContext().getResources().getString(R.string.btn_8km));
@@ -379,7 +376,7 @@ public class SaveRecordsDialog extends BaseDialog implements View.OnClickListene
                 Constant.Range = RANGE_8_KM;
                 break;
             case RANGE_16_KM:
-                if (CurrentUnit == FtUnit) {
+                if (CurrentUnit == FT_UNIT) {
                     tvRange.setText(getContext().getResources().getString(R.string.btn_16km_to_yingli));
                 } else {
                     tvRange.setText(getContext().getResources().getString(R.string.btn_16km));
@@ -387,7 +384,7 @@ public class SaveRecordsDialog extends BaseDialog implements View.OnClickListene
                 Constant.Range = RANGE_16_KM;
                 break;
             case RANGE_32_KM:
-                if (CurrentUnit == FtUnit) {
+                if (CurrentUnit == FT_UNIT) {
                     tvRange.setText(getContext().getResources().getString(R.string.btn_32km_to_yingli));
                 } else {
                     tvRange.setText(getContext().getResources().getString(R.string.btn_32km));
@@ -395,7 +392,7 @@ public class SaveRecordsDialog extends BaseDialog implements View.OnClickListene
                 Constant.Range = RANGE_32_KM;
                 break;
             case RANGE_64_KM:
-                if (CurrentUnit == FtUnit) {
+                if (CurrentUnit == FT_UNIT) {
                     tvRange.setText(getContext().getResources().getString(R.string.btn_32km_to_yingli));
                 } else {
                     tvRange.setText(getContext().getResources().getString(R.string.btn_64km));
@@ -446,7 +443,7 @@ public class SaveRecordsDialog extends BaseDialog implements View.OnClickListene
 
     private void setEtLocation() {
         Constant.SaveLocation = Constant.CurrentLocation;
-        if (Constant.CurrentUnit == Constant.MiUnit) {
+        if (Constant.CurrentUnit == Constant.MI_UNIT) {
             tvFaultLocation.setText(new DecimalFormat("0.00").format(Constant.SaveLocation));
         } else {
             tvFaultLocation.setText(UnitUtils.miToFt(Constant.SaveLocation));
@@ -460,7 +457,7 @@ public class SaveRecordsDialog extends BaseDialog implements View.OnClickListene
         data.time = Constant.Time.trim();
         data.mode = Constant.Mode + "";
         data.range = Constant.Range;
-        if (Constant.CurrentSaveUnit == MiUnit)
+        if (Constant.CurrentSaveUnit == MI_UNIT)
             data.location = Constant.SaveLocation;
         else
             data.location = Double.valueOf(UnitUtils.miToFt(Constant.SaveLocation));
@@ -472,7 +469,7 @@ public class SaveRecordsDialog extends BaseDialog implements View.OnClickListene
         }
 
         data.line = tvCableLength.getText().toString().trim();
-        if (CurrentUnit == FtUnit) {
+        if (CurrentUnit == FT_UNIT) {
             if (!TextUtils.isEmpty(data.line)) {
                 data.line = UnitUtils.ftToMi(Double.valueOf(data.line));
             }

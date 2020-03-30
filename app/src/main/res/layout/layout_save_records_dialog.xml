@@ -54,6 +54,7 @@
                         android:layout_toRightOf="@id/tv_cable_id_text"
                         android:background="@null"
                         android:minWidth="@dimen/dp_100"
+                        android:singleLine="true"
                         android:text="1"
                         android:textColor="@color/blue_0FF6FF"
                         android:textSize="@dimen/sp_10" />
@@ -187,6 +188,7 @@
                         android:layout_toRightOf="@id/tv_cable_length_text"
                         android:background="@null"
                         android:minWidth="@dimen/dp_100"
+                        android:singleLine="true"
                         android:text=""
                         android:textColor="@color/blue_0FF6FF"
                         android:textSize="@dimen/sp_10" />
@@ -234,6 +236,7 @@
                         android:layout_toRightOf="@id/tv_fault_location_text"
                         android:background="@null"
                         android:minWidth="@dimen/dp_100"
+                        android:singleLine="true"
                         android:text="100"
                         android:textColor="@color/blue_0FF6FF"
                         android:textSize="@dimen/sp_10" />
@@ -320,6 +323,7 @@
                         android:layout_toRightOf="@id/tv_operator_text"
                         android:background="@null"
                         android:minWidth="@dimen/dp_100"
+                        android:singleLine="true"
                         android:text=""
                         android:textColor="@color/blue_0FF6FF"
                         android:textSize="@dimen/sp_10" />
@@ -353,6 +357,7 @@
                         android:layout_toRightOf="@id/tv_test_site_text"
                         android:background="@null"
                         android:minWidth="@dimen/dp_100"
+                        android:singleLine="true"
                         android:text=""
                         android:textColor="@color/blue_0FF6FF"
                         android:textSize="@dimen/sp_10" />

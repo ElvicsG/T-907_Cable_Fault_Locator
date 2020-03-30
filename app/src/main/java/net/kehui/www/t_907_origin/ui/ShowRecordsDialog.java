@@ -55,7 +55,7 @@ import static net.kehui.www.t_907_origin.base.BaseActivity.RANGE_64_KM;
 import static net.kehui.www.t_907_origin.base.BaseActivity.RANGE_8_KM;
 import static net.kehui.www.t_907_origin.base.BaseActivity.SIM;
 import static net.kehui.www.t_907_origin.base.BaseActivity.TDR;
-import static net.kehui.www.t_907_origin.view.z_ListActivity.DISPLAY_ACTION;
+import static net.kehui.www.t_907_origin.view.ListActivity.DISPLAY_ACTION;
 
 
 /**
@@ -103,7 +103,7 @@ public class ShowRecordsDialog extends BaseDialog implements View.OnClickListene
     private int mode;
     private boolean fromMain;
     private TextView tvCableLengthUnit;
-    private TextView tvFalutLocationUnit;;
+    private TextView tvFaultLocationUnit;;
 
     public void setFromMain(boolean fromMain) {
         this.fromMain = fromMain;
@@ -160,8 +160,8 @@ public class ShowRecordsDialog extends BaseDialog implements View.OnClickListene
         tvNoRecords = view.findViewById(R.id.tv_no_records);
         rlHasRecords = view.findViewById(R.id.rl_has_records);
         tvCableLengthUnit = view.findViewById(R.id.tv_cable_length_unit);
-        //GC20200312
-        tvFalutLocationUnit = view.findViewById(R.id.tv_fault_location_unit);
+        //故障距离单位显示添加  //GC20200312
+        tvFaultLocationUnit = view.findViewById(R.id.tv_fault_location_unit);
         ivClose.setOnClickListener(this);
         tvDisplay.setOnClickListener(this);
         tvDelete.setOnClickListener(this);
@@ -179,13 +179,13 @@ public class ShowRecordsDialog extends BaseDialog implements View.OnClickListene
                 Intent intent = new Intent();
                 if (fromMain) {
                     intent.setClass(getContext(), ModeActivity.class);
-                    intent.putExtra(ModeActivity.MODE_KEY, Integer.valueOf(adapter.datas.get(pos).mode));
+                    intent.putExtra(ModeActivity.BUNDLE_MODE_KEY, Integer.valueOf(adapter.datas.get(pos).mode));
                     intent.putExtra("display_action", ModeActivity.DISPLAY_DATABASE);
                     intent.putExtra("isReceiveData", false);
                     getContext().startActivity(intent);
                 } else {
                     intent = new Intent(DISPLAY_ACTION);
-                    intent.putExtra(ModeActivity.MODE_KEY, Integer.valueOf(adapter.datas.get(pos).mode));
+                    intent.putExtra(ModeActivity.BUNDLE_MODE_KEY, Integer.valueOf(adapter.datas.get(pos).mode));
                     intent.putExtra("display_action", ModeActivity.DISPLAY_DATABASE);
                     getContext().sendBroadcast(intent);
                 }
@@ -382,7 +382,7 @@ public class ShowRecordsDialog extends BaseDialog implements View.OnClickListene
 
     private void setDataByPosition(Data data) {
         tvCableId.setText(String.valueOf(data.cableId));
-        if (Constant.CurrentUnit == Constant.FtUnit) {
+        if (Constant.CurrentUnit == Constant.FT_UNIT) {
             if (!TextUtils.isEmpty(data.line))
                 tvCableLength.setText(UnitUtils.miToFt(Double.valueOf(data.line)));
             else {
@@ -390,24 +390,24 @@ public class ShowRecordsDialog extends BaseDialog implements View.OnClickListene
             }
             tvCableLengthUnit.setText(R.string.ft);
             //GC20200312
-            tvFalutLocationUnit.setText(R.string.ft);
+            tvFaultLocationUnit.setText(R.string.ft);
         } else {
             tvCableLength.setText(data.line);
             tvCableLengthUnit.setText(R.string.mi);
             //GC20200312
-            tvFalutLocationUnit.setText(R.string.mi);
+            tvFaultLocationUnit.setText(R.string.mi);
         }
 
         tvDate.setText(data.date);
         tvMode.setText(initMode(Integer.valueOf(data.mode)));
         tvRange.setText(initRange(data.range));
-        if (Constant.CurrentUnit == Constant.MiUnit) {
-            if (Constant.CurrentSaveUnit == Constant.MiUnit)
+        if (Constant.CurrentUnit == Constant.MI_UNIT) {
+            if (Constant.CurrentSaveUnit == Constant.MI_UNIT)
                 tvFaultLocation.setText(new DecimalFormat("0.00").format(data.location));
             else
                 tvFaultLocation.setText(UnitUtils.ftToMi(data.location));
         } else {
-            if (Constant.CurrentSaveUnit == Constant.FtUnit)
+            if (Constant.CurrentSaveUnit == Constant.FT_UNIT)
                 tvFaultLocation.setText(new DecimalFormat("0.00").format(data.location));
             else
                 tvFaultLocation.setText(UnitUtils.miToFt(data.location));
@@ -421,58 +421,58 @@ public class ShowRecordsDialog extends BaseDialog implements View.OnClickListene
     private String initRange(int range) {
         switch (range) {
             case RANGE_250:
-                if (Constant.CurrentUnit == Constant.MiUnit) {
+                if (Constant.CurrentUnit == Constant.MI_UNIT) {
                     return getContext().getResources().getString(R.string.btn_250m);
-                } else if (Constant.CurrentUnit == Constant.FtUnit) {
+                } else if (Constant.CurrentUnit == Constant.FT_UNIT) {
                     return getContext().getResources().getString(R.string.btn_250m_to_ft);
                 }
 
             case RANGE_500:
-                if (Constant.CurrentUnit == Constant.MiUnit) {
+                if (Constant.CurrentUnit == Constant.MI_UNIT) {
                     return getContext().getResources().getString(R.string.btn_500m);
                 } else {
                     return getContext().getResources().getString(R.string.btn_500m_to_ft);
                 }
             case RANGE_1_KM:
 
-                if (Constant.CurrentUnit == Constant.MiUnit) {
+                if (Constant.CurrentUnit == Constant.MI_UNIT) {
                     return getContext().getResources().getString(R.string.btn_1km);
                 } else {
                     return getContext().getResources().getString(R.string.btn_1km_to_yingli);
                 }
             case RANGE_2_KM:
-                if (Constant.CurrentUnit == Constant.MiUnit) {
+                if (Constant.CurrentUnit == Constant.MI_UNIT) {
                     return getContext().getResources().getString(R.string.btn_2km);
                 } else {
                     return getContext().getResources().getString(R.string.btn_2km_to_yingli);
                 }
             case RANGE_4_KM:
-                if (Constant.CurrentUnit == Constant.MiUnit) {
+                if (Constant.CurrentUnit == Constant.MI_UNIT) {
                     return getContext().getResources().getString(R.string.btn_4km);
                 } else {
                     return getContext().getResources().getString(R.string.btn_4km_to_yingli);
                 }
 
             case RANGE_8_KM:
-                if (Constant.CurrentUnit == Constant.MiUnit) {
+                if (Constant.CurrentUnit == Constant.MI_UNIT) {
                     return getContext().getResources().getString(R.string.btn_8km);
                 } else {
                     return getContext().getResources().getString(R.string.btn_8km_to_yingli);
                 }
             case RANGE_16_KM:
-                if (Constant.CurrentUnit == Constant.MiUnit) {
+                if (Constant.CurrentUnit == Constant.MI_UNIT) {
                     return getContext().getResources().getString(R.string.btn_16km);
                 } else {
                     return getContext().getResources().getString(R.string.btn_16km_to_yingli);
                 }
             case RANGE_32_KM:
-                if (Constant.CurrentUnit == Constant.MiUnit) {
+                if (Constant.CurrentUnit == Constant.MI_UNIT) {
                     return getContext().getResources().getString(R.string.btn_32km);
                 } else {
                     return getContext().getResources().getString(R.string.btn_32km_to_yingli);
                 }
             case RANGE_64_KM:
-                if (Constant.CurrentUnit == Constant.MiUnit) {
+                if (Constant.CurrentUnit == Constant.MI_UNIT) {
                     return getContext().getResources().getString(R.string.btn_64km);
                 } else {
                     return getContext().getResources().getString(R.string.btn_64km_to_yingli);

@@ -74,14 +74,10 @@ public class HelpCenterDialog extends Dialog implements View.OnClickListener {
                 dismiss();
                 break;
             case R.id.iv_operation_guide:
-                //GC20200306
-
                 break;
             case R.id.iv_safe_guide:
-
                 break;
             case R.id.iv_button_instructions:
-
                 break;
             default:
                 break;

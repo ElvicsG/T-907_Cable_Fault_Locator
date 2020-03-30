@@ -157,7 +157,6 @@ public class WifiUtil {
     }
 
     //然后是一个实际应用方法，只验证过没有密码的情况：
-
     public WifiConfiguration createWifiInfo(String SSID, String Password, int Type) {
         WifiConfiguration config = new WifiConfiguration();
         config.allowedAuthAlgorithms.clear();

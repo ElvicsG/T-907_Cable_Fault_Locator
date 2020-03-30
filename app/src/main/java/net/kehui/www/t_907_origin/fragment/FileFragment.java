@@ -11,7 +11,7 @@ import android.widget.LinearLayout;
 import androidx.fragment.app.Fragment;
 
 import net.kehui.www.t_907_origin.R;
-import net.kehui.www.t_907_origin.view.z_ListActivity;
+import net.kehui.www.t_907_origin.view.ListActivity;
 import net.kehui.www.t_907_origin.view.z_SaveActivity;
 import net.kehui.www.t_907_origin.view.z_SearchActivity;
 
@@ -61,7 +61,7 @@ public class FileFragment extends Fragment {
             case R.id.btn_browse:
                 Intent it = new Intent(
                         Objects.requireNonNull(getActivity()).getApplicationContext(),
-                        z_ListActivity.class);
+                        ListActivity.class);
                 startActivity(it);
                 break;
             case R.id.btn_search:

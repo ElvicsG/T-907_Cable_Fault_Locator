@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name" >T-907-ORIGIN</string>
+    <string name="app_name" >T-907</string>
     <string name="btn_mtd" >方式</string>
     <string name="btn_range">范围</string>
     <string name="btn_adj">调节</string>
@@ -156,7 +156,7 @@
     <string name="no_load_url">没有可用于下载的地址</string>
     <string name="has_new_version">当前已是最新版本</string>
     <string name="downloading">正在下载…</string>
-    <string name="disconnect">连接异常</string>
+    <string name="disconnect">T-907连接异常!</string>
     <string name="check_update">正在检测新版本信息…</string>
     <string name="btn_next">下一页</string>
     <string name="btn_previous">上一页</string>

@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">T-907-ORIGIN</string>
+    <string name="app_name">T-907</string>
     <string name="btn_mtd">方式</string>
     <string name="btn_range">范围</string>
     <string name="btn_adj">调节</string>
@@ -153,7 +153,7 @@
     <string name="downloading">正在下载…</string>
     <string name="check_update">正在检测新版本信息…</string>
     <string name="has_new_version">当前已是最新版本</string>
-    <string name="disconnect">连接异常</string>
+    <string name="disconnect">T-907连接异常!</string>
     <string name="ask_cancel">退出前请点击取消测试按钮。</string>
     <string name="update_now">现在更新</string>
     <string name="update_later">稍后更新</string>

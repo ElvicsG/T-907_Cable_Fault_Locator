@@ -8,12 +8,9 @@ import net.kehui.www.t_907_origin.thread.ConnectThread;
 import net.kehui.www.t_907_origin.util.MultiLanguageUtil;
 
 import android.content.Context;
-import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.StrictMode;
-import android.view.KeyEvent;
-import android.view.View;
 import android.view.WindowManager;
 
 import java.io.BufferedReader;
@@ -54,11 +51,11 @@ public class BaseActivity extends AppCompatActivity {
     public boolean isMemory;
     public boolean isDatabase;
 
-    //TODO wdx 20191218 波宽度全局变量
     /**
      * wdx 20191218 波宽度全局变量
      */
     public int pulseWidth;
+    public boolean hasPulseWidth;
 
     /**
      * 波形原始数据数组
@@ -115,11 +112,13 @@ public class BaseActivity extends AppCompatActivity {
      */
     public int zero;
     public int pointDistance;
-    public int cusorMoveValue;
     public int simZero;
     public int positionReal;
     public int positionVirtual;
+    public int cursorMoveValue;
     public boolean cursorState;
+    public int simPosition;
+    public int positionSim;
 
     /**
      * ICM自动测距参数
@@ -159,7 +158,7 @@ public class BaseActivity extends AppCompatActivity {
      * 接收波形
      * 数据头      数据长度    传输数据    校验和
      * eb90aaxx    aabbccdd       X         xx
-     * <p>
+     *
      * 发送命令(16进制显示)
      * 数据头   数据长度  指令  传输数据  校验和
      * eb90aa55     03      01      11       15
@@ -194,19 +193,20 @@ public class BaseActivity extends AppCompatActivity {
     public final static int COMMAND_DELAY = 0x05;
     public final static int COMMAND_BALANCE = 0x07;
     public final static int COMMAND_RECEIVE_WAVE = 0x09;
-    //TODO wdx 20191218 波宽度发送指令代码
-    /**
-     * wdx 20191218 波宽度发送指令代码
-     */
-    public final static int COMMAND_PULSE_WIDTH = 0x0a;
+
     public int dataTransfer;
     public final static int TESTING = 0x11;
     public final static int CANCEL_TEST = 0x22;
 
+    /**
+     * wdx 20191218 波宽度发送指令代码
+     */
+    public final static int COMMAND_PULSE_WIDTH = 0x0a;
+
     public final static int TDR = 0x11;
-    public final static int ICM = 0x22;//ICM-Surge 冲闪
-    public final static int ICM_DECAY = 0x55;//ICM-DECAY 直闪
-    public final static int SIM = 0x33;//MIM
+    public final static int ICM = 0x22;
+    public final static int ICM_DECAY = 0x55;
+    public final static int SIM = 0x33;
     public final static int DECAY = 0x44;
 
     public final static int RANGE_250 = 0x99;
@@ -220,22 +220,21 @@ public class BaseActivity extends AppCompatActivity {
     public final static int RANGE_64_KM = 0x88;
 
     /**
-     * APP接收命令
+     * APP接收到的命令
      */
     public final static int COMMAND_TRIGGER = 0x08;
     public final static int TRIGGERED = 0x11;
-    public final static int POWERDISPLAY = 0x06;
+    public final static int POWER_DISPLAY = 0x06;
     public final static int RECEIVE_RIGHT = 0x33;
     public final static int RECEIVE_WRONG = 0x44;
 
     /**
-     * APP接收波形数据头
+     * APP接收到的波形数据头
      * 数据头      数据长度    传输数据    校验和
      * eb90aaXX    aabbccdd     X……X        xx
      */
     public final static int WAVE_TDR_ICM_DECAY = 0x66;
     public final static int WAVE_SIM = 0x77;
-
 
     /**
      * 数据库存储波形部分
@@ -254,7 +253,7 @@ public class BaseActivity extends AppCompatActivity {
             StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
             StrictMode.setThreadPolicy(policy);
         }
-
+        //G??   让程序变卡？
         initParameter();
     }
 
@@ -262,8 +261,8 @@ public class BaseActivity extends AppCompatActivity {
      * 参数初始化
      */
     private void initParameter() {
-        mode = 0x11;//TESTING
-        range = 0x11;//RANGE_500
+        mode = TDR;
+        range = RANGE_500;
         rangeState = 0;
         gain = 13;
         velocity = 172;
@@ -304,7 +303,7 @@ public class BaseActivity extends AppCompatActivity {
         zero = 0;
         pointDistance = 255;
         //光标在画布中移动的点数   //GC20191218
-        cusorMoveValue = 0;
+        cursorMoveValue = 0;
         //光标显示的位置（变化范围0-509）
         positionReal = 0;
         positionVirtual = 255;
@@ -326,18 +325,6 @@ public class BaseActivity extends AppCompatActivity {
     protected void attachBaseContext(Context newBase) {
         super.attachBaseContext(MultiLanguageUtil.attachBaseContext(newBase));
     }
-//
-//    @Override
-//    public boolean onKeyDown(int keyCode, KeyEvent event) {
-//        if (keyCode == KeyEvent.KEYCODE_BACK) {
-//            Intent home = new Intent(Intent.ACTION_MAIN);
-//            home.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-//            home.addCategory(Intent.CATEGORY_HOME);
-//            startActivity(home);
-//            return true;
-//        }
-//        return super.onKeyDown(keyCode, event);
-//    }
 
 }
 
@@ -371,7 +358,16 @@ public class BaseActivity extends AppCompatActivity {
 //GC20200109    DC方式下自动测距单独实现
 //GC20200110    击穿点判断起始位置更改
 
-//GC20200306    帮助按钮功能添加    //GT0306
-//GC20200312    布局修改
-//GC20200313    增益转为百分比
-//GC20200314    电量获取显示修改
+//GC20200312    故障距离单位显示添加
+//GC20200313    增益显示转为百分比
+//GC20200314    切换到模式界面时电量图标更新过慢BUG修改
+//GC20200319    “等待触发”对话框重连时不消掉BUG修改
+
+//G??
+//GC20200317    发送命令和获取电量修改
+//EN20200324    增加条件限制，避免极端条件下会多次尝试连接
+//GC20200325    连接条件修改
+
+//GC20200327    帮助功能添加
+//GC20200330    紫色标记光标添加
+//GC20200331    脉宽修改

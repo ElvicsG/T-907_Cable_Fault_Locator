@@ -83,6 +83,7 @@ public class SparkView extends View implements ScrubGestureDetector.ScrubListene
     private final Path baseLinePath = new Path();
     private final Path scrubLinePath = new Path();
     private final Path scrubLinePath2 = new Path();
+    private final Path scrubLinePath3 = new Path();
 
     /**
      * adapter
@@ -97,6 +98,7 @@ public class SparkView extends View implements ScrubGestureDetector.ScrubListene
     private Paint baseLinePaint;
     private Paint scrubLinePaint;
     private Paint scrubLinePaint2;
+    private Paint scrubLinePaint3;
 
     private OnScrubListener scrubListener;
 
@@ -175,6 +177,13 @@ public class SparkView extends View implements ScrubGestureDetector.ScrubListene
         scrubLinePaint2.setAntiAlias(true);
         scrubLinePaint2.setStrokeCap(Paint.Cap.SQUARE);
         scrubLinePaint2.setPathEffect(new DashPathEffect(new float[]{6, 10}, 0));
+
+        //紫色标记光标添加  //GC20200330
+        scrubLinePaint3 = new Paint(Paint.ANTI_ALIAS_FLAG);
+        scrubLinePaint3.setStyle(Paint.Style.STROKE);
+        scrubLinePaint3.setStrokeWidth(scrubLineWidth);
+        scrubLinePaint3.setColor(Color.parseColor("#339933"));
+        scrubLinePaint3.setStrokeCap(Paint.Cap.ROUND);
 
         final Handler handler = new Handler();
         final float touchSlop = ViewConfiguration.get(context).getScaledTouchSlop();
@@ -399,11 +408,6 @@ public class SparkView extends View implements ScrubGestureDetector.ScrubListene
         invalidate();
     }
 
-    public void setScrubLineVirtualDisappear() {
-        scrubLinePath2.reset();
-        invalidate();
-    }
-
     /**
      * @param position 虚光标位置（设置固定值）
      */
@@ -421,6 +425,32 @@ public class SparkView extends View implements ScrubGestureDetector.ScrubListene
         }
     }
 
+    public void setScrubLineVirtualDisappear() {
+        scrubLinePath2.reset();
+        invalidate();
+    }
+
+    /**
+     * 紫色标记实光标  //GC20200330
+     */
+    public void setScrubLineSim(int position) {
+        try {
+            if (xPoints != null) {
+                startMove = true;
+                scrubLinePath3.reset();
+                scrubLinePath3.moveTo(xPoints.get(position), getPaddingTop());
+                scrubLinePath3.lineTo(xPoints.get(position), getHeight() - getPaddingBottom());
+                invalidate();
+            }
+        } catch (Exception l_Ex) {
+        }
+    }
+
+    public void setScrubLineSimDisappear() {
+        scrubLinePath3.reset();
+        invalidate();
+    }
+
     @Override
     public void setPadding(int left, int top, int right, int bottom) {
         super.setPadding(left, top, right, bottom);
@@ -434,8 +464,10 @@ public class SparkView extends View implements ScrubGestureDetector.ScrubListene
         canvas.drawPath(baseLinePath, baseLinePaint);
         canvas.drawPath(renderPath, sparkLinePaint);
         canvas.drawPath(renderPath2, baseLinePaint);
-        canvas.drawPath(scrubLinePath2, scrubLinePaint2);
         canvas.drawPath(scrubLinePath, scrubLinePaint);
+        canvas.drawPath(scrubLinePath2, scrubLinePaint2);
+        //GC20200330
+        canvas.drawPath(scrubLinePath3, scrubLinePaint3);
 
         //TODO 20191224  屏蔽掉不知道干啥的
         if (!startMove) {
