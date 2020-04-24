@@ -101,7 +101,7 @@ public class ConnectThread extends Thread {
                             e.printStackTrace();
                         }
                         //将读到的数据放到缓存数组
-                        if (remainByte == 0 & !needAddData) {
+                        if (remainByte == 0 && !needAddData) {
                             //如果剩余要处理的为0则重新赋值
                             Arrays.fill(tempBuffer, (byte) 0);
                             System.arraycopy(buffer, 0, tempBuffer, 0, bytes);
@@ -144,7 +144,7 @@ public class ConnectThread extends Thread {
                                 ConnectService.bytesDataQueue.put(powerBytes);
                                 //已经处理过的字节数累加8
                                 processedByte += 9;
-                                //剩余字节数减8
+                                //剩余字节数减9
                                 remainByte = bytes - processedByte;
                                 //如果剩余字节数为0，跳出循环，不需要继续处理,继续接收数据。
                                 if (remainByte == 0) {
@@ -175,6 +175,16 @@ public class ConnectThread extends Thread {
                                     processedByte = 0;
                                     needAddData = false;
                                     break;
+                                } else if(remainByte > wifiStreamLen) {
+                                    //大于需要个数的处理 //GC20200408
+                                    Log.e("【新数据处理】", "混杂命令了！");
+                                    byte[] waveBytes = new byte[wifiStreamLen];
+                                    System.arraycopy(tempBuffer, 0, waveBytes, 0, wifiStreamLen);
+                                    ConnectService.bytesDataQueue.put(waveBytes);
+
+                                    remainByte = 0;
+                                    processedByte = 0;
+                                    needAddData = false;
                                 } else {
                                     //不一致要继续接受数据
                                     needAddData = true;

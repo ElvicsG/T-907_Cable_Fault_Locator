@@ -216,8 +216,7 @@ public class SparkView extends View implements ScrubGestureDetector.ScrubListene
         if (getWidth() == 0 || getHeight() == 0) {
             return;
         }
-        //GC20181227
-//        final int adapterCount = adapter.getMax();
+
         final int adapterCount = adapter.getCount();
 
         // to draw anything, we need 2 or more points
@@ -251,8 +250,6 @@ public class SparkView extends View implements ScrubGestureDetector.ScrubListene
 
         // if we're filling the graph in, close the path's circuit
         if (fill) {
-            //GC20181227
-//            float lastX = scaleHelper.getX(adapter.getMax() - 1);
             float lastX = scaleHelper.getX(adapter.getCount() - 1);
             float bottom = getHeight() - getPaddingBottom();
             // line straight down to the bottom of the view
@@ -281,8 +278,6 @@ public class SparkView extends View implements ScrubGestureDetector.ScrubListene
 
             // if we're filling the graph in, close the path's circuit
             if (fill) {
-                //GC20181227
-//                float lastX = scaleHelper.getX(adapter.getMax() - 1);
                 float lastX = scaleHelper.getX(adapter.getCount() - 1);
                 float bottom = getHeight() - getPaddingBottom();
                 // line straight down to the bottom of the view
@@ -838,8 +833,6 @@ public class SparkView extends View implements ScrubGestureDetector.ScrubListene
             final float lineWidthOffset = fill ? 0 : lineWidth;
             this.width = contentRect.width() - lineWidthOffset;
             this.height = contentRect.height() - lineWidthOffset;
-            //GC20181227
-//            this.size = adapter.getMax();
             this.size = adapter.getCount();
 
             // get data bounds from adapter
@@ -964,8 +957,6 @@ public class SparkView extends View implements ScrubGestureDetector.ScrubListene
         //GC2019629
         startMove = true;
         scX = x;
-        //GC20181227
-//        if (adapter == null || adapter.getMax()== 0) {
         if (adapter == null || adapter.getCount() == 0) {
             return;
         }
@@ -977,15 +968,11 @@ public class SparkView extends View implements ScrubGestureDetector.ScrubListene
                 scrubListener.onScrubbed(adapter.getItem(index), y);
             }
         }
-        //GC20181223 光标切换
-        Log.i("QQQ", "adapter" + ".selectCursor()" + adapter.getCursorState());
         //GC20190628 光标位置限制，触摸有效范围
         if (x >= 8.9929 & x <= 1111.1304 & index < 509) {
-            if (adapter.getCursorState()) {
-                setScrubLineRealMove(x);
-            } else {
-                if (y < 400)
-                    setScrubLineVirtualMove(x);
+            if (y < 400) {
+                //新加纵坐标范围响应
+                setScrubLineVirtualMove(x);
             }
         }
         Log.i("position", String.valueOf(x));

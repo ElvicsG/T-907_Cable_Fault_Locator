@@ -50,7 +50,7 @@ public class ListActivity extends BaseActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.z_activity_list);
+        setContentView(R.layout.activity_list);
         ButterKnife.bind(this);
 
         //添加点击侧边消失

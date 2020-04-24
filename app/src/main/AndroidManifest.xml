@@ -39,14 +39,6 @@
             android:screenOrientation="sensorLandscape"
             android:theme="@style/AlertNoActionBar"></activity>
         <activity
-            android:name=".view.z_SearchActivity"
-            android:configChanges="screenSize|keyboardHidden|orientation"
-            android:screenOrientation="sensorLandscape" />
-        <activity
-            android:name=".view.z_SaveActivity"
-            android:configChanges="screenSize|keyboardHidden|orientation"
-            android:screenOrientation="sensorLandscape" />
-        <activity
             android:name=".view.z_SplashActivity"
             android:configChanges="screenSize|keyboardHidden|orientation"
             android:screenOrientation="sensorLandscape">
@@ -62,10 +54,6 @@
             android:configChanges="screenSize|keyboardHidden|orientation"
             android:screenOrientation="sensorLandscape"
             android:windowSoftInputMode="adjustUnspecified|stateHidden" />
-        <activity
-            android:name=".view.z_MainActivity"
-            android:configChanges="screenSize|keyboardHidden|orientation"
-            android:screenOrientation="sensorLandscape" />
         <activity android:name=".base.BaseActivity" />
         <service android:name=".ConnectService" android:exported="false"></service>
     </application>

@@ -5,7 +5,7 @@ package net.kehui.www.t_907_origin.application;
  * @date 2019/7/8
  */
 public class Constant {
-    public static final String SSID = "T-907";
+    public static final String SSID = "T-9071";
     public static final String DEVICE_IP = "192.168.5.143";
     public static final String BASE_API = "http://cfl.kehui.cn/";
     public static final int MI_UNIT = 0;
@@ -16,6 +16,10 @@ public class Constant {
     public static final String PARAM_INFO_KEY = "param_info_key";
     public static final String PULSE_WIDTH_INFO_KEY = "pulse_width_info_key";
 
+    /**
+     * 脉宽修改     //GC20200331
+     */
+    public static boolean hasPulseWidth;
     public static int ModeValue;
     public static int RangeValue;
     public static int Gain;
@@ -35,7 +39,7 @@ public class Constant {
     /**
      * 电量状态记录   //GC20200314
      */
-    public static int batteryValue;
+    public static int batteryValue = -1;
     public static String Tester;
     public static double CurrentLocation;
     public static double SaveLocation;

@@ -55,7 +55,9 @@ public class ConnectService extends Service {
      *是否已经与T-907建立连接
      */
     public static boolean isConnected;
-    //测试未收到波形时，不要请求电量。
+    /**
+     * 发送命令 //GC20200424
+     */
     public static boolean canAskPower = true;
 
     /**
@@ -77,7 +79,10 @@ public class ConnectService extends Service {
     private BufferedReader br;
     private ConnectThread connectThread;
     private ProcessThread processThread;
-    //数据生产者队列，生产的数据放入队列。
+
+    /**
+     * 阻塞列队 //数据生产者队列，生产的数据放入队列
+     */
     public static ArrayBlockingQueue bytesDataQueue;
     public static Boolean isWifiConnect = false;
 
@@ -117,7 +122,7 @@ public class ConnectService extends Service {
                     //EN20200324    //G??   有必要么
                     canAskPower = false;
                     command = 0x06;
-                    dataTransfer = 0x08;
+                    dataTransfer = 0x13;
                     sendCommand();
                 }
                 handler.postDelayed(this, 30000);
@@ -292,7 +297,7 @@ public class ConnectService extends Service {
      * APP下发命令
      */
     public void sendCommand() {
-        //EN20200324    //GC20200317
+        //发命令时禁止请求电量    //EN20200324    //GC20200317
         canAskPower = false;
 
         byte[] request = new byte[8];
@@ -318,55 +323,23 @@ public class ConnectService extends Service {
         if (connectThread != null){
             connectThread.sendCommand(request);
         }
-        Log.e("【APP->设备】", "指令：" + getCommandStr(command) + " # 数据：" + getDataTransfer(command, dataTransfer));
+        Log.e("#【APP-->设备】", "指令：" + command + " 传输数据：" + sendDataTransfer(command, dataTransfer) + " ——发命令时禁止请求电量");
     }
 
-    //TODO 20101219输出命令和数据
-    private String getCommandStr(int cmdStr) {
-        String returnStr = "脉宽";
-        switch (cmdStr) {
-            case 1:
-                returnStr = "1 测试";
-                break;
-            case 2:
-                returnStr = "2 模式";
-                break;
-            case 3:
-                returnStr = "3 范围";
-                break;
-            case 4:
-                returnStr = "4 增益";
-                break;
-            case 5:
-                returnStr = "5 延时";
-                break;
-            case 6:
-                returnStr = "6 电量";
-                break;
-            case 7:
-                returnStr = "7 平衡";
-                break;
-            case 9:
-                returnStr = "9 接受数据";
-                break;
-            case 10:
-                returnStr = "10 脉宽";
-                break;
-            default:
-                break;
-        }
-        return returnStr;
-    }
-
-    private String getDataTransfer(int cmdStr, int dataStr) {
-        String returnStr = "0";
+    /**
+     * @param cmdStr    指令
+     * @param dataStr   传输数据
+     * @return  发送内容
+     */
+    private String sendDataTransfer(int cmdStr, int dataStr) {
+        String returnStr = "";
         if (cmdStr == 1) {
             switch (dataStr) {
                 case 17:
-                    returnStr = "测试 11";
+                    returnStr = "0x11 / 测试";
                     break;
                 case 34:
-                    returnStr = "取消测试 22";
+                    returnStr = "0x22 / 取消测试";
                     break;
                 default:
                     break;
@@ -375,19 +348,19 @@ public class ConnectService extends Service {
         if (cmdStr == 2) {
             switch (dataStr) {
                 case 17:
-                    returnStr = "TDR 11";
+                    returnStr = "0x11 / TDR";
                     break;
                 case 34:
-                    returnStr = "ICM 22";
+                    returnStr = "0x22 / ICM";
                     break;
                 case 85:
-                    returnStr = "ICM_DECAY 55";
+                    returnStr = "0x55 / ICM_DECAY";
                     break;
                 case 51:
-                    returnStr = "SIM 33";
+                    returnStr = "0x33 / SIM";
                     break;
                 case 68:
-                    returnStr = "DECAY 44";
+                    returnStr = "0x44 / DECAY";
                     break;
                 default:
                     break;
@@ -396,60 +369,53 @@ public class ConnectService extends Service {
         if (cmdStr == 3) {
             switch (dataStr) {
                 case 153:
-                    returnStr = "范围 250";
+                    returnStr = "0x99 / 250m";
                     break;
                 case 17:
-                    returnStr = "范围 500";
+                    returnStr = "0x11 / 500m";
                     break;
                 case 34:
-                    returnStr = "范围 1KM";
+                    returnStr = "0x22 / 1km";
                     break;
                 case 51:
-                    returnStr = "范围 2KM";
+                    returnStr = "0x33 / 2km";
                     break;
                 case 68:
-                    returnStr = "范围 4KM";
+                    returnStr = "0x44 / 4km";
                     break;
                 case 85:
-                    returnStr = "范围 8KM";
+                    returnStr = "0x55 / 8km";
                     break;
                 case 102:
-                    returnStr = "范围 16KM";
+                    returnStr = "0x66 / 16km";
                     break;
                 case 119:
-                    returnStr = "范围 32KM";
+                    returnStr = "0x77 / 32km";
                     break;
                 case 136:
-                    returnStr = "范围 64KM";
+                    returnStr = "0x88 / 64km";
                     break;
                 default:
                     break;
             }
         }
-
         if (cmdStr == 4) {
-            returnStr = "增益 " + String.valueOf(dataStr);
-
+            returnStr = dataStr + "   / 增益";
         }
         if (cmdStr == 5) {
-            returnStr = "延迟 " + String.valueOf(dataStr);
-
+            returnStr = dataStr + "   / 延迟";
         }
         if (cmdStr == 6) {
-            returnStr = "电量 " + String.valueOf(dataStr);
-
+            returnStr = " / 电量";
         }
         if (cmdStr == 7) {
-            returnStr = "平衡 " + String.valueOf(dataStr);
-
+            returnStr = dataStr + "   / 平衡";
         }
         if (cmdStr == 9) {
             returnStr = "开始接收数据 " + String.valueOf(dataStr);
-
         }
         if (cmdStr == 10) {
-            returnStr = "脉宽 " + String.valueOf(dataStr);
-
+            returnStr = dataStr + " / 脉宽";
         }
         return returnStr;
     }

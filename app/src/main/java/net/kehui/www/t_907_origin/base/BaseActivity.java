@@ -55,7 +55,6 @@ public class BaseActivity extends AppCompatActivity {
      * wdx 20191218 波宽度全局变量
      */
     public int pulseWidth;
-    public boolean hasPulseWidth;
 
     /**
      * 波形原始数据数组
@@ -116,7 +115,6 @@ public class BaseActivity extends AppCompatActivity {
     public int positionReal;
     public int positionVirtual;
     public int cursorMoveValue;
-    public boolean cursorState;
     public int simPosition;
     public int positionSim;
 
@@ -307,8 +305,6 @@ public class BaseActivity extends AppCompatActivity {
         //光标显示的位置（变化范围0-509）
         positionReal = 0;
         positionVirtual = 255;
-        //默认控制虚光标
-        cursorState = false;
 
         //增益大小状态
         gainState = 0;
@@ -330,19 +326,13 @@ public class BaseActivity extends AppCompatActivity {
 
 /*更改记录*/
 //GT 工作信息测试
-//GC20181223 实、虚光标切换绘制
-//GC20181227 不同方式范围sparkView点数选择（旧有方式弃用）
 
-//GC20190628 光标虚化和限制范围
+//GC20190628 光标虚化和限制范围——新加纵坐标范围响应
 //GC20190629 光标使用优化
-//GC20190702 波形绘制参数准备工作
 //GC20190703 记忆比较功能
 //GC20190704 增益、平衡、延时命令调节
-//GC20190705 fragment切换显示优化，SIM波形选择
-//GC20190706 数据处理优化
 //GC20190708 ICM自动测距                ***************
 //GC20190709 距离计算，比例选择
-//GC20191210 增加电感
 //GC20190711 放大缩小
 //GC20190712 光标零点设置
 //GC20190713 数据库波形显示
@@ -360,7 +350,7 @@ public class BaseActivity extends AppCompatActivity {
 
 //GC20200312    故障距离单位显示添加
 //GC20200313    增益显示转为百分比
-//GC20200314    切换到模式界面时电量图标更新过慢BUG修改
+//GC20200314    模式界面电量图标更新过慢BUG修改——后续添加无WiFi电量图标//GC20200423
 //GC20200319    “等待触发”对话框重连时不消掉BUG修改
 
 //G??
@@ -370,4 +360,9 @@ public class BaseActivity extends AppCompatActivity {
 
 //GC20200327    帮助功能添加
 //GC20200330    紫色标记光标添加
-//GC20200331    脉宽修改
+//GC20200331    脉宽修改——后续更改，去除脉宽初始化//GC20200423
+//GC20200407    电量数据 波形数据混杂处理
+//GC20200408    波形大于需要个数的处理
+
+//GC20200423    调试BUG
+//GC20200424    模式界面初始化命令调整

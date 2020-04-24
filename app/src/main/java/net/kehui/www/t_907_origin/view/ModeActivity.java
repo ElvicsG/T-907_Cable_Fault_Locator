@@ -60,6 +60,7 @@ import static net.kehui.www.t_907_origin.ConnectService.INTENT_KEY_COMMAND;
 import static net.kehui.www.t_907_origin.ConnectService.INTENT_KEY_WAVE;
 import static net.kehui.www.t_907_origin.application.Constant.FT_UNIT;
 import static net.kehui.www.t_907_origin.application.Constant.MI_UNIT;
+import static net.kehui.www.t_907_origin.application.Constant.SaveToDBGain;
 import static net.kehui.www.t_907_origin.application.Constant.batteryValue;
 import static net.kehui.www.t_907_origin.view.ListActivity.DISPLAY_ACTION;
 
@@ -71,7 +72,9 @@ public class ModeActivity extends BaseActivity {
     ImageView tvGainMin;
     @BindView(R.id.tv_distance)
     TextView tvDistance;
-    //GC20190708
+    /**
+     * 自动测距结果 //GC20190708
+     */
     @BindView(R.id.tv_information)
     TextView  tvInformation;
     @BindView(R.id.tv_pulse_width)
@@ -313,7 +316,7 @@ public class ModeActivity extends BaseActivity {
     }
 
     /**
-     * 初始化sparkView //GC20181227
+     * 初始化sparkView
      */
     public void initSparkView() {
         for (int i = 0; i < 510; i++) {
@@ -321,9 +324,9 @@ public class ModeActivity extends BaseActivity {
             //Constant.WaveData[i] = 128;
         }
         myChartAdapterMainWave = new MyChartAdapterBase(waveArray, null,
-                false, 0, false, dataMax);
+                false, 0, false);
         myChartAdapterFullWave = new MyChartAdapterBase(waveArray, null,
-                false, 0, false, dataMax);
+                false, 0, false);
         fullWave.setAdapter(myChartAdapterMainWave);
         setMoveView();
         Log.i("Draw", "初始化绘制结束");
@@ -386,10 +389,12 @@ public class ModeActivity extends BaseActivity {
                 }
 
                 //重新定位紫色实光标    //GC20200330
-                if (positionSim > 0 && positionSim <= 510) {
-                    fullWave.setScrubLineSim(positionSim);
-                } else {
-                    fullWave.setScrubLineSimDisappear();
+                if (mode == SIM) {
+                    if (positionSim > 0 && positionSim <= 510) {
+                        fullWave.setScrubLineSim(positionSim);
+                    } else {
+                        fullWave.setScrubLineSimDisappear();
+                    }
                 }
 
                 //重新定位虚光标
@@ -447,6 +452,7 @@ public class ModeActivity extends BaseActivity {
             }
 
             if (localRange == 0.0 || localRange == 0) {
+                //距离硬性输入0，默认脉宽
                 range = (0x11);
                 gain = 13;
                 if (Constant.CurrentUnit == Constant.FT_UNIT) {
@@ -455,10 +461,8 @@ public class ModeActivity extends BaseActivity {
                     tvRangeValue.setText(getResources().getString(R.string.btn_500m));
                 }
                 //脉宽未设置时根据范围初始化显示 //GC20200331
-                if (!hasPulseWidth) {
-                    handler.postDelayed(() -> {
-                        setPulseWidth(40);
-                    }, 20);
+                if (!Constant.hasPulseWidth) {
+                    pulseWidth = 40;
                     etPulseWidth.setText(String.valueOf(40));
                 }
             } else if (localRange <= 250) {
@@ -470,10 +474,8 @@ public class ModeActivity extends BaseActivity {
                     tvRangeValue.setText(getResources().getString(R.string.btn_250m));
                 }
                 //脉宽未设置时根据范围初始化显示 //GC20200331
-                if (!hasPulseWidth) {
-                    handler.postDelayed(() -> {
-                        setPulseWidth(40);
-                    }, 20);
+                if (!Constant.hasPulseWidth) {
+                    pulseWidth = 40;
                     etPulseWidth.setText(String.valueOf(40));
                 }
             } else if (localRange > 250 && localRange <= 500) {
@@ -485,10 +487,8 @@ public class ModeActivity extends BaseActivity {
                     tvRangeValue.setText(getResources().getString(R.string.btn_500m));
                 }
                 //脉宽未设置时根据范围初始化显示 //GC20200331
-                if (!hasPulseWidth) {
-                    handler.postDelayed(() -> {
-                        setPulseWidth(40);
-                    }, 20);
+                if (!Constant.hasPulseWidth) {
+                    pulseWidth = 40;
                     etPulseWidth.setText(String.valueOf(40));
                 }
             } else if (localRange > 500 && localRange <= 1000) {
@@ -500,10 +500,8 @@ public class ModeActivity extends BaseActivity {
                     tvRangeValue.setText(getResources().getString(R.string.btn_1km));
                 }
                 //脉宽未设置时根据范围初始化显示 //GC20200331
-                if (!hasPulseWidth) {
-                    handler.postDelayed(() -> {
-                        setPulseWidth(80);
-                    }, 20);
+                if (!Constant.hasPulseWidth) {
+                    pulseWidth = 80;
                     etPulseWidth.setText(String.valueOf(80));
                 }
             } else if (localRange > 1000 && localRange <= 2000) {
@@ -515,10 +513,8 @@ public class ModeActivity extends BaseActivity {
                     tvRangeValue.setText(getResources().getString(R.string.btn_2km));
                 }
                 //脉宽未设置时根据范围初始化显示 //GC20200331
-                if (!hasPulseWidth) {
-                    handler.postDelayed(() -> {
-                        setPulseWidth(160);
-                    }, 20);
+                if (!Constant.hasPulseWidth) {
+                    pulseWidth = 160;
                     etPulseWidth.setText(String.valueOf(160));
                 }
             } else if (localRange > 2000 && localRange <= 4000) {
@@ -530,10 +526,8 @@ public class ModeActivity extends BaseActivity {
                     tvRangeValue.setText(getResources().getString(R.string.btn_4km));
                 }
                 //脉宽未设置时根据范围初始化显示 //GC20200331
-                if (!hasPulseWidth) {
-                    handler.postDelayed(() -> {
-                        setPulseWidth(320);
-                    }, 20);
+                if (!Constant.hasPulseWidth) {
+                    pulseWidth = 320;
                     etPulseWidth.setText(String.valueOf(320));
                 }
             } else if (localRange > 4000 && localRange <= 8000) {
@@ -545,10 +539,8 @@ public class ModeActivity extends BaseActivity {
                     tvRangeValue.setText(getResources().getString(R.string.btn_8km));
                 }
                 //脉宽未设置时根据范围初始化显示 //GC20200331
-                if (!hasPulseWidth) {
-                    handler.postDelayed(() -> {
-                        setPulseWidth(640);
-                    }, 20);
+                if (!Constant.hasPulseWidth) {
+                    pulseWidth = 640;
                     etPulseWidth.setText(String.valueOf(640));
                 }
             } else if (localRange > 8000 && localRange <= 16000) {
@@ -560,10 +552,8 @@ public class ModeActivity extends BaseActivity {
                     tvRangeValue.setText(getResources().getString(R.string.btn_16km));
                 }
                 //脉宽未设置时根据范围初始化显示 //GC20200331
-                if (!hasPulseWidth) {
-                    handler.postDelayed(() -> {
-                        setPulseWidth(1280);
-                    }, 20);
+                if (!Constant.hasPulseWidth) {
+                    pulseWidth = 1280;
                     etPulseWidth.setText(String.valueOf(1280));
                 }
             } else if (localRange > 16000 && localRange <= 32000) {
@@ -575,10 +565,8 @@ public class ModeActivity extends BaseActivity {
                     tvRangeValue.setText(getResources().getString(R.string.btn_32km));
                 }
                 //脉宽未设置时根据范围初始化显示 //GC20200331
-                if (!hasPulseWidth) {
-                    handler.postDelayed(() -> {
-                        setPulseWidth(2560);
-                    }, 20);
+                if (!Constant.hasPulseWidth) {
+                    pulseWidth = 2560;
                     etPulseWidth.setText(String.valueOf(2560));
                 }
             } else if (localRange > 32000) {
@@ -590,10 +578,8 @@ public class ModeActivity extends BaseActivity {
                     tvRangeValue.setText(getResources().getString(R.string.btn_64km));
                 }
                 //脉宽未设置时根据范围初始化显示 //GC20200331
-                if (!hasPulseWidth) {
-                    handler.postDelayed(() -> {
-                        setPulseWidth(5120);
-                    }, 20);
+                if (!Constant.hasPulseWidth) {
+                    pulseWidth = 5120;
                     etPulseWidth.setText(String.valueOf(5120));
                 }
             }
@@ -606,10 +592,8 @@ public class ModeActivity extends BaseActivity {
                 tvRangeValue.setText(getResources().getString(R.string.btn_500m));
             }
             //脉宽未设置时根据范围初始化显示 //GC20200331
-            if (!hasPulseWidth) {
-                handler.postDelayed(() -> {
-                    setPulseWidth(40);
-                }, 20);
+            if (!Constant.hasPulseWidth) {
+                pulseWidth = 40;
                 etPulseWidth.setText(String.valueOf(40));
             }
         }
@@ -641,7 +625,7 @@ public class ModeActivity extends BaseActivity {
         //测试缆信息添加    //GC20200103
         leadLength = getLocalLength();
         leadVop = getLocalVop();
-        //电量图标初始化 //GC20200314
+        //模式及面电量图标初始化 //GC20200314
         if (batteryValue == 0) {
             ivBatteryStatus.setImageResource(R.drawable.ic_battery_zero);
         } else if (batteryValue == 1) {
@@ -652,6 +636,9 @@ public class ModeActivity extends BaseActivity {
             ivBatteryStatus.setImageResource(R.drawable.ic_battery_three);
         } else if (batteryValue == 4) {
             ivBatteryStatus.setImageResource(R.drawable.ic_battery_four);
+        } else if (batteryValue == -1) {
+            //GC20200423
+            ivBatteryStatus.setImageResource(R.drawable.ic_battery_no);
         }
 
     }
@@ -733,10 +720,12 @@ public class ModeActivity extends BaseActivity {
                         }
 
                         //重新定位紫色实光标    //GC20200330
-                        if (positionSim > 0 && positionSim <= 510) {
-                            fullWave.setScrubLineSim(positionSim);
-                        } else {
-                            fullWave.setScrubLineSimDisappear();
+                        if (mode == SIM) {
+                            if (positionSim > 0 && positionSim <= 510) {
+                                fullWave.setScrubLineSim(positionSim);
+                            } else {
+                                fullWave.setScrubLineSimDisappear();
+                            }
                         }
 
                         //重新定位虚光标
@@ -845,14 +834,18 @@ public class ModeActivity extends BaseActivity {
                             //增益
                             setGain(gain);
                         }, 20);
-                        handler.postDelayed(() -> {
-                            //脉宽  //GC20200331
-                            setPulseWidth(pulseWidth);
-                        }, 20);
-                        handler.postDelayed(() -> {
-                            //延时0
-                            setDelay(0);
-                        }, 20);
+                        //不同模式下命令初始化调整  //GC20200424
+                        if (mode == TDR) {
+                            handler.postDelayed(() -> {
+                                //脉宽  //GC20200331
+                                setPulseWidth(pulseWidth);
+                            }, 20);
+                        } else if (mode == ICM || mode == SIM) {
+                            handler.postDelayed(() -> {
+                                //延时0
+                                setDelay(0);
+                            }, 20);
+                        }
                         //延时100毫秒发送测试命令，100毫秒是等待设备回复命令信息，如果不延时，有可能设备执行不完命令。
                         handler.postDelayed(ModeActivity.this::clickTest, 100);
                     }
@@ -945,10 +938,11 @@ public class ModeActivity extends BaseActivity {
     private void initPulseWidth() {
         ParamInfo paramInfo = (ParamInfo) StateUtils.getObject(ModeActivity.this, Constant.PULSE_WIDTH_INFO_KEY);
         if (paramInfo != null) {
-            pulseWidth = paramInfo.getPulseWidth();
-            etPulseWidth.setText(String.valueOf(pulseWidth));
-            //GC20200331
-            hasPulseWidth = true;
+            if (Constant.hasPulseWidth) {
+                //有过保存操作，读取本地存储     //GC20200331
+                pulseWidth = paramInfo.getPulseWidth();
+                etPulseWidth.setText(String.valueOf(pulseWidth));
+            }
         }
 
         etPulseWidth.addTextChangedListener(new TextWatcher() {
@@ -1367,14 +1361,16 @@ public class ModeActivity extends BaseActivity {
                 fullWave.setScrubLineReal(positionReal);
             }
             //GC20200330
-            if (simPosition > 510 * density) {
-                //不画紫色实光标
-                positionSim = simPosition / density;
-                fullWave.setScrubLineSimDisappear();
-            } else {
-                //画紫色实光标
-                positionSim = simPosition / density;
-                fullWave.setScrubLineSim(positionSim);
+            if (mode ==SIM) {
+                if (simPosition > 510 * density) {
+                    //不画紫色实光标
+                    positionSim = simPosition / density;
+                    fullWave.setScrubLineSimDisappear();
+                } else {
+                    //画紫色实光标
+                    positionSim = simPosition / density;
+                    fullWave.setScrubLineSim(positionSim);
+                }
             }
 
         } else if ((pointDistance >= 255 * density) && (pointDistance < dataLength - 255 * density)) {
@@ -1400,15 +1396,17 @@ public class ModeActivity extends BaseActivity {
                 fullWave.setScrubLineReal(positionReal);
             }
             //GC20200330
-            if ((pointDistance - simPosition) > 255 * density) {
-                fullWave.setScrubLineSimDisappear();
-            } else if ((simPosition - pointDistance) >= 254 * density) {
-                //不画紫色实光标
-                fullWave.setScrubLineSimDisappear();
-            } else {
-                //画紫色实光标
-                positionSim = positionVirtual - (pointDistance - simPosition) / density;
-                fullWave.setScrubLineSim(positionSim);
+            if (mode == SIM) {
+                if ((pointDistance - simPosition) > 255 * density) {
+                    fullWave.setScrubLineSimDisappear();
+                } else if ((simPosition - pointDistance) >= 254 * density) {
+                    //不画紫色实光标
+                    fullWave.setScrubLineSimDisappear();
+                } else {
+                    //画紫色实光标
+                    positionSim = positionVirtual - (pointDistance - simPosition) / density;
+                    fullWave.setScrubLineSim(positionSim);
+                }
             }
 
         } else if (pointDistance >= dataLength - 255 * density) {
@@ -1429,14 +1427,16 @@ public class ModeActivity extends BaseActivity {
                 fullWave.setScrubLineRealDisappear();
             }
             //GC20200330
-            if (simPosition > dataLength - 510 * density) {
-                //画紫色实光标
-                positionSim = 510 - (dataLength - simPosition) / density;
-                fullWave.setScrubLineReal(positionReal);
-            } else {
-                //不画紫色实光标
-                positionSim = 510 - (dataLength - simPosition) / density;
-                fullWave.setScrubLineSimDisappear();
+            if (mode == SIM) {
+                if (simPosition > dataLength - 510 * density) {
+                    //画紫色实光标
+                    positionSim = 510 - (dataLength - simPosition) / density;
+                    fullWave.setScrubLineReal(positionReal);
+                } else {
+                    //不画紫色实光标
+                    positionSim = 510 - (dataLength - simPosition) / density;
+                    fullWave.setScrubLineSimDisappear();
+                }
             }
         }
         //还原状态
@@ -1446,9 +1446,12 @@ public class ModeActivity extends BaseActivity {
             positionReal = zero / densityMax;
             //画实光标
             fullWave.setScrubLineReal(positionReal);
+
             //画紫色实光标    //GC20200330
-            positionSim = simPosition / densityMax;
-            fullWave.setScrubLineSim(positionSim);
+            if (mode == SIM) {
+                positionSim = simPosition / densityMax;
+                fullWave.setScrubLineSim(positionSim);
+            }
             Log.e("GT", "4：还原");
         }
         //画虚光标
@@ -1519,10 +1522,6 @@ public class ModeActivity extends BaseActivity {
             tDialog.dismiss();
             Log.e("DIA", "正在接受数据隐藏" + " 波形绘制完成");
         }
-        //刷新波形后后显示控制虚光标    //GC20190629
-        cursorState = false;
-        myChartAdapterMainWave.setCursorState(false);
-//        btnCursor.setTextColor(ContextCompat.getColor(MainActivity.this, R.color.T_purple));
 
         tvZoomMin.setEnabled(true);
         tvZoomPlus.setEnabled(true);
@@ -2564,7 +2563,7 @@ public class ModeActivity extends BaseActivity {
             waveArray = new int[dataMax];
             Constant.WaveData = new int[dataMax];
             Constant.SimData = new int[dataMax];
-            //GC20190702 SIM第二条波形初始化
+            //SIM第二条波形初始化
             simArray1 = new int[dataMax];
             simArray2 = new int[dataMax];
             simArray3 = new int[dataMax];
@@ -2613,24 +2612,6 @@ public class ModeActivity extends BaseActivity {
                 || wifiArray[3] == 0xDD
                 || wifiArray[3] == 0xEE
                 || wifiArray[3] == 0xFF) {
-          /*  System.arraycopy(wifiArray, 8, waveArray, 0, dataMax);
-            System.arraycopy(wifiArray, dataMax + 9 + 8, simArray1, 0, dataMax);
-            System.arraycopy(wifiArray, (dataMax + 9) * 2 + 8, simArray2, 0, dataMax);
-            System.arraycopy(wifiArray, (dataMax + 9) * 3 + 8, simArray3, 0, dataMax);
-            System.arraycopy(wifiArray, (dataMax + 9) * 4 + 8, simArray4, 0, dataMax);
-            System.arraycopy(wifiArray, (dataMax + 9) * 5 + 8, simArray5, 0, dataMax);
-            System.arraycopy(wifiArray, (dataMax + 9) * 6 + 8, simArray6, 0, dataMax);
-            System.arraycopy(wifiArray, (dataMax + 9) * 7 + 8, simArray7, 0, dataMax);
-            System.arraycopy(wifiArray, (dataMax + 9) * 8 + 8, simArray8, 0, dataMax);
-            Constant.TempData1 = simArray1;
-            Constant.TempData2 = simArray2;
-            Constant.TempData3 = simArray3;
-            Constant.TempData4 = simArray4;
-            Constant.TempData5 = simArray5;
-            Constant.TempData6 = simArray6;
-            Constant.TempData7 = simArray7;
-            Constant.TempData8 = simArray8;
-            Constant.SimData = Constant.TempData1;*/
             if (wifiArray[3] == 0x77) {
                 System.arraycopy(wifiArray, 8, waveArray, 0, dataMax);
                 Constant.WaveData = waveArray;
@@ -2697,28 +2678,18 @@ public class ModeActivity extends BaseActivity {
      * 根据参数重置显示效果
      */
     public void resetWhatNeed() {
-        //二次脉冲显示组数重置    //GC201907052   优化SIM显示
+        //二次脉冲显示组数重置
         if (mode == SIM) {
             selectSim = 1;
             setSelectSim(selectSim);
-            //20191217下翻有效
-            tvWaveNext.setEnabled(true);
-        } else {
-
-        }
-
-        if (isDatabase) {
-            //GC201907052   优化SIM显示
-
-        }
-        //放大缩小按钮显示重置    //GC20190711
-        if (density == densityMax) {
-            if (density == 1) {
-
-            } else {
-
+            //TODO 20200325 二次脉冲如果是从数据库显示，则禁用上翻下翻按键，测试后恢复。
+            if(!isDatabase) {
+                tvWaveNext.setEnabled(true);
             }
-
+            else{
+                tvWaveNext.setEnabled(false);
+                tvWavePre.setEnabled(false);
+            }
         }
     }
 
@@ -3278,11 +3249,8 @@ public class ModeActivity extends BaseActivity {
                 }
                 break;
             case R.id.tv_wave_pre:
-                //GC20190702 SIM共8组，从1-8
-
-                //20191217不要重复定义变量
+                //SIM共8组，从1-8
                 selectSim = getSelectSim();
-                //int selectSim = getSelectSim();
                 if (selectSim > 1) {
                     selectSim--;
                     setSelectSim(selectSim);
@@ -3366,7 +3334,7 @@ public class ModeActivity extends BaseActivity {
                 setRange(0x99);
                 setGain(gain);
                 //GC20200331
-                if (!hasPulseWidth) {
+                if (!Constant.hasPulseWidth) {
                     handler.postDelayed(() -> {
                         setPulseWidth(40);
                     }, 20);
@@ -3380,7 +3348,7 @@ public class ModeActivity extends BaseActivity {
                 setRange(0x11);
                 setGain(gain);
                 //GC20200331
-                if (!hasPulseWidth) {
+                if (!Constant.hasPulseWidth) {
                     handler.postDelayed(() -> {
                         setPulseWidth(40);
                     }, 20);
@@ -3394,7 +3362,7 @@ public class ModeActivity extends BaseActivity {
                 setRange(0x22);
                 setGain(gain);
                 //GC20200331
-                if (!hasPulseWidth) {
+                if (!Constant.hasPulseWidth) {
                     handler.postDelayed(() -> {
                         setPulseWidth(80);
                     }, 20);
@@ -3408,7 +3376,7 @@ public class ModeActivity extends BaseActivity {
                 setRange(0x33);
                 setGain(gain);
                 //GC20200331
-                if (!hasPulseWidth) {
+                if (!Constant.hasPulseWidth) {
                     handler.postDelayed(() -> {
                         setPulseWidth(160);
                     }, 20);
@@ -3422,7 +3390,7 @@ public class ModeActivity extends BaseActivity {
                 setRange(0x44);
                 setGain(gain);
                 //GC20200331
-                if (!hasPulseWidth) {
+                if (!Constant.hasPulseWidth) {
                     handler.postDelayed(() -> {
                         setPulseWidth(320);
                     }, 20);
@@ -3436,7 +3404,7 @@ public class ModeActivity extends BaseActivity {
                 setRange(0x55);
                 setGain(gain);
                 //GC20200331
-                if (!hasPulseWidth) {
+                if (!Constant.hasPulseWidth) {
                     handler.postDelayed(() -> {
                         setPulseWidth(640);
                     }, 20);
@@ -3450,7 +3418,7 @@ public class ModeActivity extends BaseActivity {
                 setRange(0x66);
                 setGain(gain);
                 //GC20200331
-                if (!hasPulseWidth) {
+                if (!Constant.hasPulseWidth) {
                     handler.postDelayed(() -> {
                         setPulseWidth(1280);
                     }, 20);
@@ -3464,7 +3432,7 @@ public class ModeActivity extends BaseActivity {
                 setRange(0x77);
                 setGain(gain);
                 //GC20200331
-                if (!hasPulseWidth) {
+                if (!Constant.hasPulseWidth) {
                     handler.postDelayed(() -> {
                         setPulseWidth(2560);
                     }, 20);
@@ -3478,7 +3446,7 @@ public class ModeActivity extends BaseActivity {
                 setRange(0x88);
                 setGain(gain);
                 //GC20200331
-                if (!hasPulseWidth) {
+                if (!Constant.hasPulseWidth) {
                     handler.postDelayed(() -> {
                         setPulseWidth(5120);
                     }, 20);
@@ -3675,7 +3643,7 @@ public class ModeActivity extends BaseActivity {
     }
 
     /**
-     * @param selectSim SIM显示波形的组数  //GC20190705
+     * @param selectSim SIM显示波形的组数
      */
     public void setSelectSim(int selectSim) {
         tvWaveText.setVisibility(View.VISIBLE);
@@ -3908,11 +3876,11 @@ public class ModeActivity extends BaseActivity {
         if (etPulseWidth.getText().toString().isEmpty()) {
             pulseWidth = 0;
             //GC20200331
-            hasPulseWidth = false;
+            Constant.hasPulseWidth = false;
         } else {
             pulseWidth = Integer.valueOf(etPulseWidth.getText().toString());
             //GC20200331
-            hasPulseWidth = true;
+            Constant.hasPulseWidth = true;
         }
         // 02 本地保存波宽度信息
         savePulseWidthInfo();

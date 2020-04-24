@@ -441,13 +441,13 @@ public class MainActivity extends BaseActivity {
                     //网络连接，更换网络图标
                     ConnectService.isConnected = true;
                     ivWifiStatus.setImageResource(R.drawable.ic_wifi_connected);
-                    //发送获取电量命令  //EN20200324    //G??   有必要么
+                    //发送获取电量命令  //EN20200324    //G??   有必要么——每次重新进模式界面还会调用这里，所以需要避免重复发送电量命令//GC20200423
                     if (ConnectService.canAskPower) {
                         handler.postDelayed(() -> {
                             ConnectService.canAskPower = false;
                             //电量
                             command = 0x06;
-                            dataTransfer = 0x08;
+                            dataTransfer = 0x13;
                             startService();
                         }, 100);
                     }

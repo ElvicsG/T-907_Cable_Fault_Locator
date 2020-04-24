@@ -74,27 +74,75 @@ public class ProcessThread extends Thread {
     }
 
     /**
+     * @param cmdStr    指令
+     * @return  指令内容
+     */
+    private String getCommandStr(int cmdStr) {
+        String returnStr = "";
+        switch (cmdStr) {
+            case 1:
+                returnStr = "1 测试";
+                break;
+            case 2:
+                returnStr = "2 模式";
+                break;
+            case 3:
+                returnStr = "3 范围";
+                break;
+            case 4:
+                returnStr = "4 增益";
+                break;
+            case 5:
+                returnStr = "5 延时";
+                break;
+            case 6:
+                returnStr = "6 电量";
+                break;
+            case 7:
+                returnStr = "7 平衡";
+                break;
+            case 9:
+                returnStr = "9 接受数据";
+                break;
+            case 10:
+                returnStr = "10 脉宽";
+                break;
+            default:
+                break;
+        }
+        return returnStr;
+    }
+
+    /**
      * 获取硬件设备返回的命令数据
      */
     private void getCmdMessage(int[] msgData) {
         //Log.e("【设备-->APP】", " 指令：" + msgData[5] + " 传输数据：" + msgData[6] + " 全部数据：" + Arrays.toString(msgData));
-        Log.e("【设备-->APP】", " 指令：" + msgData[5] + " 传输数据：" + msgData[6]);
+        Log.e("#【设备-->APP】", "指令：" + getCommandStr(msgData[5]) + " 已应答");
         Message message = Message.obtain();
         message.what = ConnectService.GET_COMMAND;
         Bundle bundle = new Bundle();
         bundle.putIntArray("CMD", msgData);
         message.setData(bundle);
         handler.sendMessage(message);
-        //GC20200317
-        ConnectService.canAskPower = true;
+
+        //GC20200407
+        if (msgData[5] == 9) {
+            //接收数据时也不发送电池电量命令
+            ConnectService.canAskPower = false;
+            Log.e("#【设备-->APP】", "——禁止获取电量");
+        } else {
+            //GC20200317
+            ConnectService.canAskPower = true;
+            Log.e("#【设备-->APP】", "——允许获取电量");
+        }
     }
 
     /**
      * 获取硬件设备返回的波形数据
      */
     private void getWaveMessage(int[] waveData) {
-        Log.e("【波形数据处理】", "正常包：" + waveData[3]);
-        //e("【波形包数据】", Arrays.toString(waveData));
+        Log.e("【波形数据处理】", "正常包：" + waveData[3] + " 波形数据头:0x66 /处理结束啦！");
         Message message = Message.obtain();
         message.what = ConnectService.GET_WAVE;
         Bundle bundle = new Bundle();

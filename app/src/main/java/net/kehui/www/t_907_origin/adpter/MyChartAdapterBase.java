@@ -13,14 +13,6 @@ public class MyChartAdapterBase extends BaseSparkAdapter {
     private boolean isShowCompareLine;
     private int splitNum;
     private boolean isShowSplitLine;
-    /**
-     * //GC20181223
-     */
-    private boolean isCursorState;
-    /**
-     * //GC20181227
-     */
-    private int isMax;
 
     public void setmCompareArray(int[] mCompareArray) {
         this.mCompareArray = mCompareArray;
@@ -35,27 +27,18 @@ public class MyChartAdapterBase extends BaseSparkAdapter {
     }
 
     public MyChartAdapterBase(int[] mTempArray, int[] mCompareArray, boolean isShowCompareLine, int
-            splitNum, boolean isShowSplitLine, int isMax) {
+            splitNum, boolean isShowSplitLine) {
         this.mTempArray = mTempArray;
         this.mCompareArray = mCompareArray;
         this.isShowCompareLine = isShowCompareLine;
         this.splitNum = splitNum;
         this.isShowSplitLine = isShowSplitLine;
-        //GC20181227
-        this.isMax = isMax;
-    }
-
-    /**
-     * @param cursorState   //GC20181223
-     */
-    public void setCursorState(boolean cursorState) {
-        isCursorState = cursorState;
     }
 
     @Override
     public int getCount() {
         return 510;
-    }   //GC20181227
+    }
 
     @Override
     public Object getItem(int index) {
@@ -80,16 +63,6 @@ public class MyChartAdapterBase extends BaseSparkAdapter {
     @Override
     public boolean getCompare() {
         return isShowCompareLine;
-    }
-
-    @Override
-    public boolean getCursorState(){
-        return isCursorState;
-    }
-
-    @Override
-    public int getMax() {
-        return isMax;
     }
 
 }

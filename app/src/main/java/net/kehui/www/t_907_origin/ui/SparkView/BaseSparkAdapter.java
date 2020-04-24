@@ -70,13 +70,11 @@ public abstract class BaseSparkAdapter {
      * @return a RectF of the bounds desired around this adapter's data.
      */
     public RectF getDataBounds() {
-//        final int count = getMax(); //GC20181227
         final int count = getCount();
         final boolean hasBaseLine = hasBaseLine();
         float minY = hasBaseLine ? getBaseLine() : 0;
         float maxY = hasBaseLine ? minY : 255;
         float minX = 0;
-//        float maxX = getMax();  //GC20181227
         float maxX = 510;
         for (int i = 0; i < count; i++) {
             final float x = getX(i);
@@ -170,9 +168,5 @@ public abstract class BaseSparkAdapter {
     public abstract float getY1(int index);
 
     public abstract boolean getCompare();
-
-    public abstract boolean getCursorState();
-
-    public abstract int getMax();   //GC20181227
 
 }

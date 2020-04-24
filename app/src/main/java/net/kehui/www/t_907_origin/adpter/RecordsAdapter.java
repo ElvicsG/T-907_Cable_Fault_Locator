@@ -26,7 +26,7 @@ public class RecordsAdapter extends RecyclerView.Adapter {
     @NonNull
     @Override
     public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup viewGroup, int position) {
-        RecordsHolder holder = new RecordsHolder(View.inflate(viewGroup.getContext(), R.layout.z_item_record
+        RecordsHolder holder = new RecordsHolder(View.inflate(viewGroup.getContext(), R.layout.item_record
                 , null));
         return holder;
     }

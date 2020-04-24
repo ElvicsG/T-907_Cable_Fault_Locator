@@ -25,7 +25,7 @@ public class DataAdapter extends RecyclerView.Adapter {
     @NonNull
     @Override
     public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup viewGroup, int position) {
-        DataHolder holder = new DataHolder(View.inflate(viewGroup.getContext(), R.layout.z_item_view
+        DataHolder holder = new DataHolder(View.inflate(viewGroup.getContext(), R.layout.item_view
                 , null));
         return holder;
     }
