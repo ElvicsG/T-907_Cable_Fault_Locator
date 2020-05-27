@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
     package="net.kehui.www.t_907_origin">
 
     <uses-permission android:name="android.permission.CHANGE_NETWORK_STATE" />
@@ -34,12 +33,7 @@
             android:name=".view.ModeActivity"
             android:screenOrientation="sensorLandscape"></activity>
         <activity
-            android:name=".view.ListActivity"
-            android:configChanges="screenSize|keyboardHidden|orientation"
-            android:screenOrientation="sensorLandscape"
-            android:theme="@style/AlertNoActionBar"></activity>
-        <activity
-            android:name=".view.z_SplashActivity"
+            android:name=".view.SplashActivity"
             android:configChanges="screenSize|keyboardHidden|orientation"
             android:screenOrientation="sensorLandscape">
             <intent-filter>

@@ -3,30 +3,22 @@ package net.kehui.www.t_907_origin.entity;
 import java.io.Serializable;
 
 /**
- * Create by jwj on 2019/12/2
+ * @author jwj
+ * @date 2019/12/2
  */
 public class ParamInfo implements Serializable {
+
     private String cableVop;
     private String cableLength;
     private String cableId;
     private boolean testLead;
     private String length;
     private String vop;
-    //TODO wdx 20191218 波宽度属性值设定
+    private int unit;
     /**
-     * 波宽度属性值设定
+     * 存储的波宽度数值
      */
     private int pulseWidth;
-    private int unit;
-    private int lastUnit;
-
-    public int getLastUnit() {
-        return lastUnit;
-    }
-
-    public void setLastUnit(int lastUnit) {
-        this.lastUnit = lastUnit;
-    }
 
     public String getCableVop() {
         return cableVop;
@@ -37,8 +29,9 @@ public class ParamInfo implements Serializable {
     }
 
     public String getCableLength() {
-        if (cableLength == null)
+        if (cableLength == null) {
             return "0";
+        }
         return cableLength;
     }
 
@@ -93,4 +86,5 @@ public class ParamInfo implements Serializable {
     public void setPulseWidth(int pulseWidth) {
         this.pulseWidth = pulseWidth;
     }
+
 }

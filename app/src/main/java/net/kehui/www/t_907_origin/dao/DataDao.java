@@ -33,14 +33,40 @@ public interface DataDao {
     @Query("SELECT * FROM data")
     Data[] query();
 
+    /**
+     * //数据库相关 //20200520
+     * @param index
+     * @return
+     */
+    @Query("SELECT  dataid,unit,para,cableId,date,time,mode,range,line,phase,positionVirtual,positionReal,tester,location,testsite,'' as waveData,'' as waveDataSim  FROM data limit (:index*10),10")
+    Data[] queryByIndex(int index);
+
     @Query("SELECT * FROM data WHERE dataId = :dataId")
     Data[] queryDataId(int dataId);
 
     @Query("SELECT * FROM data WHERE date LIKE :date")
+
+    /**
+     * //数据库相关 //20200520
+     */
     Data[] queryDate(int date);
+    @Query("SELECT   dataid,unit,para,cableId,date,time,mode,range,line,phase,positionVirtual,positionReal,tester,location,testsite,'' as waveData,'' as waveDataSim  FROM data WHERE date LIKE :date and mode LIKE :mode limit (:index),10")
+    Data[] queryDateByIndex(String date, String mode, int index);
+
+    @Query("SELECT   *  FROM data WHERE dataId=:id")
+    Data[] queryWaveById(int id);   //添加
 
     @Query("SELECT * FROM data WHERE mode LIKE :mode")
-    Data[] queryMode(String  mode);
+    Data[] queryMode(String mode);
+
+    /**
+     * //数据库相关 //20200520
+     * @param mode
+     * @param index
+     * @return
+     */
+    @Query("SELECT  dataid,unit,para,cableId,date,time,mode,range,line,phase,positionVirtual,positionReal,tester,location,testsite,'' as waveData,'' as waveDataSim   FROM data WHERE mode LIKE :mode limit (:index),10")
+    Data[] queryModeByIndex(String mode, int index);
 
     @Query("SELECT * FROM data WHERE range LIKE :range")
     Data[] queryRange(String range);

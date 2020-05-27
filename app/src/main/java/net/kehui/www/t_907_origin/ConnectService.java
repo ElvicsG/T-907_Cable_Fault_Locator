@@ -34,11 +34,10 @@ import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
-import static net.kehui.www.t_907_origin.view.ModeActivity.BUNDLE_COMMAND_KEY;
-import static net.kehui.www.t_907_origin.view.ModeActivity.BUNDLE_PARAM_KEY;
-import static net.kehui.www.t_907_origin.view.ModeActivity.BUNDLE_DATA_TRANSFER_KEY;
 import static net.kehui.www.t_907_origin.view.ModeActivity.BUNDLE_MODE_KEY;
-
+import static net.kehui.www.t_907_origin.view.ModeActivity.BUNDLE_COMMAND_KEY;
+import static net.kehui.www.t_907_origin.view.ModeActivity.BUNDLE_DATA_TRANSFER_KEY;
+import static net.kehui.www.t_907_origin.view.ModeActivity.BUNDLE_PARAM_KEY;
 
 /**
  * @author 34238
@@ -56,9 +55,29 @@ public class ConnectService extends Service {
      */
     public static boolean isConnected;
     /**
-     * 发送命令 //GC20200424
+     * 是否需要连接   //GC? 优化逻辑去掉了
+     */
+    public static boolean needConnect = true;
+    /**
+     *是否正在连接中    //20200523
+     */
+    private boolean isConnecting;
+    /**
+     * 发送命令
      */
     public static boolean canAskPower = true;
+
+    private BufferedReader br;
+    private ConnectThread connectThread;
+    private ProcessThread processThread;
+
+    /**
+     * 阻塞列队 //数据生产者队列，生产的数据放入队列
+     */
+    public static ArrayBlockingQueue bytesDataQueue;
+    public static Boolean isWifiConnect = false;
+
+    static Socket socket;
 
     /**
      * 全局的handler对象用来执行UI更新
@@ -75,18 +94,6 @@ public class ConnectService extends Service {
     public final static String BROADCAST_ACTION_DOWIFI_WAVE = "broadcast_action_dowifi_wave";
     public final static String INTENT_KEY_COMMAND = "CMD";
     public final static String INTENT_KEY_WAVE = "WAVE";
-
-    private BufferedReader br;
-    private ConnectThread connectThread;
-    private ProcessThread processThread;
-
-    /**
-     * 阻塞列队 //数据生产者队列，生产的数据放入队列
-     */
-    public static ArrayBlockingQueue bytesDataQueue;
-    public static Boolean isWifiConnect = false;
-
-    static Socket socket;
 
     @Override
     public void onCreate() {
@@ -154,8 +161,14 @@ public class ConnectService extends Service {
             case DEVICE_DO_CONNECT:
                 //Toast.makeText(ConnectService.this, getResources().getString(R.string.communication_failed), Toast.LENGTH_LONG).show();
                 //连接条件修改    //GC20200325
-                connectWifi();
-                connectDevice();
+                /*if (needReconnect && !isConnecting) {
+                    connectWifi();
+                    connectDevice();
+                }*/
+                if (!isConnecting) {
+                    connectWifi();
+                    connectDevice();
+                }
                 break;
             case GET_COMMAND:
                 wifiStream = msg.getData().getIntArray("CMD");
@@ -239,21 +252,25 @@ public class ConnectService extends Service {
         singleThreadPool.execute(() -> {
             try {
                 if (!isConnected) {
-                    //增加条件限制，避免极端条件下会多次尝试连接  //EN20200324
+                    isConnecting = true;
                     Log.e("【SOCKET连接】", "开始连接");
                     if (socket == null) {
+                        Log.e("【SOCKET连接】", "尝试建立连接");
                         socket = new Socket(Constant.DEVICE_IP, PORT);
                         socket.setKeepAlive(true);
                     }
                     if (connectThread == null) {
+                        Log.e("【SOCKET连接】", "启动接收数据线程");
                         connectThread = new ConnectThread(socket, handler, Constant.DEVICE_IP);
                         connectThread.start();
                     }
                     if (processThread == null) {
+                        Log.e("【SOCKET连接】", "启动接收数据线程");
                         processThread = new ProcessThread(handler);
                         processThread.start();
                     }
                     Log.e("【SOCKET连接】", "连接成功结束");
+                    isConnecting = false;
                 }
             } catch (IOException e) {
                 e.printStackTrace();
@@ -267,8 +284,9 @@ public class ConnectService extends Service {
                 sendBroadcast(BROADCAST_ACTION_DEVICE_CONNECT_FAILURE, null, null);
                 //GT2
                 handler.sendEmptyMessage(DEVICE_DISCONNECTED);
-                handler.sendEmptyMessage(DEVICE_DO_CONNECT);
                 Log.e("【SOCKET连接】", "连接失败重连");
+                isConnecting = false;
+                handler.sendEmptyMessageDelayed(DEVICE_DO_CONNECT, 2000);
             }
         });
         Log.e("DIA", "WIFI连接：" + "隐藏");
@@ -278,16 +296,13 @@ public class ConnectService extends Service {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         assert intent != null;
-        if (intent != null) {
-            Bundle bundle = intent.getBundleExtra(BUNDLE_PARAM_KEY);
-            //接收到发送指令的信息
-            if (bundle != null && bundle.getInt(BUNDLE_COMMAND_KEY) != 0) {
-                mode = bundle.getInt(BUNDLE_MODE_KEY);
-                command = bundle.getInt(BUNDLE_COMMAND_KEY);
-                dataTransfer = bundle.getInt(BUNDLE_DATA_TRANSFER_KEY);
-                sendCommand();
-            }
-
+        Bundle bundle = intent.getBundleExtra(BUNDLE_PARAM_KEY);
+        //接收到发送指令的信息
+        if (bundle != null && bundle.getInt(BUNDLE_COMMAND_KEY) != 0) {
+            mode = bundle.getInt(BUNDLE_MODE_KEY);
+            command = bundle.getInt(BUNDLE_COMMAND_KEY);
+            dataTransfer = bundle.getInt(BUNDLE_DATA_TRANSFER_KEY);
+            sendCommand();
         }
         return super.onStartCommand(intent, flags, startId);
 
@@ -297,7 +312,7 @@ public class ConnectService extends Service {
      * APP下发命令
      */
     public void sendCommand() {
-        //发命令时禁止请求电量    //EN20200324    //GC20200317
+        //发命令时禁止请求电量    //EN20200324
         canAskPower = false;
 
         byte[] request = new byte[8];
@@ -320,10 +335,11 @@ public class ConnectService extends Service {
         request[6] = (byte) dataTransfer;
         int sum = request[4] + request[5] + request[6];
         request[7] = (byte) sum;
-        if (connectThread != null){
+        //TODO 20200407 发送数据是判断连接是否正常，否则不发送
+        if (connectThread != null && ConnectService.isConnected) {
             connectThread.sendCommand(request);
+            Log.e("#【APP-->设备】", "指令：" + command + " 传输数据：" + sendDataTransfer(command, dataTransfer) + " ——发命令时禁止请求电量");
         }
-        Log.e("#【APP-->设备】", "指令：" + command + " 传输数据：" + sendDataTransfer(command, dataTransfer) + " ——发命令时禁止请求电量");
     }
 
     /**

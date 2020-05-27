@@ -1,6 +1,5 @@
 package net.kehui.www.t_907_origin.ui;
 
-
 import android.app.Dialog;
 import android.content.Context;
 import android.os.Bundle;
@@ -13,7 +12,6 @@ import androidx.annotation.Nullable;
 
 import net.kehui.www.t_907_origin.R;
 import net.kehui.www.t_907_origin.util.UpdateAppManagerUtils;
-
 
 public class AppUpdateDialog extends Dialog {
 
@@ -39,8 +37,8 @@ public class AppUpdateDialog extends Dialog {
         view = View.inflate(getContext(), R.layout.dialog_app_update, null);
         setContentView(view);
         final WindowManager.LayoutParams params = getWindow().getAttributes();
-        params.width = (int) (1920 * 0.5);
-        params.height = (int) (1080 * 0.5);
+        params.width = (int) (1920 * 0.7);
+        params.height = (int) (1080 * 0.7);
         getWindow().setAttributes(params);
         view.findViewById(R.id.tv_no_update).setOnClickListener(new View.OnClickListener() {
             @Override

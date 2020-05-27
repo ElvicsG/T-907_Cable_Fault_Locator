@@ -11,6 +11,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import net.kehui.www.t_907_origin.R;
+import net.kehui.www.t_907_origin.util.ScreenUtils;
 
 /**
  * Create by jwj on 2019/11/26
@@ -46,8 +47,9 @@ public class HelpCenterDialog extends Dialog implements View.OnClickListener {
         setContentView(view);
         initView();
         final WindowManager.LayoutParams params = getWindow().getAttributes();
-        params.width = (int) (1920 * 0.5);
-        params.height = (int) (1080 * 0.5);
+        //20200521  帮助对话框
+        params.width = (int) ( ScreenUtils.getScreenWidth(getContext()) * 0.7);
+        params.height = (int) (ScreenUtils.getScreenHeight(getContext()) * 0.7);
         getWindow().setAttributes(params);
         getWindow().setBackgroundDrawableResource(android.R.color.transparent);
 

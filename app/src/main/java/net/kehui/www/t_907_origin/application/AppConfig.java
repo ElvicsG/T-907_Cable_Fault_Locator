@@ -10,7 +10,7 @@ public class AppConfig {
      */
     public static String CURRENT_CURSOR_POSITION = "current_cursor_position";
     public static String CURRENT_LANGUAGE = "current_language";
-    public static String CURRENT_UNIT = "current_unit";
+    public static String CURRENT_UNIT = "current_unit"; //G?
     public static String CURRENT_SAVE_UNIT = "current_save_unit";
 
 }

@@ -6,7 +6,6 @@ import android.os.Message;
 import android.util.Log;
 
 import net.kehui.www.t_907_origin.ConnectService;
-import net.kehui.www.t_907_origin.view.ModeActivity;
 
 /**
  * 消费者线程，开启后，循环从队列中取数据，按照数据类型，做不同处理
@@ -51,12 +50,10 @@ public class ProcessThread extends Thread {
                         getCmdMessage(powerCommand);
                     } else {
                         //波形数据
-                        //Log.e("【时效测试】", "接收完数据");
                         int[] waveData = new int[byteLength];
                         for (int i = 0; i < byteLength; i++) {
                             waveData[i] = bytesItem[i] & 0xff;
                         }
-                        //Log.e("【时效测试】", "处理完数据");
                         getWaveMessage(waveData);
                     }
 
@@ -71,6 +68,19 @@ public class ProcessThread extends Thread {
                 e.printStackTrace();
             }
         }
+    }
+
+    /**
+     * 获取硬件设备返回的命令数据
+     */
+    private void getCmdMessage(int[] cmdData) {
+        Log.e("#【设备-->APP】", "指令：" + getCommandStr(cmdData[5]) + " 已应答");
+        Message message = Message.obtain();
+        message.what = ConnectService.GET_COMMAND;
+        Bundle bundle = new Bundle();
+        bundle.putIntArray("CMD", cmdData);
+        message.setData(bundle);
+        handler.sendMessage(message);
     }
 
     /**
@@ -114,35 +124,10 @@ public class ProcessThread extends Thread {
     }
 
     /**
-     * 获取硬件设备返回的命令数据
-     */
-    private void getCmdMessage(int[] msgData) {
-        //Log.e("【设备-->APP】", " 指令：" + msgData[5] + " 传输数据：" + msgData[6] + " 全部数据：" + Arrays.toString(msgData));
-        Log.e("#【设备-->APP】", "指令：" + getCommandStr(msgData[5]) + " 已应答");
-        Message message = Message.obtain();
-        message.what = ConnectService.GET_COMMAND;
-        Bundle bundle = new Bundle();
-        bundle.putIntArray("CMD", msgData);
-        message.setData(bundle);
-        handler.sendMessage(message);
-
-        //GC20200407
-        if (msgData[5] == 9) {
-            //接收数据时也不发送电池电量命令
-            ConnectService.canAskPower = false;
-            Log.e("#【设备-->APP】", "——禁止获取电量");
-        } else {
-            //GC20200317
-            ConnectService.canAskPower = true;
-            Log.e("#【设备-->APP】", "——允许获取电量");
-        }
-    }
-
-    /**
      * 获取硬件设备返回的波形数据
      */
     private void getWaveMessage(int[] waveData) {
-        Log.e("【波形数据处理】", "正常包：" + waveData[3] + " 波形数据头:0x66 /处理结束啦！");
+        Log.e("【波形数据处理】", "正常包：" + waveData[3] + " 波形数据头/处理结束啦！");
         Message message = Message.obtain();
         message.what = ConnectService.GET_WAVE;
         Bundle bundle = new Bundle();
@@ -151,7 +136,8 @@ public class ProcessThread extends Thread {
         handler.sendMessage(message);
     }
 
-    public static void e(String tag, String msg) {  //信息太长,分段打印
+    public static void e(String tag, String msg) {
+        //信息太长,分段打印
         //因为String的length是字符数量不是字节数量所以为了防止中文字符过多，
         //  把4*1024的MAX字节打印长度改为2001字符数
         int max_str_length = 2001 - tag.length();

@@ -160,7 +160,8 @@ public class SparkView extends View implements ScrubGestureDetector.ScrubListene
 
         baseLinePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
         baseLinePaint.setStyle(Paint.Style.STROKE);
-        baseLinePaint.setColor(Color.WHITE);
+//        baseLinePaint.setColor(Color.WHITE);  //20200521    波形颜色
+        baseLinePaint.setColor(Color.parseColor("#b0a04b"));
         baseLinePaint.setStrokeWidth(lineWidth);
 
         scrubLinePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
@@ -178,7 +179,7 @@ public class SparkView extends View implements ScrubGestureDetector.ScrubListene
         scrubLinePaint2.setStrokeCap(Paint.Cap.SQUARE);
         scrubLinePaint2.setPathEffect(new DashPathEffect(new float[]{6, 10}, 0));
 
-        //紫色标记光标添加  //GC20200330
+        //初始化SIM标记光标的样式颜色  //GC20200330
         scrubLinePaint3 = new Paint(Paint.ANTI_ALIAS_FLAG);
         scrubLinePaint3.setStyle(Paint.Style.STROKE);
         scrubLinePaint3.setStrokeWidth(scrubLineWidth);
@@ -391,6 +392,10 @@ public class SparkView extends View implements ScrubGestureDetector.ScrubListene
                 invalidate();
             }
         } catch (Exception l_ex) {
+            //20200521  //G?不知道为啥加
+            String str = l_ex.getMessage().toString();
+            scrubLinePath.reset();
+            setScrubLineRealDisappear();
         }
 
     }
@@ -426,7 +431,7 @@ public class SparkView extends View implements ScrubGestureDetector.ScrubListene
     }
 
     /**
-     * 紫色标记实光标  //GC20200330
+     * 绘制SIM标记光标  //GC20200330
      */
     public void setScrubLineSim(int position) {
         try {
@@ -971,8 +976,8 @@ public class SparkView extends View implements ScrubGestureDetector.ScrubListene
         //GC20190628 光标位置限制，触摸有效范围
         if (x >= 8.9929 & x <= 1111.1304 & index < 509) {
             if (y < 400) {
-                //新加纵坐标范围响应
-                setScrubLineVirtualMove(x);
+                //新加纵坐标范围响应     //20200521      //GC? 影响虚光标和实光标的重叠?
+//                setScrubLineVirtualMove(x);
             }
         }
         Log.i("position", String.valueOf(x));

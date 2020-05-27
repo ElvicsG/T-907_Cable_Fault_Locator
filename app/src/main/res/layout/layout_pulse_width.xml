@@ -29,7 +29,6 @@
             android:id="@+id/tv_cable_vop_unit"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_alignRight="@id/et_pulse_width_id"
             android:text="@string/ns"
             android:textColor="@color/blue_4EDAFC"
             android:textSize="@dimen/sp_13" />
@@ -64,8 +63,8 @@
             android:id="@+id/iv_pulse_width_close"
             android:layout_width="@dimen/dp_16"
             android:layout_height="@dimen/dp_16"
-            android:layout_gravity="right"
-
+            android:layout_gravity="end"
             android:src="@drawable/bg_dialog_close" />
     </LinearLayout>
+
 </LinearLayout>

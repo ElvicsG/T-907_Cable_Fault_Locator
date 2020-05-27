@@ -32,14 +32,15 @@ public class MultiLanguageUtil {
                 }
             }
         }
+
     }
 
     public static MultiLanguageUtil getInstance() {
         if (instance == null) {
             throw new IllegalStateException("You must be init MultiLanguageUtil first");
         }
-
         return instance;
+
     }
 
     private MultiLanguageUtil(Context context) {
@@ -59,11 +60,11 @@ public class MultiLanguageUtil {
         }
         Resources resources = mContext.getResources();
         DisplayMetrics dm = resources.getDisplayMetrics();
-        //resources.updateConfiguration(configuration, dm);//语言更换生效的代码!
-        resources.updateConfiguration(configuration, dm);//语言更换生效的代码!
+        //语言更换生效的代码!
+        resources.updateConfiguration(configuration, dm);
     }
 
-    public final Locale Locale_Spanisch = new Locale("Es", "es", "");
+    private final Locale Locale_Spanisch = new Locale("Es", "es", "");
 
     /**
      * 如果不是英文、简体中文、繁体中文，默认返回简体中文

@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.percentlayout.widget.PercentRelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -8,24 +7,25 @@
     android:splitMotionEvents="false"
     tools:context="net.kehui.www.t_907_origin.view.MainActivity">
 
-
+    <!--电量-->
     <ImageView
         android:id="@+id/iv_battery_status"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentTop="true"
-        android:layout_alignParentRight="true"
-        android:layout_marginLeft="@dimen/dp_4"
-        android:layout_marginTop="@dimen/dp_4"
-        android:layout_marginRight="@dimen/dp_10"
+        android:layout_alignParentEnd="true"
+        android:layout_marginStart="@dimen/dp_4"
+        android:layout_marginEnd="@dimen/dp_10"
+        android:layout_marginTop="@dimen/dp_5"
         android:src="@drawable/ic_battery_no" />
 
+    <!--网络-->
     <ImageView
         android:id="@+id/iv_wifi_status"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_margin="@dimen/dp_4"
-        android:layout_toLeftOf="@id/iv_battery_status"
+        android:layout_toStartOf="@id/iv_battery_status"
         android:src="@drawable/ic_no_wifi_connect" />
 
     <LinearLayout
@@ -33,48 +33,46 @@
         android:layout_height="match_parent"
         android:orientation="vertical">
 
+        <!--设置和按钮-->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:layout_marginTop="@dimen/dp_55"
             android:layout_marginBottom="@dimen/dp_10"
-            android:layout_weight="3"
+            android:layout_weight="3.2"
             android:gravity="center"
             android:orientation="horizontal">
 
+            <!--设置栏-->
             <LinearLayout
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
-                android:layout_weight="1.5"
+                android:layout_weight="2"
                 android:gravity="center"
                 android:orientation="horizontal">
 
                 <LinearLayout
                     android:id="@+id/ll_setting"
-                    android:layout_width="@dimen/dp_260"
+                    android:layout_width="@dimen/dp_240"
                     android:layout_height="wrap_content"
                     android:background="@drawable/bg_main_setting"
                     android:gravity="center"
                     android:orientation="vertical">
 
-
                     <LinearLayout
                         android:id="@+id/rl_info"
                         android:layout_width="match_parent"
-                        android:layout_above="@id/tv_vop_save"
                         android:layout_height="match_parent"
-                        android:layout_marginLeft="@dimen/dp_20"
-                        android:layout_marginTop="@dimen/dp_20"
-                        android:layout_marginRight="@dimen/dp_20"
-
+                        android:layout_marginStart="@dimen/dp_24"
+                        android:layout_marginEnd="@dimen/dp_20"
+                        android:layout_marginTop="@dimen/dp_30"
                         android:orientation="horizontal">
-
 
                         <LinearLayout
                             android:id="@+id/ll_right"
                             android:layout_width="wrap_content"
                             android:layout_height="match_parent"
-                            android:gravity="right"
+                            android:gravity="end"
                             android:orientation="vertical">
 
                             <RelativeLayout
@@ -88,9 +86,8 @@
                                     android:layout_height="wrap_content"
                                     android:gravity="center"
                                     android:text="@string/unit"
-                                    android:textColor="@color/blue_4EDAFC"
+                                    android:textColor="@color/T_F2"
                                     android:textSize="@dimen/sp_10" />
-
                             </RelativeLayout>
 
                             <RelativeLayout
@@ -103,11 +100,9 @@
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
                                     android:text="@string/cable_vop"
-                                    android:textColor="@color/blue_4EDAFC"
+                                    android:textColor="@color/T_F2"
                                     android:textSize="@dimen/sp_10" />
-
                             </RelativeLayout>
-
 
                             <RelativeLayout
                                 android:layout_width="wrap_content"
@@ -119,9 +114,8 @@
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
                                     android:text="@string/cable_length"
-                                    android:textColor="@color/blue_4EDAFC"
+                                    android:textColor="@color/T_F2"
                                     android:textSize="@dimen/sp_10" />
-
                             </RelativeLayout>
 
                             <RelativeLayout
@@ -134,10 +128,8 @@
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
                                     android:text="@string/tv_cable_id"
-                                    android:textColor="@color/blue_4EDAFC"
+                                    android:textColor="@color/T_F2"
                                     android:textSize="@dimen/sp_10" />
-
-
                             </RelativeLayout>
 
                             <RelativeLayout
@@ -145,16 +137,13 @@
                                 android:layout_height="match_parent"
                                 android:layout_weight="1">
 
-
                                 <TextView
                                     android:id="@+id/tv_test_lead_text"
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
                                     android:text="@string/test_lead"
-                                    android:textColor="@color/blue_4EDAFC"
+                                    android:textColor="@color/T_F2"
                                     android:textSize="@dimen/sp_10" />
-
-
                             </RelativeLayout>
 
                             <RelativeLayout
@@ -167,39 +156,34 @@
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
                                     android:text="@string/length"
-                                    android:textColor="@color/blue_4EDAFC"
+                                    android:textColor="@color/T_99"
                                     android:textSize="@dimen/sp_10" />
-
                             </RelativeLayout>
 
                             <RelativeLayout
                                 android:layout_width="wrap_content"
                                 android:layout_height="match_parent"
                                 android:layout_weight="1">
-
 
                                 <TextView
                                     android:id="@+id/tv_vop_text"
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
                                     android:text="@string/vop"
-                                    android:textColor="@color/blue_4EDAFC"
+                                    android:textColor="@color/T_99"
                                     android:textSize="@dimen/sp_10" />
-
-
                             </RelativeLayout>
                         </LinearLayout>
 
                         <LinearLayout
                             android:layout_width="wrap_content"
                             android:layout_height="match_parent"
-                            android:layout_below="@id/ll_right"
                             android:orientation="vertical">
+
                             <RelativeLayout
                                 android:layout_width="wrap_content"
                                 android:layout_height="match_parent"
                                 android:layout_weight="1">
-
 
                                 <RadioGroup
                                     android:id="@+id/rg_unit"
@@ -211,31 +195,29 @@
                                         android:id="@+id/rb_mi"
                                         android:layout_width="wrap_content"
                                         android:layout_height="wrap_content"
-                                        android:layout_marginLeft="@dimen/dp_10"
+                                        android:layout_marginStart="@dimen/dp_10"
                                         android:background="@null"
                                         android:button="@null"
                                         android:checked="true"
-                                        android:drawableLeft="@drawable/bg_test_lead_selector"
+                                        android:drawableStart="@drawable/bg_test_lead_selector"
                                         android:drawablePadding="@dimen/dp_5"
                                         android:text="@string/mi"
-                                        android:textColor="@color/blue_4EDAFC"
+                                        android:textColor="@color/T_F2"
                                         android:textSize="@dimen/sp_10" />
 
                                     <RadioButton
                                         android:id="@+id/rb_ft"
                                         android:layout_width="wrap_content"
                                         android:layout_height="wrap_content"
-                                        android:layout_marginLeft="@dimen/dp_10"
+                                        android:layout_marginStart="@dimen/dp_10"
                                         android:background="@null"
                                         android:button="@null"
-                                        android:drawableLeft="@drawable/bg_test_lead_selector"
+                                        android:drawableStart="@drawable/bg_test_lead_selector"
                                         android:drawablePadding="@dimen/dp_5"
                                         android:text="@string/ft"
-                                        android:textColor="@color/blue_4EDAFC"
+                                        android:textColor="@color/T_F2"
                                         android:textSize="@dimen/sp_10" />
                                 </RadioGroup>
-
-
                             </RelativeLayout>
 
                             <RelativeLayout
@@ -243,74 +225,71 @@
                                 android:layout_height="match_parent"
                                 android:layout_weight="1">
 
-
                                 <EditText
                                     android:id="@+id/et_cable_vop"
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
-                                    android:layout_marginLeft="@dimen/dp_10"
+                                    android:layout_marginStart="@dimen/dp_10"
                                     android:background="@null"
                                     android:inputType="number|numberDecimal"
                                     android:minWidth="@dimen/dp_120"
+                                    android:imeOptions="actionDone"
                                     android:text=""
-                                    android:textColor="@color/blue_4EDAFC"
+                                    android:textColor="@color/T_F2"
                                     android:textSize="@dimen/sp_10" />
 
                                 <TextView
                                     android:id="@+id/tv_cable_vop_unit"
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
-                                    android:layout_alignRight="@id/et_cable_vop"
+                                    android:layout_alignEnd="@id/et_cable_vop"
                                     android:text="@string/mius"
-                                    android:textColor="@color/blue_4EDAFC"
+                                    android:textColor="@color/T_F2"
                                     android:textSize="@dimen/sp_10" />
 
                                 <View
                                     android:layout_width="wrap_content"
                                     android:layout_height="@dimen/dp_0_5"
                                     android:layout_below="@id/et_cable_vop"
-                                    android:layout_alignLeft="@id/et_cable_vop"
-                                    android:layout_alignRight="@id/et_cable_vop"
-                                    android:background="@color/blue_72FBFD" />
-
-
+                                    android:layout_alignStart="@id/et_cable_vop"
+                                    android:layout_alignEnd="@id/et_cable_vop"
+                                    android:background="@color/T_F2" />
                             </RelativeLayout>
-
 
                             <RelativeLayout
                                 android:layout_width="wrap_content"
                                 android:layout_height="match_parent"
                                 android:layout_weight="1">
 
-
                                 <EditText
                                     android:id="@+id/et_cable_length"
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
-                                    android:layout_marginLeft="@dimen/dp_10"
+                                    android:layout_marginStart="@dimen/dp_10"
                                     android:background="@null"
                                     android:inputType="number|numberDecimal"
                                     android:minWidth="@dimen/dp_120"
+                                    android:imeOptions="actionDone"
                                     android:text=""
-                                    android:textColor="@color/blue_4EDAFC"
+                                    android:textColor="@color/T_F2"
                                     android:textSize="@dimen/sp_10" />
 
                                 <TextView
                                     android:id="@+id/tv_cable_length_unit"
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
-                                    android:layout_alignRight="@id/et_cable_length"
+                                    android:layout_alignEnd="@id/et_cable_length"
                                     android:text="@string/mi"
-                                    android:textColor="@color/blue_4EDAFC"
+                                    android:textColor="@color/T_F2"
                                     android:textSize="@dimen/sp_10" />
 
                                 <View
                                     android:layout_width="wrap_content"
                                     android:layout_height="@dimen/dp_0_5"
                                     android:layout_below="@id/et_cable_length"
-                                    android:layout_alignLeft="@id/et_cable_length"
-                                    android:layout_alignRight="@id/et_cable_length"
-                                    android:background="@color/blue_72FBFD" />
+                                    android:layout_alignStart="@id/et_cable_length"
+                                    android:layout_alignEnd="@id/et_cable_length"
+                                    android:background="@color/T_F2" />
                             </RelativeLayout>
 
                             <RelativeLayout
@@ -318,26 +297,26 @@
                                 android:layout_height="match_parent"
                                 android:layout_weight="1">
 
-
                                 <EditText
                                     android:id="@+id/et_cable_id"
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
-                                    android:layout_marginLeft="@dimen/dp_10"
+                                    android:layout_marginStart="@dimen/dp_10"
                                     android:background="@null"
                                     android:minWidth="@dimen/dp_120"
+                                    android:imeOptions="actionDone"
                                     android:singleLine="true"
                                     android:text="1"
-                                    android:textColor="@color/blue_4EDAFC"
+                                    android:textColor="@color/T_F2"
                                     android:textSize="@dimen/sp_10" />
 
                                 <View
                                     android:layout_width="wrap_content"
                                     android:layout_height="@dimen/dp_0_5"
                                     android:layout_below="@id/et_cable_id"
-                                    android:layout_alignLeft="@id/et_cable_id"
-                                    android:layout_alignRight="@id/et_cable_id"
-                                    android:background="@color/blue_72FBFD" />
+                                    android:layout_alignStart="@id/et_cable_id"
+                                    android:layout_alignEnd="@id/et_cable_id"
+                                    android:background="@color/T_F2" />
                             </RelativeLayout>
 
                             <RelativeLayout
@@ -352,23 +331,20 @@
                                     android:orientation="horizontal">
 
                                     <RelativeLayout
-                                        android:layout_width="match_parent"
+                                        android:layout_width="0dp"
                                         android:layout_height="wrap_content"
                                         android:layout_weight="1"
                                         android:gravity="center_vertical">
-
 
                                         <CheckBox
                                             android:id="@+id/cb_test_lead"
                                             android:layout_width="@dimen/dp_20"
                                             android:layout_height="@dimen/dp_20"
-                                            android:layout_marginLeft="@dimen/dp_10"
+                                            android:layout_marginStart="@dimen/dp_10"
                                             android:layout_marginBottom="0dp"
                                             android:background="@null"
                                             android:button="@drawable/bg_test_lead_selector" />
-
                                     </RelativeLayout>
-
                                 </LinearLayout>
                             </RelativeLayout>
 
@@ -381,30 +357,32 @@
                                     android:id="@+id/et_length"
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
-                                    android:layout_marginLeft="@dimen/dp_10"
+                                    android:layout_marginStart="@dimen/dp_10"
                                     android:background="@null"
                                     android:inputType="number|numberDecimal"
                                     android:minWidth="@dimen/dp_120"
+                                    android:imeOptions="actionDone"
                                     android:text=""
-                                    android:textColor="@color/blue_4EDAFC"
+                                    android:textColor="@color/T_F2"
                                     android:textSize="@dimen/sp_10" />
 
                                 <TextView
                                     android:id="@+id/tv_length_unit"
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
-                                    android:layout_alignRight="@id/et_length"
+                                    android:layout_alignEnd="@id/et_length"
                                     android:text="@string/mi"
-                                    android:textColor="@color/blue_4EDAFC"
+                                    android:textColor="@color/T_99"
                                     android:textSize="@dimen/sp_10" />
 
                                 <View
+                                    android:id="@+id/v_line1"
                                     android:layout_width="wrap_content"
                                     android:layout_height="@dimen/dp_0_5"
                                     android:layout_below="@id/et_length"
-                                    android:layout_alignLeft="@id/et_length"
-                                    android:layout_alignRight="@id/et_length"
-                                    android:background="@color/blue_72FBFD" />
+                                    android:layout_alignStart="@id/et_length"
+                                    android:layout_alignEnd="@id/et_length"
+                                    android:background="@color/T_99" />
                             </RelativeLayout>
 
                             <RelativeLayout
@@ -419,7 +397,7 @@
                                     android:orientation="horizontal">
 
                                     <RelativeLayout
-                                        android:layout_width="match_parent"
+                                        android:layout_width="0dp"
                                         android:layout_height="wrap_content"
                                         android:layout_weight="1">
 
@@ -427,50 +405,48 @@
                                             android:id="@+id/et_vop"
                                             android:layout_width="wrap_content"
                                             android:layout_height="wrap_content"
-                                            android:layout_marginLeft="@dimen/dp_10"
+                                            android:layout_marginStart="@dimen/dp_10"
                                             android:background="@null"
                                             android:inputType="number|numberDecimal"
                                             android:minWidth="@dimen/dp_120"
+                                            android:imeOptions="actionDone"
                                             android:text=""
-                                            android:textColor="@color/blue_4EDAFC"
+                                            android:textColor="@color/T_F2"
                                             android:textSize="@dimen/sp_10" />
 
                                         <TextView
                                             android:id="@+id/tv_vop_unit"
                                             android:layout_width="wrap_content"
                                             android:layout_height="wrap_content"
-                                            android:layout_alignRight="@id/et_vop"
+                                            android:layout_alignEnd="@id/et_vop"
                                             android:text="@string/mius"
-                                            android:textColor="@color/blue_4EDAFC"
+                                            android:textColor="@color/T_99"
                                             android:textSize="@dimen/sp_10" />
 
                                         <View
+                                            android:id="@+id/v_line2"
                                             android:layout_width="wrap_content"
                                             android:layout_height="@dimen/dp_0_5"
                                             android:layout_below="@id/et_vop"
-                                            android:layout_alignLeft="@id/et_vop"
-                                            android:layout_alignRight="@id/et_vop"
-                                            android:background="@color/blue_72FBFD" />
+                                            android:layout_alignStart="@id/et_vop"
+                                            android:layout_alignEnd="@id/et_vop"
+                                            android:background="@color/T_99" />
                                     </RelativeLayout>
-
-
                                 </LinearLayout>
                             </RelativeLayout>
                         </LinearLayout>
-
                     </LinearLayout>
 
                     <TextView
                         android:id="@+id/tv_vop_save"
                         android:layout_width="@dimen/dp_60"
                         android:layout_height="@dimen/dp_20"
-                        android:layout_centerHorizontal="true"
                         android:layout_gravity="center"
                         android:background="@drawable/shape_solide_0ff6ff"
                         android:gravity="center"
-                        android:text="@string/btn_save"
                         android:layout_marginTop="@dimen/dp_5"
-                        android:layout_marginBottom="@dimen/dp_15"
+                        android:layout_marginBottom="@dimen/dp_10"
+                        android:text="@string/btn_save"
                         android:textColor="@color/colorPrimary"
                         android:textSize="@dimen/sp_10" />
                 </LinearLayout>
@@ -480,7 +456,7 @@
                 android:id="@+id/ll_mode"
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
-                android:layout_weight="1"
+                android:layout_weight="1.2"
                 android:gravity="center"
                 android:orientation="vertical">
 
@@ -495,7 +471,6 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:src="@drawable/bg_tdr_mode_selector" />
-
                 </LinearLayout>
 
                 <LinearLayout
@@ -556,10 +531,11 @@
             </LinearLayout>
         </LinearLayout>
 
+        <!--主按钮-->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="0dp"
-            android:layout_weight="1"
+            android:layout_weight="1.3"
             android:gravity="center"
             android:orientation="horizontal">
 
@@ -571,6 +547,7 @@
                 android:gravity="center"
                 android:orientation="horizontal">
 
+                <!--语言按钮-->
                 <LinearLayout
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
@@ -585,6 +562,7 @@
                         android:src="@drawable/bg_main_language_selector" />
                 </LinearLayout>
 
+                <!--更新-->
                 <LinearLayout
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
@@ -599,6 +577,7 @@
                         android:src="@drawable/bg_main_update_selector" />
                 </LinearLayout>
 
+                <!--帮助-->
                 <LinearLayout
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
@@ -613,6 +592,7 @@
                         android:src="@drawable/bg_main_help_selector" />
                 </LinearLayout>
 
+                <!--记录-->
                 <LinearLayout
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
@@ -627,6 +607,7 @@
                         android:src="@drawable/bg_main_records_selector" />
                 </LinearLayout>
 
+                <!--协助-->
                 <LinearLayout
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
@@ -640,12 +621,10 @@
                         android:layout_height="wrap_content"
                         android:src="@drawable/bg_main_remote_selector" />
                 </LinearLayout>
-
             </LinearLayout>
-
         </LinearLayout>
 
-
+        <!--提示栏-->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="0dp"
@@ -655,12 +634,9 @@
             <androidx.percentlayout.widget.PercentRelativeLayout
                 android:layout_width="@dimen/dp_400"
                 android:layout_height="@dimen/dp_40"
-                android:layout_below="@id/ll_featured"
-                android:layout_centerInParent="true"
                 android:layout_gravity="center"
                 android:background="@drawable/bg_main_msg"
                 android:gravity="center_vertical">
-
 
                 <TextView
                     android:id="@+id/tv_msg"
@@ -673,11 +649,10 @@
                     android:text="@string/main_notice"
                     android:textColor="@color/colorPrimary"
                     android:textSize="@dimen/sp_10" />
-
             </androidx.percentlayout.widget.PercentRelativeLayout>
+
         </LinearLayout>
 
     </LinearLayout>
 
 </androidx.percentlayout.widget.PercentRelativeLayout>
-

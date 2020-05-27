@@ -7,151 +7,51 @@
     android:background="@drawable/bg_mode"
     tools:context=".view.ModeActivity">
 
+    <!--电量图标-->
     <ImageView
         android:id="@+id/iv_battery_status"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentTop="true"
-        android:layout_alignParentRight="true"
-        android:layout_marginLeft="@dimen/dp_4"
-        android:layout_marginTop="@dimen/dp_4"
-        android:layout_marginRight="@dimen/dp_10"
+        android:layout_alignParentEnd="true"
+        android:layout_marginStart="@dimen/dp_4"
+        android:layout_marginEnd="@dimen/dp_10"
+        android:layout_marginTop="@dimen/dp_5"
         android:src="@drawable/ic_battery_no" />
 
+    <!--wifi图标-->
     <ImageView
         android:id="@+id/iv_wifi_status"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_margin="@dimen/dp_4"
-        android:layout_toLeftOf="@id/iv_battery_status"
+        android:layout_toStartOf="@id/iv_battery_status"
         android:src="@drawable/ic_no_wifi_connect" />
 
-    <RelativeLayout
-        android:id="@+id/rl_wave"
-        android:layout_width="wrap_content"
-        android:layout_height="match_parent"
-        android:background="@drawable/bg_mode_wave"
-        app:layout_heightPercent="57%"
-        app:layout_marginLeftPercent="1%"
-        app:layout_marginTopPercent="6%"
-        app:layout_widthPercent="79%">
-
-        <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="25dp"
-            android:layout_marginTop="15dp"
-            android:orientation="horizontal">
-
-            <TextView
-                android:id="@+id/tv_information"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/break_down"
-                android:textColor="@color/colorPrimary"
-                android:textSize="16sp" />
-        </LinearLayout>
-
-
-        <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignParentRight="true"
-            android:layout_margin="@dimen/dp_10">
-
-            <TextView
-                android:id="@+id/tv_icm"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="@dimen/dp_15"
-                android:text=""
-                android:textColor="@color/colorPrimary"
-                android:textSize="@dimen/sp_11" />
-
-            <TextView
-                android:id="@+id/tv_distance"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="0"
-                android:textColor="@color/colorPrimary"
-                android:textSize="@dimen/sp_11" />
-
-            <TextView
-                android:id="@+id/tv_distance_unit"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="m"
-                android:textColor="@color/colorPrimary"
-                android:textSize="@dimen/sp_11" />
-        </LinearLayout>
-
-        <net.kehui.www.t_907_origin.ui.SparkView.SparkView
-            android:id="@+id/fullWave"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:padding="@dimen/dp_4"
-            app:spark_lineColor="@color/spark_line_color"
-            app:spark_scrubEnabled="true" />
-
-    </RelativeLayout>
-
-
-    <net.kehui.www.t_907_origin.ui.MoveWaveView
-        android:id="@+id/view_move_vertical_wave"
-        android:layout_width="@dimen/dp_15"
-        android:layout_height="match_parent"
-        android:layout_toRightOf="@id/rl_wave"
-        android:background="@color/blue_72FBFD"
-        android:visibility="gone"
-        app:layout_heightPercent="57%"
-        app:layout_marginTopPercent="6%"
-        app:layout_widthPercent="1.5%"
-        app:move_viewColor="@color/blue_0a9bbe"
-        app:move_viewHeight="@dimen/dp_50"
-        app:move_viewOrientation="vertical"
-        app:move_viewWidth="@dimen/dp_15" />
-
-    <LinearLayout
-        android:id="@+id/ll_horizontal_view"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/rl_wave"
-        android:layout_alignStart="@id/rl_wave"
-        android:layout_alignEnd="@id/rl_wave"
-        android:background="@color/blue_72FBFD">
-
-        <net.kehui.www.t_907_origin.ui.MoveView
-            android:id="@+id/mv_wave"
-            android:layout_width="wrap_content"
-            android:layout_height="@dimen/dp_25"
-            android:background="@color/blue_0a9bbe" />
-    </LinearLayout>
-
-
+    <!--信息提示框-->
     <androidx.percentlayout.widget.PercentRelativeLayout
         android:id="@+id/ll_info"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@id/ll_horizontal_view"
+        android:layout_alignStart="@id/rl_wave"
         android:layout_marginTop="@dimen/dp_5"
-        app:layout_heightPercent="12%"
-        app:layout_widthPercent="81%">
+        app:layout_heightPercent="8%"
+        app:layout_widthPercent="82%">
 
         <LinearLayout
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_centerHorizontal="true"
             android:background="@drawable/bg_main_msg"
             android:gravity="center"
             android:orientation="horizontal">
 
-
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_vertical"
-                android:layout_marginLeft="@dimen/dp_15"
-                android:text="@string/mode"
+                android:layout_marginStart="@dimen/dp_15"
+                android:text="@string/tv_mode"
                 android:textColor="@color/colorPrimary"
                 android:textSize="@dimen/sp_10" />
 
@@ -363,16 +263,115 @@
                 android:text="   "
                 android:textColor="@color/colorPrimary"
                 android:textSize="@dimen/sp_10" />
-
         </LinearLayout>
     </androidx.percentlayout.widget.PercentRelativeLayout>
 
     <RelativeLayout
+        android:id="@+id/rl_wave"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:background="@drawable/bg_mode_wave"
+        app:layout_heightPercent="65%"
+        app:layout_marginLeftPercent="1%"
+        app:layout_marginTopPercent="11%"
+        app:layout_widthPercent="82%">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content">
+            <!--波形框-->
+            <net.kehui.www.t_907_origin.ui.SparkView.SparkView
+                android:id="@+id/fullWave"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="@color/colorAccent"
+                android:padding="@dimen/dp_4"
+                app:spark_lineColor="@color/blue_303f9f"
+                app:spark_scrubEnabled="true" />
+        </LinearLayout>
+
+        <!--波形右上角浮动文字-->
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
+            android:layout_margin="@dimen/dp_10">
+
+            <TextView
+                android:id="@+id/tv_distance"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="0"
+                android:textColor="@color/T_red"
+                android:textSize="@dimen/sp_11" />
+
+            <TextView
+                android:id="@+id/tv_distance_unit"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="m"
+                android:textColor="@color/T_red"
+                android:textSize="@dimen/sp_11" />
+        </LinearLayout>
+
+        <!--波形左上角浮动文字//GC20190708-->
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="25dp"
+            android:layout_marginTop="15dp"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/tv_information"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/break_down"
+                android:textColor="@color/T_red"
+                android:textSize="@dimen/sp_11" />
+        </LinearLayout>
+    </RelativeLayout>
+
+    <!--右侧滑条-->
+    <net.kehui.www.t_907_origin.ui.MoveWaveView
+        android:id="@+id/view_move_vertical_wave"
+        android:layout_width="@dimen/dp_15"
+        android:layout_height="match_parent"
+        android:layout_toEndOf="@id/rl_wave"
+        android:background="@color/blue_72FBFD"
+        android:visibility="gone"
+        app:layout_heightPercent="65%"
+        app:layout_marginTopPercent="11%"
+        app:layout_widthPercent="1.5%"
+        app:move_viewColor="@color/blue_0a9bbe"
+        app:move_viewHeight="@dimen/dp_50"
+        app:move_viewOrientation="vertical"
+        app:move_viewWidth="@dimen/dp_15" />
+
+    <!--下方滑条-->
+    <LinearLayout
+        android:id="@+id/ll_horizontal_view"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/rl_wave"
+        android:layout_alignStart="@id/rl_wave"
+        android:layout_alignEnd="@id/rl_wave"
+        android:background="@color/blue_72FBFD">
+
+        <net.kehui.www.t_907_origin.ui.MoveView
+            android:id="@+id/mv_wave"
+            android:layout_width="wrap_content"
+            android:layout_height="@dimen/dp_25"
+            android:background="@drawable/shape_solide_bottom_bar" />
+    </LinearLayout>
+
+    <!--右侧按钮-->
+    <RelativeLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignTop="@id/rl_wave"
-        android:layout_alignBottom="@id/ll_info"
-        android:layout_toRightOf="@id/view_move_vertical_wave">
+        android:layout_alignBottom="@id/ll_horizontal_view"
+        android:layout_toEndOf="@id/view_move_vertical_wave"
+        app:layout_marginTopPercent="5%">
 
         <!--全部功能-->
         <LinearLayout
@@ -385,145 +384,125 @@
             android:orientation="vertical"
             app:layout_heightPercent="69%">
 
-
+            <!--增益+ -->
             <ImageView
                 android:id="@+id/tv_gain_add"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_centerHorizontal="true"
                 android:layout_weight="1"
                 android:gravity="center"
                 android:src="@drawable/bg_gain_plus_selector" />
 
-
+            <!--增益- -->
             <ImageView
                 android:id="@+id/tv_gain_min"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_below="@id/tv_gain_add"
-                android:layout_centerHorizontal="true"
                 android:layout_weight="1"
                 android:gravity="center"
                 android:src="@drawable/bg_gain_min_selector" />
 
-
+            <!--平衡+ -->
             <ImageView
                 android:id="@+id/tv_balance_plus"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_below="@id/tv_gain_min"
-                android:layout_centerHorizontal="true"
                 android:layout_weight="1"
                 android:gravity="center"
                 android:src="@drawable/bg_balance_plus_selector" />
 
-
+            <!--平衡- -->
             <ImageView
                 android:id="@+id/tv_balance_min"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_below="@id/tv_balance_plus"
-                android:layout_centerHorizontal="true"
                 android:layout_weight="1"
                 android:gravity="center"
                 android:src="@drawable/bg_balance_min_selector" />
 
+            <!--光标零点-->
             <ImageView
                 android:id="@+id/tv_origin"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_below="@id/tv_balance_min"
-                android:layout_centerHorizontal="true"
                 android:layout_weight="1"
                 android:gravity="center"
                 android:src="@drawable/bg_origin_selector" />
 
-
+            <!--波宽度-->
             <ImageView
                 android:id="@+id/tv_pulse_width"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_below="@id/tv_origin"
-                android:layout_centerHorizontal="true"
                 android:layout_weight="1"
                 android:gravity="center"
                 android:src="@drawable/bg_pulse_width_selector" />
 
+            <!--延时-->
             <ImageView
                 android:id="@+id/tv_trigger_delay"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_below="@id/tv_pulse_width"
-                android:layout_centerHorizontal="true"
                 android:layout_weight="1"
                 android:gravity="center"
                 android:src="@drawable/bg_trigger_delay_selector" />
 
+            <!--比较-->
             <ImageView
                 android:id="@+id/tv_compare"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_below="@id/tv_trigger_delay"
-                android:layout_centerHorizontal="true"
                 android:layout_weight="1"
                 android:gravity="center"
                 android:src="@drawable/bg_compare_selector" />
 
-
+            <!--波速度-->
             <ImageView
                 android:id="@+id/tv_cal"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_below="@id/tv_compare"
-                android:layout_centerHorizontal="true"
                 android:layout_weight="1"
                 android:gravity="center"
                 android:src="@drawable/bg_cal_selector" />
 
+            <!--范围-->
             <ImageView
                 android:id="@+id/tv_range"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_below="@id/tv_cal"
-                android:layout_centerHorizontal="true"
                 android:layout_weight="1"
                 android:gravity="center"
                 android:src="@drawable/bg_range_selector" />
 
-
+            <!--波形上翻-->
             <ImageView
                 android:id="@+id/tv_wave_pre"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_below="@id/tv_range"
-                android:layout_centerHorizontal="true"
                 android:layout_weight="1"
                 android:gravity="center"
                 android:src="@drawable/bg_wave_pre_selector" />
 
-
+            <!--波形下翻-->
             <ImageView
                 android:id="@+id/tv_wave_next"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_below="@id/tv_wave_pre"
-                android:layout_centerHorizontal="true"
                 android:layout_weight="1"
                 android:gravity="center"
                 android:src="@drawable/bg_wave_next_selector" />
 
+            <!--文件-->
             <ImageView
                 android:id="@+id/tv_file"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_below="@id/tv_wave_next"
-                android:layout_centerHorizontal="true"
                 android:layout_weight="1"
                 android:gravity="center"
                 android:src="@drawable/bg_file_selector" />
         </LinearLayout>
 
-        <!--点击小功能 -->
+        <!--点击弹窗 -->
         <LinearLayout
             android:id="@+id/ll_compare"
             android:layout_width="match_parent"
@@ -538,10 +517,8 @@
             android:visibility="gone"
             app:layout_marginLeftPercent="2%"
             app:layout_marginRightPercent="2%">
-
             <include layout="@layout/layout_compare" />
         </LinearLayout>
-
 
         <LinearLayout
             android:id="@+id/ll_cal"
@@ -557,10 +534,8 @@
             android:visibility="gone"
             app:layout_marginLeftPercent="2%"
             app:layout_marginRightPercent="2%">
-
             <include layout="@layout/layout_cal" />
         </LinearLayout>
-
 
         <LinearLayout
             android:id="@+id/ll_pulse_width"
@@ -576,10 +551,8 @@
             android:visibility="gone"
             app:layout_marginLeftPercent="2%"
             app:layout_marginRightPercent="2%">
-
             <include layout="@layout/layout_pulse_width" />
         </LinearLayout>
-
 
         <LinearLayout
             android:id="@+id/ll_records"
@@ -595,7 +568,6 @@
             android:visibility="gone"
             app:layout_marginLeftPercent="1%"
             app:layout_marginRightPercent="1%">
-
             <include layout="@layout/layout_records" />
         </LinearLayout>
 
@@ -613,36 +585,31 @@
             android:visibility="gone"
             app:layout_marginLeftPercent="2%"
             app:layout_marginRightPercent="2%">
-
             <include layout="@layout/layout_trigger_delay" />
         </LinearLayout>
-
 
         <LinearLayout
             android:id="@+id/ll_range"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_centerVertical="true"
             android:layout_marginLeft="@dimen/dp_5"
             android:layout_marginRight="@dimen/dp_5"
             android:background="@drawable/shape_solide_tr_stroke_0ff6ff"
             android:gravity="center_horizontal"
             android:orientation="vertical"
-            android:visibility="gone"
-            app:layout_heightPercent="69%">
-
+            android:visibility="gone">
             <include layout="@layout/layout_range" />
-
-
         </LinearLayout>
-
 
     </RelativeLayout>
 
+    <!--下方按钮区-->
     <LinearLayout
         android:id="@+id/rl_feature"
         android:layout_width="match_parent"
-        android:layout_height="@dimen/dp_230"
-        android:layout_below="@id/ll_info"
+        android:layout_height="@dimen/dp_220"
+        android:layout_below="@id/ll_horizontal_view"
         android:gravity="center"
         android:orientation="horizontal"
         app:layout_marginLeftPercent="2%"
@@ -677,19 +644,76 @@
                 android:text="" />
         </LinearLayout>
 
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="2"
+            android:background="@drawable/bg_con"
+            android:orientation="horizontal">
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:orientation="horizontal">
+
+                <ImageView
+                    android:id="@+id/tv_cursor_min"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:src="@drawable/bg_cursor_min_selector" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:orientation="horizontal">
+
+                <ImageView
+                    android:id="@+id/tv_cursor_plus"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:src="@drawable/bg_cursor_plus_selector" />
+            </LinearLayout>
+        </LinearLayout>
 
         <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:gravity="center"
+            android:layout_weight="2"
+            android:background="@drawable/bg_con"
             android:orientation="horizontal">
 
-            <ImageView
-                android:id="@+id/tv_cursor_min"
+            <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:src="@drawable/bg_cursor_min_selector" />
+                android:layout_weight="1"
+                android:gravity="center"
+                android:orientation="horizontal">
+
+                <ImageView
+                    android:id="@+id/tv_zoom_plus"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:src="@drawable/bg_zoom_plus_selector" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:orientation="horizontal">
+
+                <ImageView
+                    android:id="@+id/tv_zoom_min"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:src="@drawable/bg_zoom_min_selector" />
+            </LinearLayout>
         </LinearLayout>
 
         <LinearLayout
@@ -700,38 +724,10 @@
             android:orientation="horizontal">
 
             <ImageView
-                android:id="@+id/tv_cursor_plus"
+                android:id="@+id/tv_help"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:src="@drawable/bg_cursor_plus_selector" />
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:gravity="center"
-            android:orientation="horizontal">
-
-            <ImageView
-                android:id="@+id/tv_zoom_plus"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:src="@drawable/bg_zoom_plus_selector" />
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:gravity="center"
-            android:orientation="horizontal">
-
-            <ImageView
-                android:id="@+id/tv_zoom_min"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:src="@drawable/bg_zoom_min_selector" />
+                android:src="@drawable/bg_help_selector" />
         </LinearLayout>
 
         <LinearLayout
@@ -747,20 +743,6 @@
                 android:layout_height="wrap_content"
                 android:src="@drawable/bg_test_selector"
                 android:text="" />
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:gravity="center"
-            android:orientation="horizontal">
-
-            <ImageView
-                android:id="@+id/tv_help"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:src="@drawable/bg_help_selector" />
         </LinearLayout>
 
     </LinearLayout>

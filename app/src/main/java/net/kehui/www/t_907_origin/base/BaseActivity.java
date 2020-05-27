@@ -52,7 +52,7 @@ public class BaseActivity extends AppCompatActivity {
     public boolean isDatabase;
 
     /**
-     * wdx 20191218 波宽度全局变量
+     * 波宽度全局变量
      */
     public int pulseWidth;
 
@@ -153,12 +153,8 @@ public class BaseActivity extends AppCompatActivity {
     public int[] wifiStream;
 
     /**
-     * 接收波形
-     * 数据头      数据长度    传输数据    校验和
-     * eb90aaxx    aabbccdd       X         xx
-     *
-     * 发送命令(16进制显示)
-     * 数据头   数据长度  指令  传输数据  校验和
+     * APP发送命令(16进制)
+     * 数据头     数据长度  指令  传输数据  校验和
      * eb90aa55     03      01      11       15
      * eb90aa55 03 01 11 15	    测试0x11
      * eb90aa55 03 01 22 26	    取消测试0x22
@@ -179,9 +175,9 @@ public class BaseActivity extends AppCompatActivity {
      * eb90aa55 03 05 22 2a		延时-
      * eb90aa55 03 07 11 1b  	平衡+
      * eb90aa55 03 07 22 2c		平衡-
-     * eb90aa55 03 08 11 1c		//G后续添加 接收到触发信号
-     * eb90aa55 03 09 11 1d		//G后续添加 接收数据命令
-     * eb90aa55 03 0a 11 1e		//G后续添加 关机重连
+     * eb90aa55 03 08 11 1c		//接收到触发信号
+     * eb90aa55 03 09 11 1d		//接收数据命令
+     * eb90aa55 03 0a 11 1e		//关机重连
      */
     public int command;
     public final static int COMMAND_TEST = 0x01;
@@ -197,22 +193,22 @@ public class BaseActivity extends AppCompatActivity {
     public final static int CANCEL_TEST = 0x22;
 
     /**
-     * wdx 20191218 波宽度发送指令代码
+     * 波宽度发送指令代码
      */
     public final static int COMMAND_PULSE_WIDTH = 0x0a;
 
     public final static int TDR = 0x11;
     public final static int ICM = 0x22;
-    public final static int ICM_DECAY = 0x55;
     public final static int SIM = 0x33;
-    public final static int DECAY = 0x44;
+    public final static int DECAY     = 0x44;
+    public final static int ICM_DECAY = 0x55;
 
-    public final static int RANGE_250 = 0x99;
-    public final static int RANGE_500 = 0x11;
-    public final static int RANGE_1_KM = 0x22;
-    public final static int RANGE_2_KM = 0x33;
-    public final static int RANGE_4_KM = 0x44;
-    public final static int RANGE_8_KM = 0x55;
+    public final static int RANGE_250   = 0x99;
+    public final static int RANGE_500   = 0x11;
+    public final static int RANGE_1_KM  = 0x22;
+    public final static int RANGE_2_KM  = 0x33;
+    public final static int RANGE_4_KM  = 0x44;
+    public final static int RANGE_8_KM  = 0x55;
     public final static int RANGE_16_KM = 0x66;
     public final static int RANGE_32_KM = 0x77;
     public final static int RANGE_64_KM = 0x88;
@@ -229,7 +225,8 @@ public class BaseActivity extends AppCompatActivity {
     /**
      * APP接收到的波形数据头
      * 数据头      数据长度    传输数据    校验和
-     * eb90aaXX    aabbccdd     X……X        xx
+     * eb90aaXX   aabbccdd     X……X       xx
+     * 以XX区分—— 非二次脉冲 和 二次脉冲
      */
     public final static int WAVE_TDR_ICM_DECAY = 0x66;
     public final static int WAVE_SIM = 0x77;
@@ -241,9 +238,16 @@ public class BaseActivity extends AppCompatActivity {
     public DataDao dao;
     public int selectedId;
 
+    public static BaseActivity baseActivity;//传递给非activity的类使用
+    public static Context mContext;//传递给非activity的类使用
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        //GC20200525
+        baseActivity = this;//传递给非activity的类使用
+        mContext = this.getBaseContext();//传递给非activity的类使用
+
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
@@ -312,8 +316,8 @@ public class BaseActivity extends AppCompatActivity {
         breakdownPosition = 0;
         //击穿点
         breakBk = 0;
-
-        BaseAppData db = Room.databaseBuilder(getApplicationContext(), BaseAppData.class, "database-wave").build();
+        //数据库相关 //20200520 //G?
+        BaseAppData db = Room.databaseBuilder(getApplicationContext(), BaseAppData.class, "database-wave").allowMainThreadQueries().build();
         dao = db.dataDao();
     }
 
@@ -324,9 +328,12 @@ public class BaseActivity extends AppCompatActivity {
 
 }
 
-/*更改记录*/
+/*——————————其它——————————*/
 //GT 工作信息测试
+//布局运用  <!--百分比运用-->
+/*——————————其它——————————*/
 
+/*更改记录*/
 //GC20190628 光标虚化和限制范围——新加纵坐标范围响应
 //GC20190629 光标使用优化
 //GC20190703 记忆比较功能
@@ -338,6 +345,7 @@ public class BaseActivity extends AppCompatActivity {
 //GC20190713 数据库波形显示
 //GC20190716 存储显示、放大缩小操作之后的bug修正
 
+/*——————————自动测距调整——————————*/
 //GC20191218    光标位置修正
 //GC20191219    根据虚光标的原始位置进行放大缩小
 //GC20191223    250m范围取点
@@ -347,22 +355,41 @@ public class BaseActivity extends AppCompatActivity {
 //GC20200106    光标定位修改
 //GC20200109    DC方式下自动测距单独实现
 //GC20200110    击穿点判断起始位置更改
+//a待定 20190821
+/*——————————自动测距调整——————————*/
 
 //GC20200312    故障距离单位显示添加
 //GC20200313    增益显示转为百分比
-//GC20200314    模式界面电量图标更新过慢BUG修改——后续添加无WiFi电量图标//GC20200423
+//GC20200314    模式界面电量图标同步主页界面
 //GC20200319    “等待触发”对话框重连时不消掉BUG修改
 
 //G??
-//GC20200317    发送命令和获取电量修改
-//EN20200324    增加条件限制，避免极端条件下会多次尝试连接
-//GC20200325    连接条件修改
+//EN20200324    发送命令和获取电量修改，增加条件限制，避免极端条件下会多次尝试连接
+//GC20200325    改恩诺连接条件
 
 //GC20200327    帮助功能添加
-//GC20200330    紫色标记光标添加
-//GC20200331    脉宽修改——后续更改，去除脉宽初始化//GC20200423
-//GC20200407    电量数据 波形数据混杂处理
-//GC20200408    波形大于需要个数的处理
+//GC20200330    SIM标记光标添加
+//GC20200331    不同范围脉宽发射功能添加
+//GC20200424    不同模式下初始化发射的不同命令
+//GC20200428    命令控制变量修改
+//GC20200519    WIFI连接控制
+//GC20200523    界面相关
+//GC20200525    语言显示效果优化 / 记录显示效果优化
+//GC20200526    SIM方式下脉宽命令发送修改
 
-//GC20200423    调试BUG
-//GC20200424    模式界面初始化命令调整
+
+
+//GN界面优化可能用到
+//TODO 20200520 滑动波形加注释
+
+//GC? 与恩诺区别
+/*————enNuo————*/
+//20191218
+//20200407  电量获取修改
+//20200416  未连接不执行
+//20200520  数据库相关
+//20200521  界面相关
+//20200522  单位转化逻辑修正
+//20200523  其它优化
+
+

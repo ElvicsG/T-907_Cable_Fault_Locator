@@ -53,22 +53,33 @@
     <string name="title_activity_base">BaseActivity</string>
     <string name="fault_distance">Fault Distance</string>
     <string name="btn_cursor">CSR</string>
-    <string name="tv_method">"MTD: "</string>
-    <string name="tv_gain">Gain: </string>
-    <string name="tv_vel">VOP: </string>
-    <string name="tv_range">Range: </string>
+
+    <string name="tv_mode">Mode:</string>
+    <string name="tv_range">Range:</string>
+    <string name="tv_gain">Gain:</string>
+    <string name="tv_vel">VOP:</string>
+    <string name="tv_balance">BAL:</string>
+    <string name="tv_density">Zoom:</string>
+    <string name="tv_delay">Delay:</string>
+    <string name="wave_number">Waveform NO.:</string>
+    <string name="wave_one">1</string>
+    <string name="wave_two">2</string>
+    <string name="wave_three">3</string>
+    <string name="wave_four">4</string>
+    <string name="wave_five">5</string>
+    <string name="wave_six">6</string>
+    <string name="wave_seven">7</string>
+    <string name="wave_eight">8</string>
+
     <string name="btn_cancel">Cancel</string>
     <string name="btn_adj">ADJ</string>
     <string name="btn_test">TEST</string>
     <string name="wait_trigger">Armed…</string>
-    <string name="tv_balance">BAL:</string>
     <string name="receive_data">Receiving Data…</string>
     <string name="connecting_wifi">Waiting For WiFi Connection…</string>
     <string name="connecting_hw">Waiting For Device Connection…</string>
     <string name="You_have_no_memory_data_can_not_compare">You have no memory wave, can not compare</string>
     <string name="btn_wave_previous">PRE.</string>
-    <string name="tv_delay">Delay:</string>
-    <string name="tv_density">Zoom:</string>
     <string name="btn_wave_next">NEXT</string>
     <string name="tv_testdate">"DATE :  "</string>
     <string name="tv_testtime">"TIME :  "</string>
@@ -89,8 +100,6 @@
     <string name="title_time">TIME</string>
     <string name="title_mode">MODE</string>
     <string name="title_range">RANGE</string>
-    <string name="oneSpace">&#160;</string>
-    <string name="twoSpace">&#160;&#160;</string>
     <string name="You_can_not_compare">You can not compare with different mode or range</string>
     <string name="tv_inductor">IND:</string>
     <string name="btn_inductor_minus">IND-</string>
@@ -113,11 +122,11 @@
     <string name="vop">VOP : </string>
     <string name="vop_plus">VOP+</string>
     <string name="vop_min">VOP-</string>
-    <string name="records">Records</string>
+    <string name="record">Record</string>
     <string name="btn_both">Both</string>
     <string name="operator">Operator:</string>
     <string name="select_change">Select Language</string>
-    <string name="zh">Chinese</string>
+    <string name="zh">中文</string>
     <string name="en">English</string>
     <string name="cable_id">Cable ID:</string>
     <string name="date_text">Date:</string>
@@ -129,18 +138,9 @@
     <string name="tv_tester">TESTER:</string>
     <string name="test_site_text">Test Site:</string>
     <string name="main_notice">The default test range is %1$s.The range will be determined automatically if the cable length is inputed.
-Select the test mode after setting parameters properly.</string>
+        Select the test mode after setting parameters properly.</string>
     <string name="save_success">Saved successfully</string>
     <string name="distance">Distance</string>
-    <string name="wave_number">Waveform NO. : </string>
-    <string name="wave_one">1</string>
-    <string name="wave_two">2</string>
-    <string name="wave_three">3</string>
-    <string name="wave_four">4</string>
-    <string name="wave_five">5</string>
-    <string name="wave_six">6</string>
-    <string name="wave_seven">7</string>
-    <string name="wave_eight">8</string>
     <string name="mi">m</string>
     <string name="ns">ns</string>
     <string name="mius">m/us</string>
@@ -157,6 +157,16 @@ Select the test mode after setting parameters properly.</string>
     <string name="update_now">Update Now.</string>
     <string name="update_later">Update Later.</string>
     <string name="maxpulsewidth">The maximum value of pulsewidth is 7000.</string>
+    <!--新增EnNuo-->
+    <string name="selectmode_text">Mode</string>
+    <string name="selectdatestring">Date</string>
+    <string name="btn_date_back">Back</string>
+    <string name="btn_date_ensure">OK</string>
+    <string name="btn_date_clear">Clear</string>
+    <string name="date_year">-</string>
+    <string name="date_month">-</string>
+    <string name="date_day"> </string>
+
     <!--新增GC-->
     <string name="disconnect">Connection exception!</string>
     <string name="btn_next">NEXT</string>
@@ -165,6 +175,8 @@ Select the test mode after setting parameters properly.</string>
     <string name="operation_guide">Operation</string>
     <string name="button_instruction">Instruction</string>
     <string name="back">Return</string>
-    <string name="mode">Mode:</string>
+    <string name="test_on_no_connect">No communication with device!</string>
+    <string name="englishSpace">&#160;</string>
+    <string name="chineseSpace">&#12288;</string>
 
 </resources>

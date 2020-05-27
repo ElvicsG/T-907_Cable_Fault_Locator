@@ -18,5 +18,8 @@
     <color name="green2">#1d7d0c</color>
     <color name="blue3">#00f0ff</color>
 
+    <color name="blue_808080">#808080</color>
+    <color name="blue_0095b3">#0095b3</color>
+    <color name="blue_999999">#999999</color>
 
 </resources>

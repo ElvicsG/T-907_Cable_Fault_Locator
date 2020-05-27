@@ -4,9 +4,9 @@
     <!--<item android:state_enabled="true" android:drawable="@drawable/bg_btn_e5"/>-->
     <!--<item android:state_enabled="false" android:drawable="@drawable/bg_btn_99"/>-->
     <item android:color="@color/colorPrimary" android:state_pressed="true" />
-    <item android:color="@color/blue_0FF6FF" android:state_pressed="false" />
+    <item android:color="@color/colorPrimary" android:state_pressed="false" />
 
     <!-- 默认样式 -->
-    <item android:color="@color/blue_0FF6FF" />
+    <item android:color="@color/colorPrimary" />    <!--20200523-->
 
 </selector>

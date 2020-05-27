@@ -16,55 +16,56 @@
             android:id="@+id/iv_close"
             android:layout_width="@dimen/dp_25"
             android:layout_height="@dimen/dp_25"
-            android:layout_alignParentRight="true"
+            android:layout_alignParentEnd="true"
             android:src="@drawable/bg_dialog_close_big" />
 
         <androidx.percentlayout.widget.PercentRelativeLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_centerVertical="true"
-            android:gravity="center"
             app:layout_marginLeftPercent="10%"
-            app:layout_marginRightPercent="10%">
+            app:layout_marginRightPercent="10%"
+            android:layout_centerVertical="true"
+            android:gravity="center">
 
             <RelativeLayout
                 android:id="@+id/rl_info"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                app:layout_marginTopPercent="10%"
                 android:gravity="center">
 
                 <RelativeLayout
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_alignParentLeft="true">
+                    android:layout_alignParentStart="true">
 
                     <TextView
                         android:id="@+id/tv_cable_id_text"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="@string/cable_id"
-                        android:textColor="@color/blue_0FF6FF"
-                        android:textSize="@dimen/sp_10" />
+                        android:textColor="@color/T_F2"
+                        android:textSize="@dimen/sp_11" />
 
                     <EditText
                         android:id="@+id/tv_cable_id"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginLeft="@dimen/dp_10"
-                        android:layout_toRightOf="@id/tv_cable_id_text"
+                        android:layout_marginStart="@dimen/dp_10"
+                        android:layout_toEndOf="@id/tv_cable_id_text"
                         android:background="@null"
                         android:minWidth="@dimen/dp_100"
                         android:singleLine="true"
                         android:text="1"
-                        android:textColor="@color/blue_0FF6FF"
-                        android:textSize="@dimen/sp_10" />
+                        android:textColor="@color/T_F2"
+                        android:textSize="@dimen/sp_11" />
 
                     <View
                         android:layout_width="wrap_content"
                         android:layout_height="@dimen/dp_0_5"
                         android:layout_below="@id/tv_cable_id"
-                        android:layout_alignLeft="@id/tv_cable_id"
-                        android:layout_alignRight="@id/tv_cable_id"
+                        android:layout_alignStart="@id/tv_cable_id"
+                        android:layout_alignEnd="@id/tv_cable_id"
                         android:background="@color/blue_72FBFD" />
 
                     <TextView
@@ -72,32 +73,32 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_below="@id/tv_cable_id"
-                        android:layout_alignRight="@id/tv_cable_id_text"
-                        android:layout_marginTop="@dimen/sp_10"
+                        android:layout_alignEnd="@id/tv_cable_id_text"
+                        android:layout_marginTop="@dimen/dp_10"
                         android:text="@string/date_text"
-                        android:textColor="@color/blue_0FF6FF"
-                        android:textSize="@dimen/sp_10" />
+                        android:textColor="@color/T_F2"
+                        android:textSize="@dimen/sp_11" />
 
                     <EditText
                         android:id="@+id/tv_date"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_below="@id/tv_cable_id"
-                        android:layout_marginLeft="@dimen/dp_10"
-                        android:layout_marginTop="@dimen/sp_10"
-                        android:layout_toRightOf="@id/tv_date_text"
+                        android:layout_marginStart="@dimen/dp_10"
+                        android:layout_marginTop="@dimen/dp_10"
+                        android:layout_toEndOf="@id/tv_date_text"
                         android:background="@null"
                         android:minWidth="@dimen/dp_100"
                         android:text="2019年11月11号"
-                        android:textColor="@color/blue_0FF6FF"
-                        android:textSize="@dimen/sp_10" />
+                        android:textColor="@color/T_F2"
+                        android:textSize="@dimen/sp_11" />
 
                     <View
                         android:layout_width="wrap_content"
                         android:layout_height="@dimen/dp_0_5"
                         android:layout_below="@id/tv_date"
-                        android:layout_alignLeft="@id/tv_date"
-                        android:layout_alignRight="@id/tv_date"
+                        android:layout_alignStart="@id/tv_date"
+                        android:layout_alignEnd="@id/tv_date"
                         android:background="@color/blue_72FBFD" />
 
                     <TextView
@@ -105,32 +106,32 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_below="@id/tv_date_text"
-                        android:layout_alignRight="@id/tv_cable_id_text"
-                        android:layout_marginTop="@dimen/sp_10"
+                        android:layout_alignEnd="@id/tv_cable_id_text"
+                        android:layout_marginTop="@dimen/dp_10"
                         android:text="@string/mode_text"
-                        android:textColor="@color/blue_0FF6FF"
-                        android:textSize="@dimen/sp_10" />
+                        android:textColor="@color/T_F2"
+                        android:textSize="@dimen/sp_11" />
 
                     <EditText
                         android:id="@+id/tv_mode"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_below="@id/tv_date_text"
-                        android:layout_marginLeft="@dimen/dp_10"
-                        android:layout_marginTop="@dimen/sp_10"
-                        android:layout_toRightOf="@id/tv_mode_text"
+                        android:layout_marginStart="@dimen/dp_10"
+                        android:layout_marginTop="@dimen/dp_10"
+                        android:layout_toEndOf="@id/tv_mode_text"
                         android:background="@null"
                         android:minWidth="@dimen/dp_100"
                         android:text=""
-                        android:textColor="@color/blue_0FF6FF"
-                        android:textSize="@dimen/sp_10" />
+                        android:textColor="@color/T_F2"
+                        android:textSize="@dimen/sp_11" />
 
                     <View
                         android:layout_width="wrap_content"
                         android:layout_height="@dimen/dp_0_5"
                         android:layout_below="@id/tv_mode"
-                        android:layout_alignLeft="@id/tv_mode"
-                        android:layout_alignRight="@id/tv_mode"
+                        android:layout_alignStart="@id/tv_mode"
+                        android:layout_alignEnd="@id/tv_mode"
                         android:background="@color/blue_72FBFD" />
 
                     <TextView
@@ -138,33 +139,33 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_below="@id/tv_mode_text"
-                        android:layout_alignRight="@id/tv_cable_id_text"
-                        android:layout_marginTop="@dimen/sp_10"
+                        android:layout_alignEnd="@id/tv_cable_id_text"
+                        android:layout_marginTop="@dimen/dp_10"
                         android:text="@string/range_text"
-                        android:textColor="@color/blue_0FF6FF"
-                        android:textSize="@dimen/sp_10" />
+                        android:textColor="@color/T_F2"
+                        android:textSize="@dimen/sp_11" />
 
                     <EditText
                         android:id="@+id/tv_range"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_below="@id/tv_mode_text"
-                        android:layout_marginLeft="@dimen/dp_10"
-                        android:layout_marginTop="@dimen/sp_10"
-                        android:layout_toRightOf="@id/tv_range_text"
+                        android:layout_marginStart="@dimen/dp_10"
+                        android:layout_marginTop="@dimen/dp_10"
+                        android:layout_toEndOf="@id/tv_range_text"
                         android:background="@null"
                         android:enabled="false"
                         android:minWidth="@dimen/dp_100"
                         android:text="100m"
-                        android:textColor="@color/blue_0FF6FF"
-                        android:textSize="@dimen/sp_10" />
+                        android:textColor="@color/T_F2"
+                        android:textSize="@dimen/sp_11" />
 
                     <View
                         android:layout_width="wrap_content"
                         android:layout_height="@dimen/dp_0_5"
                         android:layout_below="@id/tv_range"
-                        android:layout_alignLeft="@id/tv_range"
-                        android:layout_alignRight="@id/tv_range"
+                        android:layout_alignStart="@id/tv_range"
+                        android:layout_alignEnd="@id/tv_range"
                         android:background="@color/blue_72FBFD" />
 
                     <TextView
@@ -172,44 +173,44 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_below="@id/tv_range"
-                        android:layout_alignRight="@id/tv_cable_id_text"
-                        android:layout_marginTop="@dimen/sp_10"
+                        android:layout_alignEnd="@id/tv_cable_id_text"
+                        android:layout_marginTop="@dimen/dp_10"
                         android:text="@string/cable_length"
-                        android:textColor="@color/blue_0FF6FF"
-                        android:textSize="@dimen/sp_10" />
+                        android:textColor="@color/T_F2"
+                        android:textSize="@dimen/sp_11" />
 
                     <EditText
                         android:id="@+id/tv_cable_length"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_below="@id/tv_range"
-                        android:layout_marginLeft="@dimen/dp_10"
-                        android:layout_marginTop="@dimen/sp_10"
-                        android:layout_toRightOf="@id/tv_cable_length_text"
+                        android:layout_marginStart="@dimen/dp_10"
+                        android:layout_marginTop="@dimen/dp_10"
+                        android:layout_toEndOf="@id/tv_cable_length_text"
                         android:background="@null"
                         android:minWidth="@dimen/dp_100"
                         android:singleLine="true"
                         android:text=""
-                        android:textColor="@color/blue_0FF6FF"
-                        android:textSize="@dimen/sp_10" />
+                        android:textColor="@color/T_F2"
+                        android:textSize="@dimen/sp_11" />
 
                     <TextView
                         android:id="@+id/tv_cable_length_unit"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_below="@id/tv_range"
-                        android:layout_alignRight="@id/tv_cable_length"
-                        android:layout_marginTop="@dimen/sp_10"
+                        android:layout_alignEnd="@id/tv_cable_length"
+                        android:layout_marginTop="@dimen/dp_10"
                         android:text="m"
-                        android:textColor="@color/blue_0FF6FF"
-                        android:textSize="@dimen/sp_10" />
+                        android:textColor="@color/T_F2"
+                        android:textSize="@dimen/sp_11" />
 
                     <View
                         android:layout_width="wrap_content"
                         android:layout_height="@dimen/dp_0_5"
                         android:layout_below="@id/tv_cable_length"
-                        android:layout_alignLeft="@id/tv_cable_length"
-                        android:layout_alignRight="@id/tv_cable_length"
+                        android:layout_alignStart="@id/tv_cable_length"
+                        android:layout_alignEnd="@id/tv_cable_length"
                         android:background="@color/blue_72FBFD" />
 
                 </RelativeLayout>
@@ -217,45 +218,44 @@
                 <RelativeLayout
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_alignParentRight="true">
-
+                    android:layout_alignParentEnd="true">
 
                     <TextView
                         android:id="@+id/tv_fault_location_text"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginRight="@dimen/dp_10"
+                        android:layout_marginEnd="@dimen/dp_10"
                         android:text="@string/fault_location_text"
-                        android:textColor="@color/blue_0FF6FF"
-                        android:textSize="@dimen/sp_10" />
+                        android:textColor="@color/T_F2"
+                        android:textSize="@dimen/sp_11" />
 
                     <EditText
                         android:id="@+id/tv_fault_location"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_toRightOf="@id/tv_fault_location_text"
+                        android:layout_toEndOf="@id/tv_fault_location_text"
                         android:background="@null"
                         android:minWidth="@dimen/dp_100"
                         android:singleLine="true"
                         android:text="100"
-                        android:textColor="@color/blue_0FF6FF"
-                        android:textSize="@dimen/sp_10" />
+                        android:textColor="@color/T_F2"
+                        android:textSize="@dimen/sp_11" />
 
                     <TextView
                         android:id="@+id/tv_fault_location_unit"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_alignRight="@id/tv_fault_location"
+                        android:layout_alignEnd="@id/tv_fault_location"
                         android:text="m"
-                        android:textColor="@color/blue_0FF6FF"
-                        android:textSize="@dimen/sp_10" />
+                        android:textColor="@color/T_F2"
+                        android:textSize="@dimen/sp_11" />
 
                     <View
                         android:layout_width="wrap_content"
                         android:layout_height="@dimen/dp_0_5"
                         android:layout_below="@id/tv_fault_location"
-                        android:layout_alignLeft="@id/tv_fault_location"
-                        android:layout_alignRight="@id/tv_fault_location"
+                        android:layout_alignStart="@id/tv_fault_location"
+                        android:layout_alignEnd="@id/tv_fault_location"
                         android:background="@color/blue_72FBFD" />
 
                     <TextView
@@ -263,42 +263,41 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_below="@id/tv_fault_location"
-                        android:layout_alignRight="@id/tv_fault_location_text"
-                        android:layout_marginTop="@dimen/sp_10"
+                        android:layout_alignEnd="@id/tv_fault_location_text"
+                        android:layout_marginTop="@dimen/dp_10"
                         android:text="@string/phase_text"
-                        android:textColor="@color/blue_0FF6FF"
-                        android:textSize="@dimen/sp_10" />
+                        android:textColor="@color/T_F2"
+                        android:textSize="@dimen/sp_11" />
 
                     <EditText
                         android:id="@+id/tv_phase"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_below="@id/tv_fault_location"
-                        android:layout_marginLeft="@dimen/dp_10"
-                        android:layout_marginTop="@dimen/sp_10"
-                        android:layout_toRightOf="@id/tv_phase_text"
+                        android:layout_marginStart="@dimen/dp_10"
+                        android:layout_marginTop="@dimen/dp_10"
+                        android:layout_toEndOf="@id/tv_phase_text"
                         android:background="@null"
-                        android:textColor="@color/blue_0FF6FF"
-                        android:textSize="@dimen/sp_10" />
+                        android:textColor="@color/T_F2"
+                        android:textSize="@dimen/sp_11" />
 
                     <Spinner
                         android:id="@+id/sp_phase"
-                        android:layout_width="@dimen/dp_80"
+                        android:layout_width="@dimen/dp_100"
                         android:layout_height="wrap_content"
                         android:layout_below="@id/tv_fault_location"
                         android:layout_marginStart="@dimen/dp_10"
-                        android:layout_marginTop="@dimen/sp_10"
+                        android:layout_marginTop="@dimen/dp_10"
                         android:layout_toEndOf="@+id/tv_phase_text"
-                        android:layout_toRightOf="@id/tv_phase_text"
-                        android:gravity="right"
+                        android:gravity="end"
                         app:layout_column="4" />
 
                     <View
                         android:layout_width="wrap_content"
                         android:layout_height="@dimen/dp_0_5"
                         android:layout_below="@id/sp_phase"
-                        android:layout_alignLeft="@id/sp_phase"
-                        android:layout_alignRight="@id/sp_phase"
+                        android:layout_alignStart="@id/sp_phase"
+                        android:layout_alignEnd="@id/sp_phase"
                         android:background="@color/blue_72FBFD" />
 
 
@@ -307,33 +306,33 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_below="@id/tv_phase_text"
-                        android:layout_alignRight="@id/tv_fault_location_text"
-                        android:layout_marginTop="@dimen/sp_10"
+                        android:layout_alignEnd="@id/tv_fault_location_text"
+                        android:layout_marginTop="@dimen/dp_10"
                         android:text="@string/tv_tester"
-                        android:textColor="@color/blue_0FF6FF"
-                        android:textSize="@dimen/sp_10" />
+                        android:textColor="@color/T_F2"
+                        android:textSize="@dimen/sp_11" />
 
                     <EditText
                         android:id="@+id/tv_operator"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_below="@id/tv_phase"
-                        android:layout_marginLeft="@dimen/dp_10"
-                        android:layout_marginTop="@dimen/sp_10"
-                        android:layout_toRightOf="@id/tv_operator_text"
+                        android:layout_marginStart="@dimen/dp_10"
+                        android:layout_marginTop="@dimen/dp_10"
+                        android:layout_toEndOf="@id/tv_operator_text"
                         android:background="@null"
                         android:minWidth="@dimen/dp_100"
                         android:singleLine="true"
                         android:text=""
-                        android:textColor="@color/blue_0FF6FF"
-                        android:textSize="@dimen/sp_10" />
+                        android:textColor="@color/T_F2"
+                        android:textSize="@dimen/sp_11" />
 
                     <View
                         android:layout_width="wrap_content"
                         android:layout_height="@dimen/dp_0_5"
                         android:layout_below="@id/tv_operator"
-                        android:layout_alignLeft="@id/tv_operator"
-                        android:layout_alignRight="@id/tv_operator"
+                        android:layout_alignStart="@id/tv_operator"
+                        android:layout_alignEnd="@id/tv_operator"
                         android:background="@color/blue_72FBFD" />
 
                     <TextView
@@ -341,37 +340,35 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_below="@id/tv_operator_text"
-                        android:layout_alignRight="@id/tv_fault_location_text"
-                        android:layout_marginTop="@dimen/sp_10"
+                        android:layout_alignEnd="@id/tv_fault_location_text"
+                        android:layout_marginTop="@dimen/dp_10"
                         android:text="@string/test_site_text"
-                        android:textColor="@color/blue_0FF6FF"
-                        android:textSize="@dimen/sp_10" />
+                        android:textColor="@color/T_F2"
+                        android:textSize="@dimen/sp_11" />
 
                     <EditText
                         android:id="@+id/tv_test_site"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_below="@id/tv_operator_text"
-                        android:layout_marginLeft="@dimen/dp_10"
-                        android:layout_marginTop="@dimen/sp_10"
-                        android:layout_toRightOf="@id/tv_test_site_text"
+                        android:layout_marginStart="@dimen/dp_10"
+                        android:layout_marginTop="@dimen/dp_10"
+                        android:layout_toEndOf="@id/tv_test_site_text"
                         android:background="@null"
                         android:minWidth="@dimen/dp_100"
                         android:singleLine="true"
                         android:text=""
-                        android:textColor="@color/blue_0FF6FF"
-                        android:textSize="@dimen/sp_10" />
+                        android:textColor="@color/T_F2"
+                        android:textSize="@dimen/sp_11" />
 
                     <View
                         android:layout_width="wrap_content"
                         android:layout_height="@dimen/dp_0_5"
                         android:layout_below="@id/tv_test_site"
-                        android:layout_alignLeft="@id/tv_test_site"
-                        android:layout_alignRight="@id/tv_test_site"
+                        android:layout_alignStart="@id/tv_test_site"
+                        android:layout_alignEnd="@id/tv_test_site"
                         android:background="@color/blue_72FBFD" />
-
                 </RelativeLayout>
-
 
             </RelativeLayout>
 
@@ -381,7 +378,7 @@
                 android:layout_height="@dimen/dp_25"
                 android:layout_below="@id/rl_info"
                 android:layout_centerHorizontal="true"
-                android:layout_marginTop="@dimen/sp_10"
+                android:layout_marginTop="@dimen/dp_15"
                 android:background="@drawable/shape_solide_0ff6ff"
                 android:gravity="center"
                 android:text="@string/btn_save"

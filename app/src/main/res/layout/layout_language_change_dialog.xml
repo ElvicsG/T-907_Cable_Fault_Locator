@@ -9,29 +9,31 @@
 
     <androidx.percentlayout.widget.PercentRelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="@drawable/bg_language_change">
+        android:layout_height="wrap_content">
 
         <ImageView
             android:id="@+id/iv_close"
             android:layout_width="@dimen/dp_25"
             android:layout_height="@dimen/dp_25"
-            android:layout_alignParentRight="true"
+            android:layout_alignParentEnd="true"
+            android:layout_marginEnd="@dimen/dp_10"
             android:src="@drawable/bg_dialog_close_big" />
 
         <androidx.percentlayout.widget.PercentRelativeLayout
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            app:layout_marginBottomPercent="12%"
-            app:layout_marginLeftPercent="14%"
-            app:layout_marginRightPercent="14%"
-            app:layout_marginTopPercent="12%">
-
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/bg_language_change"
+            app:layout_marginLeftPercent="2.6%"
+            app:layout_marginRightPercent="2.6%"><!--百分比运用//GC20200525-->
 
             <LinearLayout
                 android:id="@+id/rl_info"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
+                android:layout_marginTop="@dimen/dp_25"
+                android:layout_marginBottom="@dimen/dp_25"
+                android:layout_marginStart="@dimen/dp_25"
+                android:layout_marginEnd="@dimen/dp_25"
                 android:orientation="vertical"
                 android:gravity="center">
 
@@ -39,43 +41,43 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/select_change"
-                    android:textSize="@dimen/dp_15"
-                    android:textColor="@color/blue_0FF6FF"/>
+                    android:textSize="@dimen/sp_15"
+                    android:textColor="@color/colorPrimary"/>
+
                 <LinearLayout
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="@dimen/dp_25"
                     android:orientation="horizontal">
+
                     <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:background="@drawable/bg_border_blue"
-                        android:paddingLeft="@dimen/dp_15"
-                        android:paddingRight="@dimen/dp_15"
                         android:id="@+id/tv_zh"
-                        android:paddingTop="@dimen/dp_8"
-                        android:layout_marginRight="@dimen/dp_25"
-                        android:textColor="@color/blue_0FF6FF"
-                        android:paddingBottom="@dimen/dp_8"
-                        android:text="@string/zh"/>
+                        android:layout_width="@dimen/dp_60"
+                        android:layout_height="wrap_content"
+                        android:paddingTop="@dimen/dp_5"
+                        android:paddingBottom="@dimen/dp_5"
+                        android:layout_marginEnd="@dimen/dp_20"
+                        android:background="@drawable/shape_solide_0ff6ff"
+                        android:textColor="@color/colorPrimary"
+                        android:gravity="center"
+                        android:text="@string/zh"
+                        android:textSize="@dimen/sp_12"/>
+
                     <TextView
                         android:id="@+id/tv_en"
-                        android:layout_width="wrap_content"
+                        android:layout_width="@dimen/dp_60"
                         android:layout_height="wrap_content"
-                        android:background="@drawable/bg_border_blue"
-                        android:paddingLeft="@dimen/dp_15"
-                        android:paddingRight="@dimen/dp_15"
-                        android:layout_marginLeft="@dimen/dp_25"
-                        android:paddingTop="@dimen/dp_8"
-                        android:textColor="@color/blue_0FF6FF"
-                        android:paddingBottom="@dimen/dp_8"
-                        android:text="@string/en"/>
+                        android:paddingTop="@dimen/dp_5"
+                        android:paddingBottom="@dimen/dp_5"
+                        android:layout_marginStart="@dimen/dp_20"
+                        android:background="@drawable/shape_solide_0ff6ff"
+                        android:textColor="@color/colorPrimary"
+                        android:gravity="center"
+                        android:text="@string/en"
+                        android:textSize="@dimen/sp_12"/>
                 </LinearLayout>
 
-
-
             </LinearLayout>
-
 
         </androidx.percentlayout.widget.PercentRelativeLayout>
 

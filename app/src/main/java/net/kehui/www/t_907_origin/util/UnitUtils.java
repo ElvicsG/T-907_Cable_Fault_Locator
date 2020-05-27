@@ -6,7 +6,9 @@ public class UnitUtils {
     public static final double yingliToKmScale = 1.61;
     public static final double kmToYingliScale = 0.62;
     public static final double ftToMiScale = 0.3048;
-    public static final double miToFtScale = 3.2808;
+    //单位转化精度    //20200522
+    public static final double miToFtScale = 3.2808399;
+
 
     //英里转公里
     public static String yingliToKm(double yingli) {

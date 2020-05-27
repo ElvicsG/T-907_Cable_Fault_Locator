@@ -10,13 +10,11 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.ImageView;
-import android.widget.RelativeLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 
 import net.kehui.www.t_907_origin.R;
 import net.kehui.www.t_907_origin.application.AppConfig;
@@ -45,8 +43,8 @@ import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.schedulers.Schedulers;
 
 import static net.kehui.www.t_907_origin.application.Constant.CurrentUnit;
-import static net.kehui.www.t_907_origin.application.Constant.FT_UNIT;
 import static net.kehui.www.t_907_origin.application.Constant.MI_UNIT;
+import static net.kehui.www.t_907_origin.application.Constant.FT_UNIT;
 import static net.kehui.www.t_907_origin.base.BaseActivity.DECAY;
 import static net.kehui.www.t_907_origin.base.BaseActivity.ICM;
 import static net.kehui.www.t_907_origin.base.BaseActivity.ICM_DECAY;
@@ -62,47 +60,35 @@ import static net.kehui.www.t_907_origin.base.BaseActivity.RANGE_8_KM;
 import static net.kehui.www.t_907_origin.base.BaseActivity.SIM;
 import static net.kehui.www.t_907_origin.base.BaseActivity.TDR;
 
-
 /**
- * Create by jwj on 2019/11/26
+ * @author jwj
+ * @date 2019/11/26
  */
 public class SaveRecordsDialog extends BaseDialog implements View.OnClickListener {
+
     String date;
     String time;
     Date date1 = new Date(System.currentTimeMillis());
     ImageView ivClose;
-    TextView tvCableIdText;
     EditText tvCableId;
-    TextView tvDateText;
     EditText tvDate;
-    TextView tvModeText;
     EditText tvMode;
-    TextView tvRangeText;
     EditText tvRange;
-    TextView tvCableLengthText;
     EditText tvCableLength;
-    TextView tvFaultLocationText;
     EditText tvFaultLocation;
-    TextView tvPhaseText;
     EditText tvPhase;
-    TextView tvOperatorText;
     EditText tvOperator;
-    TextView tvTestSiteText;
     EditText tvTestSite;
     TextView tvFalutLocationUnit;
     TextView tvCableLengthUnit;
     TextView tvSave;
-    RelativeLayout rlInfo;
     Spinner spPhase;
+
     private List<String> phaseList = new ArrayList<>();
-    private String[] line = new String[100];
-    private String[] tester = new String[100];
-    private String[] location = new String[100];
     private View view;
     private ParamInfo paramInfo;
     private int positionVirtual;
     private int positionReal;
-
 
     public void setPositionReal(int positionReal) {
         this.positionReal = positionReal;
@@ -116,27 +102,19 @@ public class SaveRecordsDialog extends BaseDialog implements View.OnClickListene
         super(context);
     }
 
-    public SaveRecordsDialog(@NonNull Context context, int themeResId) {
-        super(context, themeResId);
-    }
-
-    protected SaveRecordsDialog(@NonNull Context context, boolean cancelable, @Nullable OnCancelListener cancelListener) {
-        super(context, cancelable, cancelListener);
-    }
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        view = LayoutInflater.from(getContext()).inflate(R.layout.layout_save_records_dialog, null, false);
 
+        view = LayoutInflater.from(getContext()).inflate(R.layout.layout_save_records_dialog, null, false);
         setContentView(view);
         initView();
-        initUnit();
         final WindowManager.LayoutParams params = getWindow().getAttributes();
-        params.width = (int) ( ScreenUtils.getScreenWidth(getContext()) * 0.8);
+        params.width = (int) (ScreenUtils.getScreenWidth(getContext()) * 0.8);
         params.height = (int) (ScreenUtils.getScreenHeight(getContext()) * 0.7);
         getWindow().setAttributes(params);
         getWindow().setBackgroundDrawableResource(android.R.color.transparent);
+        initUnit();
         initData();
 
     }
@@ -158,64 +136,219 @@ public class SaveRecordsDialog extends BaseDialog implements View.OnClickListene
         tvCableLengthUnit = view.findViewById(R.id.tv_cable_length_unit);
         tvSave.setOnClickListener(this);
         ivClose.setOnClickListener(this);
+
+    }
+
+    private void initUnit() {
+        //单位转化逻辑修正  //20200522
+        CurrentUnit = StateUtils.getInt(getContext(), AppConfig.CURRENT_SAVE_UNIT, MI_UNIT);
+        changeUnitView(CurrentUnit);
+
     }
 
     private void initData() {
         getMainParamInfo();
+        setCableId();
         setEtDate();
         setEtMode();
         setEtRange();
-        //线缆编号
-        setEtLine();
-        //延长线长度
         setCableLength();
-        setCableId();
-        setSpPhase();
         setEtLocation();
+        setSpPhase();
+
     }
 
     private void setCableId() {
-        if (paramInfo != null)
+        if (paramInfo != null) {
             tvCableId.setText(paramInfo.getCableId());
+        }
+
+    }
+
+    private void setEtDate() {
+        SimpleDateFormat dateSdf = new SimpleDateFormat("yyyy/MM/dd", Locale.US);
+        SimpleDateFormat timeSdf = new SimpleDateFormat("HH:mm:ss", Locale.US);
+        date = dateSdf.format(date1);
+        time = timeSdf.format(date1);
+        tvDate.setText(this.date + " " + this.time);
+        Constant.Date = this.date;
+        Constant.Time = time;
+        tvDate.setEnabled(false);
+
+    }
+
+    private void setEtMode() {
+        int mode = Constant.ModeValue;
+        switch (mode) {
+            case TDR:
+                tvMode.setText(getContext().getResources().getString(R.string.btn_tdr));
+                Constant.Mode = TDR;
+                break;
+            case ICM:
+                tvMode.setText(getContext().getResources().getString(R.string.btn_icm));
+                Constant.Mode = ICM;
+                break;
+            case ICM_DECAY:
+                tvMode.setText(getContext().getResources().getString(R.string.btn_icm_decay));
+                Constant.Mode = ICM_DECAY;
+                break;
+            case SIM:
+                tvMode.setText(getContext().getResources().getString(R.string.btn_sim));
+                Constant.Mode = SIM;
+                break;
+            case DECAY:
+                tvMode.setText(getContext().getResources().getString(R.string.btn_decay));
+                Constant.Mode = DECAY;
+                break;
+            default:
+                break;
+        }
+        tvMode.setEnabled(false);
+
+    }
+
+    private void setEtRange() {
+        int range = Constant.RangeValue;
+        switch (range) {
+            case RANGE_250:
+                if (CurrentUnit == FT_UNIT) {
+                    tvRange.setText(getContext().getResources().getString(R.string.btn_250m_to_ft));
+                    Constant.Range = RANGE_250;
+                } else {
+                    tvRange.setText(getContext().getResources().getString(R.string.btn_250m));
+                    Constant.Range = RANGE_250;
+                }
+                break;
+            case RANGE_500:
+                if (CurrentUnit == FT_UNIT) {
+                    tvRange.setText(getContext().getResources().getString(R.string.btn_500m_to_ft));
+                    Constant.Range = RANGE_500;
+                } else {
+                    tvRange.setText(getContext().getResources().getString(R.string.btn_500m));
+                    Constant.Range = RANGE_500;
+                }
+                break;
+            case RANGE_1_KM:
+                if (CurrentUnit == FT_UNIT) {
+                    tvRange.setText(getContext().getResources().getString(R.string.btn_1km_to_yingli));
+                    Constant.Range = RANGE_1_KM;
+                } else {
+                    tvRange.setText(getContext().getResources().getString(R.string.btn_1km));
+                    Constant.Range = RANGE_1_KM;
+                }
+                break;
+            case RANGE_2_KM:
+                if (CurrentUnit == FT_UNIT) {
+                    tvRange.setText(getContext().getResources().getString(R.string.btn_2km_to_yingli));
+                    Constant.Range = RANGE_2_KM;
+                } else {
+                    tvRange.setText(getContext().getResources().getString(R.string.btn_2km));
+                    Constant.Range = RANGE_2_KM;
+                }
+                break;
+            case RANGE_4_KM:
+                if (CurrentUnit == FT_UNIT) {
+                    tvRange.setText(getContext().getResources().getString(R.string.btn_4km_to_yingli));
+                    Constant.Range = RANGE_4_KM;
+                } else {
+                    tvRange.setText(getContext().getResources().getString(R.string.btn_4km));
+                    Constant.Range = RANGE_4_KM;
+                }
+                break;
+            case RANGE_8_KM:
+                if (CurrentUnit == FT_UNIT) {
+                    tvRange.setText(getContext().getResources().getString(R.string.btn_8km_to_yingli));
+                } else {
+                    tvRange.setText(getContext().getResources().getString(R.string.btn_8km));
+                }
+                Constant.Range = RANGE_8_KM;
+                break;
+            case RANGE_16_KM:
+                if (CurrentUnit == FT_UNIT) {
+                    tvRange.setText(getContext().getResources().getString(R.string.btn_16km_to_yingli));
+                } else {
+                    tvRange.setText(getContext().getResources().getString(R.string.btn_16km));
+                }
+                Constant.Range = RANGE_16_KM;
+                break;
+            case RANGE_32_KM:
+                if (CurrentUnit == FT_UNIT) {
+                    tvRange.setText(getContext().getResources().getString(R.string.btn_32km_to_yingli));
+                } else {
+                    tvRange.setText(getContext().getResources().getString(R.string.btn_32km));
+                }
+                Constant.Range = RANGE_32_KM;
+                break;
+            case RANGE_64_KM:
+                if (CurrentUnit == FT_UNIT) {
+                    tvRange.setText(getContext().getResources().getString(R.string.btn_64km_to_yingli));
+                } else {
+                    tvRange.setText(getContext().getResources().getString(R.string.btn_64km));
+                }
+                Constant.Range = RANGE_64_KM;
+                break;
+            default:
+                break;
+        }
+        tvRange.setEnabled(false);
+
     }
 
     private void setCableLength() {
         if (paramInfo != null) {
+            //单位转化逻辑修正  //20200522
             if (CurrentUnit == MI_UNIT) {
-                if (Constant.CurrentSaveUnit == MI_UNIT)
-                    if (paramInfo.getCableLength().equals("0") || paramInfo.getCableLength().equals("0.0"))
-                        tvCableLength.setText("");
-                    else
-                        tvCableLength.setText(paramInfo.getCableLength());
-                else
-                if (paramInfo.getCableLength().equals("0") || paramInfo.getCableLength().equals("0.0"))
+                if (paramInfo.getCableLength().equals("0") || paramInfo.getCableLength().equals("0.0")) {
                     tvCableLength.setText("");
-                else
-                    tvCableLength.setText(UnitUtils.ftToMi(Double.valueOf(paramInfo.getCableLength())));
-            } else {
-                if (Constant.CurrentSaveUnit == FT_UNIT)
-                    if (paramInfo.getCableLength().equals("0") || paramInfo.getCableLength().equals("0.0"))
-                        tvCableLength.setText("");
-                    else
+                } else {
                     tvCableLength.setText(paramInfo.getCableLength());
-                else
-                if (paramInfo.getCableLength().equals("0") || paramInfo.getCableLength().equals("0.0"))
+                }
+            } else {
+                if (paramInfo.getCableLength().equals("0") || paramInfo.getCableLength().equals("0.0")) {
                     tvCableLength.setText("");
-                else
+                } else {
                     tvCableLength.setText(UnitUtils.miToFt(Double.valueOf(paramInfo.getCableLength())));
-
+                }
             }
         }
 
     }
 
-    private void getMainParamInfo() {
-        paramInfo = (ParamInfo) StateUtils.getObject(getContext(), Constant.PARAM_INFO_KEY);
+    private void setEtLocation() {
+        Constant.SaveLocation = Constant.CurrentLocation;
+        if (Constant.CurrentUnit == MI_UNIT) {
+            tvFaultLocation.setText(new DecimalFormat("0.00").format(Constant.SaveLocation));
+        } else {
+            tvFaultLocation.setText(UnitUtils.miToFt(Constant.SaveLocation));
+        }
+
     }
 
-    private void initUnit() {
-        CurrentUnit = StateUtils.getInt(getContext(), AppConfig.CURRENT_UNIT, MI_UNIT);
-        changeUnitView(CurrentUnit);
+    private void setSpPhase() {
+        phaseList.add(getContext().getResources().getString(R.string.phaseA));
+        phaseList.add(getContext().getResources().getString(R.string.phaseB));
+        phaseList.add(getContext().getResources().getString(R.string.phaseC));
+
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(getContext(),
+                R.layout.spinner_item, phaseList);
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spPhase.setAdapter(adapter);
+        spPhase.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                Constant.Phase = position;
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+
+            }
+        });
+
+    }
+
+    private void getMainParamInfo() {
+        paramInfo = (ParamInfo) StateUtils.getObject(getContext(), Constant.PARAM_INFO_KEY);
 
     }
 
@@ -254,7 +387,8 @@ public class SaveRecordsDialog extends BaseDialog implements View.OnClickListene
 
                     @Override
                     public void onNext(List list) {
-                        Toast.makeText(getContext(), list.size() + "", Toast.LENGTH_SHORT).show();
+                        //数据库保存提示 //20200520
+//                        Toast.makeText(getContext(), list.size() + "", Toast.LENGTH_SHORT).show();
                     }
 
                     @Override
@@ -264,7 +398,8 @@ public class SaveRecordsDialog extends BaseDialog implements View.OnClickListene
 
                     @Override
                     public void onComplete() {
-
+                        //数据库保存修改   //20200520
+                        Toast.makeText(getContext(), getContext().getResources().getString(R.string.save_success), Toast.LENGTH_SHORT).show();
                     }
                 });
                 dismiss();
@@ -272,195 +407,16 @@ public class SaveRecordsDialog extends BaseDialog implements View.OnClickListene
             default:
                 break;
         }
-    }
 
-    private void setEtDate() {
-        SimpleDateFormat dateSdf = new SimpleDateFormat("yy/MM/dd", Locale.US);
-        SimpleDateFormat timeSdf = new SimpleDateFormat("HH:mm:ss", Locale.US);
-        date = dateSdf.format(date1);
-        time = timeSdf.format(date1);
-        tvDate.setText(this.date + " " + this.time);
-        Constant.Date = this.date;
-        Constant.Time = time;
-        tvDate.setEnabled(false);
-
-    }
-
-    private void setEtMode() {
-        int mode = Constant.ModeValue;
-        switch (mode) {
-            case TDR:
-                tvMode.setText(getContext().getResources().getString(R.string.btn_tdr));
-                Constant.Mode = TDR;
-                break;
-            case ICM:
-                tvMode.setText(getContext().getResources().getString(R.string.btn_icm));
-                Constant.Mode = ICM;
-                break;
-            case ICM_DECAY:
-                tvMode.setText(getContext().getResources().getString(R.string.btn_icm_decay));
-                Constant.Mode = ICM_DECAY;
-                break;
-            case SIM:
-                tvMode.setText(getContext().getResources().getString(R.string.btn_sim));
-                Constant.Mode = SIM;
-                break;
-            case DECAY:
-                tvMode.setText(getContext().getResources().getString(R.string.btn_decay));
-                Constant.Mode = DECAY;
-                break;
-            default:
-                break;
-        }
-        tvMode.setEnabled(false);
-    }
-
-    private void setEtRange() {
-        int range = Constant.RangeValue;
-        switch (range) {
-            case RANGE_250:
-                if (CurrentUnit == FT_UNIT) {
-                    tvRange.setText(getContext().getResources().getString(R.string.btn_250m_to_ft));
-                    Constant.Range = RANGE_250;
-                } else {
-                    tvRange.setText(getContext().getResources().getString(R.string.btn_250m));
-                    Constant.Range = RANGE_250;
-                }
-                break;
-            case RANGE_500:
-                if (CurrentUnit == FT_UNIT) {
-                    tvRange.setText(getContext().getResources().getString(R.string.btn_500m_to_ft));
-                    Constant.Range = RANGE_500;
-                } else {
-                    tvRange.setText(getContext().getResources().getString(R.string.btn_500m));
-                    Constant.Range = RANGE_500;
-
-                }
-                break;
-            case RANGE_1_KM:
-                if (CurrentUnit == FT_UNIT) {
-                    tvRange.setText(getContext().getResources().getString(R.string.btn_1km_to_yingli));
-                    Constant.Range = RANGE_1_KM;
-                } else {
-                    tvRange.setText(getContext().getResources().getString(R.string.btn_1km));
-                    Constant.Range = RANGE_1_KM;
-
-                }
-                break;
-            case RANGE_2_KM:
-                if (CurrentUnit == FT_UNIT) {
-                    tvRange.setText(getContext().getResources().getString(R.string.btn_2km_to_yingli));
-                    Constant.Range = RANGE_2_KM;
-                } else {
-                    tvRange.setText(getContext().getResources().getString(R.string.btn_2km));
-                    Constant.Range = RANGE_2_KM;
-
-                }
-                break;
-            case RANGE_4_KM:
-                if (CurrentUnit == FT_UNIT) {
-                    tvRange.setText(getContext().getResources().getString(R.string.btn_4km_to_yingli));
-                    Constant.Range = RANGE_4_KM;
-                } else {
-                    tvRange.setText(getContext().getResources().getString(R.string.btn_4km));
-                    Constant.Range = RANGE_4_KM;
-
-                }
-                break;
-            case RANGE_8_KM:
-                if (CurrentUnit == FT_UNIT) {
-                    tvRange.setText(getContext().getResources().getString(R.string.btn_8km_to_yingli));
-                } else {
-                    tvRange.setText(getContext().getResources().getString(R.string.btn_8km));
-                }
-                Constant.Range = RANGE_8_KM;
-                break;
-            case RANGE_16_KM:
-                if (CurrentUnit == FT_UNIT) {
-                    tvRange.setText(getContext().getResources().getString(R.string.btn_16km_to_yingli));
-                } else {
-                    tvRange.setText(getContext().getResources().getString(R.string.btn_16km));
-                }
-                Constant.Range = RANGE_16_KM;
-                break;
-            case RANGE_32_KM:
-                if (CurrentUnit == FT_UNIT) {
-                    tvRange.setText(getContext().getResources().getString(R.string.btn_32km_to_yingli));
-                } else {
-                    tvRange.setText(getContext().getResources().getString(R.string.btn_32km));
-                }
-                Constant.Range = RANGE_32_KM;
-                break;
-            case RANGE_64_KM:
-                if (CurrentUnit == FT_UNIT) {
-                    tvRange.setText(getContext().getResources().getString(R.string.btn_32km_to_yingli));
-                } else {
-                    tvRange.setText(getContext().getResources().getString(R.string.btn_64km));
-                }
-                Constant.Range = RANGE_64_KM;
-                break;
-            default:
-                break;
-        }
-        tvRange.setEnabled(false);
-
-    }
-
-
-    private void setEtLine() {
-        if (paramInfo != null) {
-//            Constant.Line = paramInfo.getCableId();
-            tvCableId.setText(paramInfo.getCableId());
-        }
-    }
-
-
-    private void setSpPhase() {
-        phaseList.add(getContext().getResources().getString(R.string.phaseA));
-        phaseList.add(getContext().getResources().getString(R.string.phaseB));
-        phaseList.add(getContext().getResources().getString(R.string.phaseC));
-
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(getContext(),
-                R.layout.spinner_item, phaseList);
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        spPhase.setAdapter(adapter);
-        spPhase.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                Constant.Phase = position;
-            }
-
-            @Override
-            public void onNothingSelected(AdapterView<?> parent) {
-
-            }
-        });
-    }
-
-    private void setEtTester() {
-
-    }
-
-    private void setEtLocation() {
-        Constant.SaveLocation = Constant.CurrentLocation;
-        if (Constant.CurrentUnit == Constant.MI_UNIT) {
-            tvFaultLocation.setText(new DecimalFormat("0.00").format(Constant.SaveLocation));
-        } else {
-            tvFaultLocation.setText(UnitUtils.miToFt(Constant.SaveLocation));
-        }
     }
 
     private Data formatData(Data data) {
-
         data.date = Constant.Date.trim();
         data.cableId = tvCableId.getText().toString();
         data.time = Constant.Time.trim();
         data.mode = Constant.Mode + "";
         data.range = Constant.Range;
-        if (Constant.CurrentSaveUnit == MI_UNIT)
-            data.location = Constant.SaveLocation;
-        else
-            data.location = Double.valueOf(UnitUtils.miToFt(Constant.SaveLocation));
+        data.location = Constant.SaveLocation;
 
         if (data.location == 0) {
             if (!TextUtils.isEmpty(tvFaultLocation.getText().toString())) {
@@ -468,25 +424,24 @@ public class SaveRecordsDialog extends BaseDialog implements View.OnClickListene
             }
         }
 
-        data.line = tvCableLength.getText().toString().trim();
-        if (CurrentUnit == FT_UNIT) {
-            if (!TextUtils.isEmpty(data.line)) {
-                data.line = UnitUtils.ftToMi(Double.valueOf(data.line));
-            }
-            //data.location = Double.parseDouble(UnitUtils.ftToMi(data.location));
+        if (paramInfo != null) {
+            data.line = paramInfo.getCableLength();
+        } else {
+            data.line = "";
         }
+
         data.phase = Constant.Phase + "";
         data.tester = tvOperator.getText().toString().trim();
         data.testsite = tvTestSite.getText().toString().trim();
         data.waveData = Constant.WaveData;
         data.waveDataSim = Constant.SimData;
 
-        //TODO 20191226 存储zero 和poinitDistance
+        //TODO 20191226 存储zero 和pointDistance
         data.positionReal = positionReal;
         data.positionVirtual = positionVirtual;
         //参数数据 方式  范围 增益 波速度
-        data.para = new int[]{Constant.ModeValue, Constant.RangeValue, Constant.SaveToDBGain,
-                (int) Constant.Velocity};
+        data.para = new int[]{Constant.ModeValue, Constant.RangeValue, Constant.SaveToDBGain, (int) Constant.Velocity};
         return data;
     }
+
 }

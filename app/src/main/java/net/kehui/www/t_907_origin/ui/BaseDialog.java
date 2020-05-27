@@ -19,19 +19,20 @@ public class BaseDialog extends Dialog {
 
     public BaseDialog(@NonNull Context context) {
         super(context);
-        BaseAppData db = Room.databaseBuilder(getContext(), BaseAppData.class, "database-wave").build();
+        //数据库相关 //20200520
+        BaseAppData db = Room.databaseBuilder(getContext(), BaseAppData.class, "database-wave").allowMainThreadQueries().build();
         dao = db.dataDao();
     }
 
     public BaseDialog(@NonNull Context context, int themeResId) {
         super(context, themeResId);
-        BaseAppData db = Room.databaseBuilder(getContext(), BaseAppData.class, "database-wave").build();
+        BaseAppData db = Room.databaseBuilder(getContext(), BaseAppData.class, "database-wave").allowMainThreadQueries().build();
         dao = db.dataDao();
     }
 
     protected BaseDialog(@NonNull Context context, boolean cancelable, @Nullable OnCancelListener cancelListener) {
         super(context, cancelable, cancelListener);
-        BaseAppData db = Room.databaseBuilder(getContext(), BaseAppData.class, "database-wave").build();
+        BaseAppData db = Room.databaseBuilder(getContext(), BaseAppData.class, "database-wave").allowMainThreadQueries().build();
         dao = db.dataDao();
     }
 }

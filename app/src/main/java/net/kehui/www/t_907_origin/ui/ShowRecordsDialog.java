@@ -1,18 +1,20 @@
 package net.kehui.www.t_907_origin.ui;
 
-import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.util.TypedValue;
+import android.view.Gravity;
 import android.view.View;
 import android.view.WindowManager;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.ImageView;
-import android.widget.RelativeLayout;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.percentlayout.widget.PercentRelativeLayout;
 import androidx.recyclerview.widget.DefaultItemAnimator;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -20,9 +22,12 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import net.kehui.www.t_907_origin.R;
 import net.kehui.www.t_907_origin.adpter.RecordsAdapter;
+import net.kehui.www.t_907_origin.application.AppConfig;
 import net.kehui.www.t_907_origin.application.Constant;
+import net.kehui.www.t_907_origin.base.BaseActivity;
 import net.kehui.www.t_907_origin.entity.Data;
 import net.kehui.www.t_907_origin.util.ScreenUtils;
+import net.kehui.www.t_907_origin.util.StateUtils;
 import net.kehui.www.t_907_origin.util.UnitUtils;
 import net.kehui.www.t_907_origin.view.ModeActivity;
 
@@ -30,7 +35,11 @@ import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 
 import java.text.DecimalFormat;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 
 import butterknife.BindView;
@@ -41,6 +50,9 @@ import io.reactivex.FlowableOnSubscribe;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.schedulers.Schedulers;
 
+import static net.kehui.www.t_907_origin.application.Constant.DISPLAY_ACTION;
+import static net.kehui.www.t_907_origin.application.Constant.MI_UNIT;
+import static net.kehui.www.t_907_origin.application.Constant.FT_UNIT;
 import static net.kehui.www.t_907_origin.base.BaseActivity.DECAY;
 import static net.kehui.www.t_907_origin.base.BaseActivity.ICM;
 import static net.kehui.www.t_907_origin.base.BaseActivity.ICM_DECAY;
@@ -55,91 +67,83 @@ import static net.kehui.www.t_907_origin.base.BaseActivity.RANGE_64_KM;
 import static net.kehui.www.t_907_origin.base.BaseActivity.RANGE_8_KM;
 import static net.kehui.www.t_907_origin.base.BaseActivity.SIM;
 import static net.kehui.www.t_907_origin.base.BaseActivity.TDR;
-import static net.kehui.www.t_907_origin.view.ListActivity.DISPLAY_ACTION;
-
 
 /**
- * Create by jwj on 2019/11/26
+ * @author 34238
+ * @date 2019/11/26
  */
-public class ShowRecordsDialog extends BaseDialog implements View.OnClickListener {
-    /**
-     * 数据库存储波形部分
-     */
-    public RecordsAdapter adapter;
-    public int selectedId;
-    public int listSize = 0;
-    int pos;
+public class ShowRecordsDialog extends BaseDialog implements View.OnClickListener, CustomDatePickerDialogFragment.OnSelectedDateListener {
+
     @BindView(R.id.iv_close)
     ImageView ivClose;
+
     RecyclerView rvRecords;
-    TextView tvCableIdText;
     TextView tvCableId;
-    TextView tvDateText;
     TextView tvDate;
-    TextView tvModeText;
     TextView tvMode;
-    TextView tvRangeText;
     TextView tvRange;
-    TextView tvCableLengthText;
     TextView tvCableLength;
-    TextView tvFaultLocationText;
     TextView tvFaultLocation;
-    TextView tvPhaseText;
     TextView tvPhase;
-    TextView tvOperatorText;
     TextView tvOperator;
-    TextView tvTestSiteText;
     TextView tvTestSite;
     TextView tvDisplay;
     TextView tvDelete;
-    RelativeLayout rlInfo;
+    //20200524
+    TextView tvSelectModeText;
+    TextView tvSearchDate;
+    TextView tvSearch;
+    Spinner spMode;
 
+    /**
+     * 数据库存储波形部分
+     */
+    private RecordsAdapter adapter;
+    private int selectedId;
+    private int mode;
+    private int pos;
 
-    private RecyclerView.LayoutManager layoutManager;
+    //加载类型
+    //0是第一次 1是加载
+    private int loadType = 0;
+    private boolean isHas = true;
+    //加载到第几页
+    private int loadPage = 0;
+    //一页加载几条    //G?
+    private int pageSize;
+
+    private boolean fromMain;
+
+    private LinearLayoutManager layoutManager;
     private View view;
-    private Unbinder unbinder;
     private TextView tvNoRecords;
     private PercentRelativeLayout rlHasRecords;
-    private int mode;
-    private boolean fromMain;
+    private String searchDate;
     private TextView tvCableLengthUnit;
-    private TextView tvFaultLocationUnit;;
-
-    public void setFromMain(boolean fromMain) {
-        this.fromMain = fromMain;
-    }
-
-    public void setMode(int mode) {
-        this.mode = mode;
-    }
-
-    public ShowRecordsDialog(@NonNull Context context) {
-        super(context);
-    }
-
-    public ShowRecordsDialog(@NonNull Context context, int themeResId) {
-        super(context, themeResId);
-    }
-
-    protected ShowRecordsDialog(@NonNull Context context, boolean cancelable, @Nullable OnCancelListener cancelListener) {
-        super(context, cancelable, cancelListener);
-    }
-
+    private TextView tvFaultLocationUnit;
+    private List<String> modeList = new ArrayList<>();
+    private BaseActivity activity;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        view = View.inflate(getContext(), R.layout.layout_show_records_dialog, null);
 
+        view = View.inflate(getContext(), R.layout.layout_show_records_dialog, null);
         setContentView(view);
         initView();
-
+        Constant.CurrentSaveUnit = StateUtils.getInt(getContext(), AppConfig.CURRENT_SAVE_UNIT, MI_UNIT);
         final WindowManager.LayoutParams params = getWindow().getAttributes();
         params.width = (int) (ScreenUtils.getScreenWidth(getContext()) * 0.9);
         params.height = (int) (ScreenUtils.getScreenHeight(getContext()) * 0.7);
         getWindow().setAttributes(params);
         getWindow().setBackgroundDrawableResource(android.R.color.transparent);
         initAdapter();
+        if (fromMain) {
+            setSpMode();
+        } else {
+            spMode.setVisibility(View.GONE);
+            tvSelectModeText.setVisibility(View.GONE);
+        }
 
     }
 
@@ -162,12 +166,114 @@ public class ShowRecordsDialog extends BaseDialog implements View.OnClickListene
         tvCableLengthUnit = view.findViewById(R.id.tv_cable_length_unit);
         //故障距离单位显示添加  //GC20200312
         tvFaultLocationUnit = view.findViewById(R.id.tv_fault_location_unit);
+        spMode = view.findViewById(R.id.sp_mode);
+        tvSelectModeText = view.findViewById(R.id.tv_selectMode);
+        tvSearchDate = view.findViewById(R.id.tv_search_date);
+        tvSearch = view.findViewById(R.id.tv_search);
         ivClose.setOnClickListener(this);
         tvDisplay.setOnClickListener(this);
         tvDelete.setOnClickListener(this);
+        tvSearchDate.setOnClickListener(this);
+        tvSearch.setOnClickListener(this);
 
     }
 
+    private void initAdapter() {
+        adapter = new RecordsAdapter();
+        layoutManager = new LinearLayoutManager(getContext());
+        rvRecords.setLayoutManager(layoutManager);
+        rvRecords.setAdapter(adapter);
+        rvRecords.setItemAnimator(new DefaultItemAnimator());
+        adapter.setOnItemClickListener((view, dataId, selectedPara[], selectedWave[], selectedSim[], position) -> {
+            adapter.changeSelected(position);
+            selectedId = dataId;
+            //GC20190713
+            Constant.Para = selectedPara;
+            Data waveData = GetWaveData(selectedId);
+            Constant.WaveData = waveData.waveData;
+            Constant.SimData = waveData.waveDataSim;
+            Constant.PositionR = adapter.datas.get(position).positionReal;
+            Constant.PositonV = adapter.datas.get(position).positionVirtual;
+            Constant.SaveLocation = adapter.datas.get(position).location;
+            pos = position;
+            setDataByPosition(adapter.datas.get(position));
+        });
+        adapter.setOnItemInitDataListener((view, dataId, para, waveData, simData, position) -> {
+            Data data = adapter.datas.get(position);
+            setDataByPosition(data);
+        });
+        loadData();
+
+        rvRecords.addOnScrollListener(new RecyclerView.OnScrollListener() {
+            @Override
+            public void onScrollStateChanged(RecyclerView recyclerView, int newState) {
+                super.onScrollStateChanged(recyclerView, newState);
+                if (newState == RecyclerView.SCROLL_STATE_IDLE) {
+                    int lastVisiblePosition = layoutManager.findLastVisibleItemPosition();
+                    if (lastVisiblePosition >= layoutManager.getItemCount() - 1 && isHas) {
+                        loadPage++;
+                        loadType = 1;
+                        loadData();
+                    }
+                }
+            }
+        });
+
+    }
+
+    /**
+     * 测距模式下拉菜单
+     */
+    private void setSpMode() {
+        modeList.add(getContext().getResources().getString(R.string.btn_tdr));
+        modeList.add(getContext().getResources().getString(R.string.btn_icm));
+        modeList.add(getContext().getResources().getString(R.string.btn_icm_decay));
+        modeList.add(getContext().getResources().getString(R.string.btn_sim));
+        modeList.add(getContext().getResources().getString(R.string.btn_decay));
+
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(getContext(),
+                android.R.layout.simple_spinner_item, modeList);
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spMode.setAdapter(adapter);
+        spMode.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                TextView tv = (TextView) view;
+                tv.setTextColor(getContext().getResources().getColor(R.color.blue_303f9f)); //设置颜色
+                tv.setTextSize(TypedValue.COMPLEX_UNIT_PX, getContext().getResources().getDimensionPixelSize(R.dimen.sp_12)); //设置大小
+                tv.setGravity(Gravity.CENTER_HORIZONTAL); //设置居中
+
+                switch (position) {
+                    case 0:
+                        mode = TDR;
+                        break;
+                    case 1:
+                        mode = ICM;
+                        break;
+                    case 2:
+                        mode = ICM_DECAY;
+                        break;
+                    case 3:
+                        mode = SIM;
+                        break;
+                    case 4:
+                        mode = DECAY;
+                        break;
+                    default:
+                        break;
+                }
+                loadType = 0;
+                loadPage = 0;
+                loadData();
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+
+            }
+        });
+
+    }
 
     @Override
     public void onClick(View v) {
@@ -189,15 +295,24 @@ public class ShowRecordsDialog extends BaseDialog implements View.OnClickListene
                     intent.putExtra("display_action", ModeActivity.DISPLAY_DATABASE);
                     getContext().sendBroadcast(intent);
                 }
-
                 dismiss();
                 break;
             case R.id.tv_delete:
+                tvDelete.setEnabled(false);
                 deletePosition();
+                break;
+            case R.id.tv_search_date:
+                showDatePickDialog();
+                break;
+            case R.id.tv_search:
+                loadType = 0;
+                loadPage = 0;
+                loadData();
                 break;
             default:
                 break;
         }
+
     }
 
     private void deletePosition() {
@@ -205,7 +320,6 @@ public class ShowRecordsDialog extends BaseDialog implements View.OnClickListene
             Data[] datas = null;
             datas = dao.queryDataId(selectedId);
             dao.deleteData(datas);
-            e.onNext(Arrays.asList(dao.query()));
             e.onComplete();
         }, BackpressureStrategy.BUFFER)
                 .subscribeOn(Schedulers.io())
@@ -213,7 +327,6 @@ public class ShowRecordsDialog extends BaseDialog implements View.OnClickListene
             @Override
             public void onSubscribe(Subscription s) {
                 s.request(Long.MAX_VALUE);
-                //subscription = s;
             }
 
             @Override
@@ -225,20 +338,20 @@ public class ShowRecordsDialog extends BaseDialog implements View.OnClickListene
                     rlHasRecords.setVisibility(View.GONE);
                     tvNoRecords.setVisibility(View.VISIBLE);
                 } else {
-                    if (pos == list.size())
+                    if (pos == list.size()) {
                         pos -= 1;
+                    }
                     selectedId = adapter.datas.get(pos).dataId;
                     setDataByPosition(adapter.datas.get(pos));
                     adapter.changeSelected(pos);
-
-                    Constant.Para =  adapter.datas.get(pos).para;
-                    Constant.WaveData =  adapter.datas.get(pos).waveData;
-                    Constant.SimData =  adapter.datas.get(pos).waveDataSim;
+                    Constant.Para = adapter.datas.get(pos).para;
+                    Data waveData = GetWaveData(selectedId);
+                    Constant.WaveData = waveData.waveData;
+                    Constant.SimData = waveData.waveDataSim;
                     Constant.PositionR = adapter.datas.get(pos).positionReal;
                     Constant.PositonV = adapter.datas.get(pos).positionVirtual;
                     Constant.SaveLocation = adapter.datas.get(pos).location;
                 }
-
             }
 
             @Override
@@ -247,79 +360,55 @@ public class ShowRecordsDialog extends BaseDialog implements View.OnClickListene
 
             @Override
             public void onComplete() {
+                adapter.datas.remove(pos);
+                if (adapter.getItemCount() <= 0) {
+                    rlHasRecords.setVisibility(View.GONE);
+                    tvNoRecords.setVisibility(View.VISIBLE);
+                } else {
+                    if (pos == adapter.datas.size()) {
+                        pos -= 1;
+                    }
+                    selectedId = adapter.datas.get(pos).dataId;
+                    setDataByPosition(adapter.datas.get(pos));
+                    adapter.changeSelected(pos);
+                    Constant.Para = adapter.datas.get(pos).para;
+                    Data waveData = GetWaveData(selectedId);
+                    Constant.WaveData = waveData.waveData;
+                    Constant.SimData = waveData.waveDataSim;
+                    Constant.PositionR = adapter.datas.get(pos).positionReal;
+                    Constant.PositonV = adapter.datas.get(pos).positionVirtual;
+                    Constant.SaveLocation = adapter.datas.get(pos).location;
+                }
+                adapter.notifyDataSetChanged();
+                tvDelete.setEnabled(true);
             }
         });
-
         adapter.deleteItem(pos);
 
     }
-   /* private void deletePosition() {
-        Flowable.create((FlowableOnSubscribe<List>) e -> {
-            Data[] datas = null;
-            datas = dao.queryDataId(selectedId);
-            dao.deleteData(datas);
-            e.onNext(Arrays.asList(dao.query()));
-            e.onComplete();
-        }, BackpressureStrategy.BUFFER)
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread()).subscribe(new Subscriber<List>() {
-            @Override
-            public void onSubscribe(Subscription s) {
-                s.request(Long.MAX_VALUE);
-                //subscription = s;
-            }
 
-            @Override
-            public void onNext(List list) {
-                adapter.datas = list;
-                adapter.notifyDataSetChanged();
-            }
+    private Data GetWaveData(int selectedId) {
+        Data[] data;
+        data = dao.queryWaveById(selectedId);
+        return data[0];
 
-            @Override
-            public void onError(Throwable t) {
-            }
+    }
 
-            @Override
-            public void onComplete() {
-            }
-        });
-        adapter.deleteItem(pos);
-        //dismiss();
-        //clearDataDisplay();
-    }*/
-
-    private void initAdapter() {
-        adapter = new RecordsAdapter();
-        layoutManager = new LinearLayoutManager(getContext());
-        rvRecords.setLayoutManager(layoutManager);
-        rvRecords.setAdapter(adapter);
-        rvRecords.setItemAnimator(new DefaultItemAnimator());
-        adapter.setOnItemClickListener((view, dataId, selectedPara[], selectedWave[], selectedSim[], position) -> {
-            adapter.changeSelected(position);
-            selectedId = dataId;
-            //GC20190713
-            Constant.Para = selectedPara;
-            Constant.WaveData = selectedWave;
-            Constant.SimData = selectedSim;
-            Constant.PositionR = adapter.datas.get(position).positionReal;
-            Constant.PositonV = adapter.datas.get(position).positionVirtual;
-            Constant.SaveLocation = adapter.datas.get(position).location;
-            pos = position;
-            setDataByPosition(adapter.datas.get(position));
-        });
-        adapter.setOnItemInitDataListener((view, dataId, para, waveData, simData, position) -> {
-            Data data = adapter.datas.get(position);
-            setDataByPosition(data);
-        });
-
+    private void loadData() {
         Flowable.create((FlowableOnSubscribe<List<Data>>) e -> {
             Data[] data;
+            int index;
+            //todo 查询逻辑如何处理 日期模式...
             if (mode == 0) {
-                data = dao.query();
+                index = loadPage * 10;
+                data = dao.queryByIndex(index);
+            } else if (searchDate != null) {
+                index = loadPage * 10;
+                data = dao.queryDateByIndex(searchDate, mode + "", index);
             } else {
-                data = dao.queryMode(mode + "");
+                index = loadPage * 10;
+                data = dao.queryModeByIndex(mode + "", index);
             }
-
             e.onNext(Arrays.asList(data));
             e.onComplete();
         }, BackpressureStrategy.BUFFER)
@@ -328,30 +417,44 @@ public class ShowRecordsDialog extends BaseDialog implements View.OnClickListene
             @Override
             public void onSubscribe(Subscription s) {
                 s.request(Long.MAX_VALUE);
-                //subscription = s;
             }
 
             @Override
             public void onNext(List<Data> list) {
-                if (list.size() > 0) {
-                    rlHasRecords.setVisibility(View.VISIBLE);
-                    tvNoRecords.setVisibility(View.GONE);
-                    adapter.datas = list;
-                    adapter.notifyDataSetChanged();
-                    setDataByPosition(list.get(0));
-                    selectedId = list.get(0).dataId;
-                    //GC20190713
-                    Constant.Para = list.get(0).para;
-                    Constant.WaveData = list.get(0).waveData;
-                    Constant.SimData = list.get(0).waveDataSim;
-                    Constant.PositonV = list.get(0).positionVirtual;
-                    Constant.PositionR = list.get(0).positionReal;
-                    Constant.SaveLocation = list.get(0).location;
+                if (loadType == 0) {
+                    loadPage = 0;
+                    if (list.size() > 0) {
+                        isHas = true;
+                        rlHasRecords.setVisibility(View.VISIBLE);
+                        tvNoRecords.setVisibility(View.GONE);
+                        if (adapter.datas != null) {
+                            adapter.datas.clear();
+                        }
+                        adapter.datas.addAll(list);
+                        adapter.notifyDataSetChanged();
+                        setDataByPosition(list.get(0));
+                        selectedId = list.get(0).dataId;
+                        //GC20190713
+                        Constant.Para = list.get(0).para;
+                        Data waveData = GetWaveData(selectedId);
+                        Constant.WaveData = waveData.waveData;
+                        Constant.SimData = waveData.waveDataSim;
+                        Constant.PositonV = list.get(0).positionVirtual;
+                        Constant.PositionR = list.get(0).positionReal;
+                        Constant.SaveLocation = list.get(0).location;
+                    } else {
+                        rlHasRecords.setVisibility(View.GONE);
+                        tvNoRecords.setVisibility(View.VISIBLE);
+                    }
                 } else {
-                    rlHasRecords.setVisibility(View.GONE);
-                    tvNoRecords.setVisibility(View.VISIBLE);
+                    adapter.datas.addAll(list);
+                    adapter.notifyDataSetChanged();
                 }
-
+                if (list.size() <= pageSize) {
+                    isHas = false;
+                } else {
+                    isHas = true;
+                }
             }
 
             @Override
@@ -364,115 +467,100 @@ public class ShowRecordsDialog extends BaseDialog implements View.OnClickListene
 
             }
         });
-    }
 
-    private void clearDataDisplay() {
-        tvCableId.setText("");
-        tvCableLength.setText("");
-        tvCableLengthUnit.setText("");
-        tvDate.setText("");
-        tvMode.setText("");
-        tvRange.setText("");
-        tvFaultLocation.setText("");
-
-        tvPhase.setText("");
-        tvOperator.setText("");
-        tvTestSite.setText("");
     }
 
     private void setDataByPosition(Data data) {
         tvCableId.setText(String.valueOf(data.cableId));
-        if (Constant.CurrentUnit == Constant.FT_UNIT) {
-            if (!TextUtils.isEmpty(data.line))
-                tvCableLength.setText(UnitUtils.miToFt(Double.valueOf(data.line)));
-            else {
-                tvCableLength.setText("0");
+        if (Constant.CurrentSaveUnit == FT_UNIT) {
+            if (!TextUtils.isEmpty(data.line)) {
+                if (data.line.equals("0") || data.line.equals("0.0")) {
+                    tvCableLength.setText(" ");
+                } else {
+                    tvCableLength.setText(UnitUtils.miToFt(Double.valueOf(data.line)));
+                }
+            } else {
+                tvCableLength.setText(" ");
             }
             tvCableLengthUnit.setText(R.string.ft);
-            //GC20200312
+            //故障距离单位显示添加  //GC20200312
             tvFaultLocationUnit.setText(R.string.ft);
         } else {
-            tvCableLength.setText(data.line);
+            if (data.line.equals("0") || data.line.equals("0.0")) {
+                tvCableLength.setText(" ");
+            } else {
+                tvCableLength.setText(data.line);
+            }
             tvCableLengthUnit.setText(R.string.mi);
-            //GC20200312
             tvFaultLocationUnit.setText(R.string.mi);
         }
 
-        tvDate.setText(data.date);
+        tvDate.setText(data.date + " " + data.time);
         tvMode.setText(initMode(Integer.valueOf(data.mode)));
         tvRange.setText(initRange(data.range));
-        if (Constant.CurrentUnit == Constant.MI_UNIT) {
-            if (Constant.CurrentSaveUnit == Constant.MI_UNIT)
-                tvFaultLocation.setText(new DecimalFormat("0.00").format(data.location));
-            else
-                tvFaultLocation.setText(UnitUtils.ftToMi(data.location));
+        if (Constant.CurrentSaveUnit == MI_UNIT) {
+            tvFaultLocation.setText(new DecimalFormat("0.00").format(data.location));
         } else {
-            if (Constant.CurrentSaveUnit == Constant.FT_UNIT)
-                tvFaultLocation.setText(new DecimalFormat("0.00").format(data.location));
-            else
-                tvFaultLocation.setText(UnitUtils.miToFt(data.location));
+            tvFaultLocation.setText(UnitUtils.miToFt(data.location));
         }
-
-        tvPhase.setText(initphase(Integer.valueOf(data.phase)));
+        tvPhase.setText(initPhase(Integer.valueOf(data.phase)));
         tvOperator.setText(data.tester);
         tvTestSite.setText(data.tester);
+
     }
 
     private String initRange(int range) {
         switch (range) {
             case RANGE_250:
-                if (Constant.CurrentUnit == Constant.MI_UNIT) {
+                if (Constant.CurrentSaveUnit == MI_UNIT) {
                     return getContext().getResources().getString(R.string.btn_250m);
-                } else if (Constant.CurrentUnit == Constant.FT_UNIT) {
+                } else if (Constant.CurrentSaveUnit == FT_UNIT) {
                     return getContext().getResources().getString(R.string.btn_250m_to_ft);
                 }
-
             case RANGE_500:
-                if (Constant.CurrentUnit == Constant.MI_UNIT) {
+                if (Constant.CurrentSaveUnit == MI_UNIT) {
                     return getContext().getResources().getString(R.string.btn_500m);
                 } else {
                     return getContext().getResources().getString(R.string.btn_500m_to_ft);
                 }
             case RANGE_1_KM:
-
-                if (Constant.CurrentUnit == Constant.MI_UNIT) {
+                if (Constant.CurrentSaveUnit == MI_UNIT) {
                     return getContext().getResources().getString(R.string.btn_1km);
                 } else {
                     return getContext().getResources().getString(R.string.btn_1km_to_yingli);
                 }
             case RANGE_2_KM:
-                if (Constant.CurrentUnit == Constant.MI_UNIT) {
+                if (Constant.CurrentSaveUnit == MI_UNIT) {
                     return getContext().getResources().getString(R.string.btn_2km);
                 } else {
                     return getContext().getResources().getString(R.string.btn_2km_to_yingli);
                 }
             case RANGE_4_KM:
-                if (Constant.CurrentUnit == Constant.MI_UNIT) {
+                if (Constant.CurrentSaveUnit == MI_UNIT) {
                     return getContext().getResources().getString(R.string.btn_4km);
                 } else {
                     return getContext().getResources().getString(R.string.btn_4km_to_yingli);
                 }
-
             case RANGE_8_KM:
-                if (Constant.CurrentUnit == Constant.MI_UNIT) {
+                if (Constant.CurrentSaveUnit == MI_UNIT) {
                     return getContext().getResources().getString(R.string.btn_8km);
                 } else {
                     return getContext().getResources().getString(R.string.btn_8km_to_yingli);
                 }
             case RANGE_16_KM:
-                if (Constant.CurrentUnit == Constant.MI_UNIT) {
+                if (Constant.CurrentSaveUnit == MI_UNIT) {
                     return getContext().getResources().getString(R.string.btn_16km);
                 } else {
                     return getContext().getResources().getString(R.string.btn_16km_to_yingli);
                 }
             case RANGE_32_KM:
-                if (Constant.CurrentUnit == Constant.MI_UNIT) {
+                if (Constant.CurrentSaveUnit == MI_UNIT) {
                     return getContext().getResources().getString(R.string.btn_32km);
                 } else {
                     return getContext().getResources().getString(R.string.btn_32km_to_yingli);
                 }
             case RANGE_64_KM:
-                if (Constant.CurrentUnit == Constant.MI_UNIT) {
+                if (Constant.CurrentSaveUnit == MI_UNIT) {
                     return getContext().getResources().getString(R.string.btn_64km);
                 } else {
                     return getContext().getResources().getString(R.string.btn_64km_to_yingli);
@@ -497,9 +585,10 @@ public class ShowRecordsDialog extends BaseDialog implements View.OnClickListene
             default:
                 return "";
         }
+
     }
 
-    private String initphase(int phase) {
+    private String initPhase(int phase) {
         switch (phase) {
             case 0:
                 return getContext().getResources().getString(R.string.phaseA);
@@ -510,6 +599,63 @@ public class ShowRecordsDialog extends BaseDialog implements View.OnClickListene
             default:
                 return "";
         }
+
+    }
+
+    private void showDatePickDialog() {
+        CustomDatePickerDialogFragment fragment = new CustomDatePickerDialogFragment();
+        fragment.setOnSelectedDateListener(this);
+        Bundle bundle = new Bundle();
+        Calendar currentDate = Calendar.getInstance();
+        currentDate.setTimeInMillis(System.currentTimeMillis());
+        currentDate.set(Calendar.HOUR_OF_DAY, 0);
+        currentDate.set(Calendar.MINUTE, 0);
+        currentDate.set(Calendar.SECOND, 0);
+        currentDate.set(Calendar.MILLISECOND, 0);
+        bundle.putSerializable(CustomDatePickerDialogFragment.CURRENT_DATE, currentDate);
+
+        long start = 0;
+        long day = 24 * 60 * 60 * 1000;
+        long end = currentDate.getTimeInMillis() - day;
+        Calendar startDate = Calendar.getInstance();
+        startDate.setTimeInMillis(start);
+        Calendar endDate = Calendar.getInstance();
+        endDate.setTimeInMillis(end);
+        bundle.putSerializable(CustomDatePickerDialogFragment.START_DATE, startDate);
+        bundle.putSerializable(CustomDatePickerDialogFragment.END_DATE, currentDate);
+
+        fragment.setArguments(bundle);
+        fragment.show(activity.getSupportFragmentManager(), CustomDatePickerDialogFragment.class.getSimpleName());
+
+    }
+
+    @Override
+    public void onSelectedDate(int year, int monthOfYear, int dayOfMonth) {
+        if (year == 0 && monthOfYear == 0 && dayOfMonth == 0) {
+            tvSearchDate.setText("");
+            searchDate = null;
+        } else {
+            searchDate = year + "/" + (monthOfYear + 1) + "/" + dayOfMonth;
+            SimpleDateFormat formatter = new SimpleDateFormat("yyyy/MM/dd");
+            Date curDate = new Date(searchDate);
+            //获取当前时间
+            searchDate = formatter.format(curDate);
+            tvSearchDate.setText(year + getContext().getResources().getString(R.string.date_year) + (monthOfYear + 1) + getContext().getResources().getString(R.string.date_month) + dayOfMonth + getContext().getResources().getString(R.string.date_day));
+        }
+    }
+
+    public void setFromMain(boolean fromMain) {
+        this.fromMain = fromMain;
+    }
+
+    public void setMode(int mode) {
+        this.mode = mode;
+    }
+
+    public ShowRecordsDialog(@NonNull BaseActivity context) {
+        super(context);
+        activity = context;
+
     }
 
 }
