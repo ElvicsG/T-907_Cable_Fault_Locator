@@ -345,7 +345,7 @@
                         android:layout_marginTop="@dimen/dp_5"
                         android:text="@string/test_site_text"
                         android:textColor="@color/colorPrimary"
-                        android:textSize="@dimen/sp_11" /><!--以冒号冲齐//GC20200523-->
+                        android:textSize="@dimen/sp_11" /><!--以冒号冲齐//GC20200525-->
 
                     <TextView
                         android:id="@+id/tv_test_site"

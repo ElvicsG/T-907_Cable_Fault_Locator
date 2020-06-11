@@ -281,7 +281,7 @@
             android:layout_height="wrap_content">
             <!--波形框-->
             <net.kehui.www.t_907_origin.ui.SparkView.SparkView
-                android:id="@+id/fullWave"
+                android:id="@+id/mainWave"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:background="@color/colorAccent"
@@ -314,7 +314,7 @@
                 android:textSize="@dimen/sp_11" />
         </LinearLayout>
 
-        <!--波形左上角浮动文字//GC20190708-->
+        <!--左上角自动测距结果//GC20190708-->
         <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"

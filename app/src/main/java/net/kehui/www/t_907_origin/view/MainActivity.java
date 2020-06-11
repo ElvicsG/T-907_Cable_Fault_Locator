@@ -703,7 +703,7 @@ public class MainActivity extends BaseActivity {
             @Override
             public void onDismiss(DialogInterface dialog) {
                 if (!languageChangeDialog.getCloseStatus()) {
-                    //切换语言不需要重连 //G?  //GC20200519
+                    //切换语言不需要重连 //G?
 //                    ConnectService.needConnect = false;
                     Intent intent = new Intent(MainActivity.this, ConnectService.class);
                     stopService(intent);

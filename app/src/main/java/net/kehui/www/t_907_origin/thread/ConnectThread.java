@@ -14,6 +14,9 @@ import java.util.Arrays;
 import static net.kehui.www.t_907_origin.application.Constant.needAddData;
 import static net.kehui.www.t_907_origin.application.Constant.waveLen;
 import static net.kehui.www.t_907_origin.application.Constant.waveSimLen;
+import static net.kehui.www.t_907_origin.base.BaseActivity.COMMAND;
+import static net.kehui.www.t_907_origin.base.BaseActivity.WAVE_SIM;
+import static net.kehui.www.t_907_origin.base.BaseActivity.WAVE_TDR_ICM_DECAY;
 
 /**
  * @author Gong
@@ -64,7 +67,6 @@ public class ConnectThread extends Thread {
             int remainByte = 0;
             int processedByte = 0;
             int mimProcessedDataLen = 0;
-//            boolean needAddData = false;  //GC20200428
             boolean needProcessSimData = false;
             Log.e("【DEBUG】", "初始化" + needAddData);
 
@@ -98,9 +100,9 @@ public class ConnectThread extends Thread {
                             Log.e("【新数据处理】", "无效头数据，跳出");
                             break;
                         } else {
-                            //判断数据头0xaa（170）——加深判断
-                            //0x55（85），0x03——普通命令，截8个
-                            if ((tempBuffer[2] & 0xff) == 170 && (tempBuffer[3] & 0xff) == 85 && (tempBuffer[4] & 0xff) == 3) {
+                            //增加判断数据头0xaa（170）
+                            //数据长度：0x03——普通命令，截8个
+                            if ((tempBuffer[2] & 0xff) == 170 && (tempBuffer[3] & 0xff) == COMMAND && (tempBuffer[4] & 0xff) == 3) {
                                 byte[] cmdBytes = new byte[8];
                                 System.arraycopy(tempBuffer, 0, cmdBytes, 0, 8);
                                 //加入队列
@@ -125,8 +127,8 @@ public class ConnectThread extends Thread {
 //                                    continue;     //GC?
                                 }
                             }
-                            //0x55（85），0x04——普通命令，截9个
-                            else if ((tempBuffer[2] & 0xff) == 170 && (tempBuffer[3] & 0xff) == 85 && (tempBuffer[4] & 0xff) == 4) {
+                            //数据长度：0x04——电量命令，截9个
+                            else if ((tempBuffer[2] & 0xff) == 170 && (tempBuffer[3] & 0xff) == COMMAND && (tempBuffer[4] & 0xff) == 4) {
                                 byte[] powerBytes = new byte[9];
                                 System.arraycopy(tempBuffer, 0, powerBytes, 0, 9);
                                 //加入队列
@@ -151,13 +153,12 @@ public class ConnectThread extends Thread {
 //                                    continue;     //GC?
                                 }
                             }
-                            //0x66（102），不需要补齐——非SIM波形数据；截需要的长度，不够要补齐数据
-                            else if ((tempBuffer[2] & 0xff) == 170 && (tempBuffer[3] & 0xff) == 102 && !needAddData) {
+                            //非SIM波形数据头，不需要补齐状态——截需要的长度，不够要补齐数据
+                            else if ((tempBuffer[2] & 0xff) == 170 && (tempBuffer[3] & 0xff) == WAVE_TDR_ICM_DECAY && !needAddData) {
                                 if (remainByte == 0) {  //GC? 有必要有这个判断？
                                     //非处理中数据，初始化为当前接收的数据长度，也就是直接是波形数据的。
                                     remainByte = bytes;
                                 }
-                                //GC20200428
                                 if (remainByte == waveLen) {
                                     //长度和需要的波形长度一致
                                     Log.e("【新数据处理】", "一次性长度一致，不用补齐数据");
@@ -177,9 +178,9 @@ public class ConnectThread extends Thread {
                                     break;
                                 }
                             }
-                            //0x77（119），不需要补齐数据，不是处理SIM数据——SIM波形数据，截需要的长度，不够要补齐数据
-                            else if ((tempBuffer[2] & 0xff) == 170 && (tempBuffer[3] & 0xff) == 119 && !needAddData && !needProcessSimData) {
-                                if ((tempBuffer[3] & 0xff) == 119) {
+                            //SIM波形数据头，不需要补齐状态，不是处理SIM数据——截需要的长度，不够要补齐数据
+                            else if ((tempBuffer[2] & 0xff) == 170 && (tempBuffer[3] & 0xff) == WAVE_SIM && !needAddData && !needProcessSimData) {
+                                if ((tempBuffer[3] & 0xff) == WAVE_SIM) {
                                     waveSimLen = waveLen / 9;
                                 }
                                 if (remainByte == 0) {//GC? 有必要有这个判断？
@@ -201,7 +202,7 @@ public class ConnectThread extends Thread {
                             //补齐数据
                             else {
                                 //非SIM波形数据
-                                if ((tempBuffer[3] & 0xff) == 102) {
+                                if ((tempBuffer[3] & 0xff) == WAVE_TDR_ICM_DECAY) {
                                     System.arraycopy(buffer, 0, tempBuffer, remainByte, bytes);
                                     remainByte += bytes;
                                     Log.e("【新数据处理】", "需要：" + waveLen + ",当前：" + remainByte + ",补齐数据ing....");
@@ -245,9 +246,9 @@ public class ConnectThread extends Thread {
 
                                 }
                                 //SIM波形数据（0x77-0xFF 共9段）
-                                else if ((( tempBuffer[3] & 0xff) == 119 || (tempBuffer[3] & 0xff) == 136 || (tempBuffer[3] & 0xff) == 153
-                                        || (tempBuffer[3] & 0xff) == 170 || (tempBuffer[3] & 0xff) == 187 || (tempBuffer[3] & 0xff) == 204
-                                        || (tempBuffer[3] & 0xff) == 221 || (tempBuffer[3] & 0xff) == 238 || (tempBuffer[3] & 0xff) == 255)
+                                else if ((( tempBuffer[3] & 0xff) == WAVE_SIM || (tempBuffer[3] & 0xff) == 0x88 || (tempBuffer[3] & 0xff) == 0x99
+                                        || (tempBuffer[3] & 0xff) == 0xAA || (tempBuffer[3] & 0xff) == 0xBB || (tempBuffer[3] & 0xff) == 0xCC
+                                        || (tempBuffer[3] & 0xff) == 0xDD || (tempBuffer[3] & 0xff) == 0xEE || (tempBuffer[3] & 0xff) == 0xFF)
                                         && needProcessSimData) {
                                     //剩余字节数为0切已经处理的字节长度等于需要处理的长度
                                     if (remainByte >= waveSimLen) {
@@ -300,9 +301,9 @@ public class ConnectThread extends Thread {
                                     }
 
                                 }
-                                else if ((( tempBuffer[3] & 0xff) == 119 || (tempBuffer[3] & 0xff) == 136 || (tempBuffer[3] & 0xff) == 153
-                                        || (tempBuffer[3] & 0xff) == 170 || (tempBuffer[3] & 0xff) == 187 || (tempBuffer[3] & 0xff) == 204
-                                        || (tempBuffer[3] & 0xff) == 221 || (tempBuffer[3] & 0xff) == 238 || (tempBuffer[3] & 0xff) == 255)
+                                else if ((( tempBuffer[3] & 0xff) == WAVE_SIM || (tempBuffer[3] & 0xff) == 0x88 || (tempBuffer[3] & 0xff) == 0x99
+                                        || (tempBuffer[3] & 0xff) == 0xAA || (tempBuffer[3] & 0xff) == 0xBB || (tempBuffer[3] & 0xff) == 0xCC
+                                        || (tempBuffer[3] & 0xff) == 0xDD || (tempBuffer[3] & 0xff) == 0xEE || (tempBuffer[3] & 0xff) == 0xFF)
                                         && needAddData) {  //GC? 有必要有？
 
                                     System.arraycopy(buffer, 0, tempBuffer, remainByte, bytes);

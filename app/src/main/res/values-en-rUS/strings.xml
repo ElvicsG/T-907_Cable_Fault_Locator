@@ -178,5 +178,6 @@
     <string name="test_on_no_connect">No communication with device!</string>
     <string name="englishSpace">&#160;</string>
     <string name="chineseSpace">&#12288;</string>
+    <string name="testAgain">Please test again!</string>
 
 </resources>

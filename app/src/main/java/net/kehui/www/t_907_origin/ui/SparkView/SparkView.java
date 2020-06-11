@@ -16,7 +16,6 @@
 
 package net.kehui.www.t_907_origin.ui.SparkView;
 
-import android.animation.ValueAnimator;
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.database.DataSetObserver;
@@ -26,18 +25,14 @@ import android.graphics.CornerPathEffect;
 import android.graphics.DashPathEffect;
 import android.graphics.Paint;
 import android.graphics.Path;
-import android.graphics.PathMeasure;
 import android.graphics.RectF;
 import android.os.Build;
 import android.os.Handler;
 
 import androidx.annotation.ColorInt;
-import androidx.recyclerview.widget.RecyclerView;
 
 import android.util.AttributeSet;
 import android.util.Log;
-import android.view.KeyEvent;
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewConfiguration;
 
@@ -53,7 +48,6 @@ import java.util.List;
  * @date 2018/12/23
  */
 public class SparkView extends View implements ScrubGestureDetector.ScrubListener, MoveWaveView.ViewMoveWaveListener {
-    private static final String TAG = "Spark";
     /**
      * styleable values
      */
@@ -102,16 +96,11 @@ public class SparkView extends View implements ScrubGestureDetector.ScrubListene
 
     private OnScrubListener scrubListener;
 
-    private MoveWaveView.ViewMoveWaveListener viewMoveWaveListener;
     private ScrubGestureDetector scrubGestureDetector;
     private List<Float> xPoints;
-    private ValueAnimator pathAnimator;
     private final RectF contentRect = new RectF();
 
-    private static int shortAnimationTime;
-
     private float scX;
-    public int startPoint;
     /**
      * //GC20190629
      */
@@ -119,8 +108,7 @@ public class SparkView extends View implements ScrubGestureDetector.ScrubListene
 
     public SparkView(Context context) {
         super(context);
-        init(context, null, R.attr.spark_SparkViewStyle,
-                R.style.spark_SparkView);
+        init(context, null, R.attr.spark_SparkViewStyle, R.style.spark_SparkView);
     }
 
     public SparkView(Context context, AttributeSet attrs) {
@@ -158,27 +146,26 @@ public class SparkView extends View implements ScrubGestureDetector.ScrubListene
             sparkLinePaint.setPathEffect(new CornerPathEffect(cornerRadius));
         }
 
+        //初始化波形的颜色、样式
         baseLinePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
         baseLinePaint.setStyle(Paint.Style.STROKE);
 //        baseLinePaint.setColor(Color.WHITE);  //20200521    波形颜色
         baseLinePaint.setColor(Color.parseColor("#b0a04b"));
         baseLinePaint.setStrokeWidth(lineWidth);
-
+        //实光标的颜色、样式
         scrubLinePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
         scrubLinePaint.setStyle(Paint.Style.STROKE);
         scrubLinePaint.setStrokeWidth(scrubLineWidth);
         scrubLinePaint.setColor(Color.RED);
         scrubLinePaint.setStrokeCap(Paint.Cap.ROUND);
-
+        //虚光标的颜色、样式
         scrubLinePaint2 = new Paint(Paint.ANTI_ALIAS_FLAG);
         scrubLinePaint2.setStyle(Paint.Style.STROKE);
         scrubLinePaint2.setStrokeWidth(scrubLineWidth);
         scrubLinePaint2.setColor(Color.parseColor("#ff00ff"));
-        //GC20190628 变为虚光标
         scrubLinePaint2.setAntiAlias(true);
         scrubLinePaint2.setStrokeCap(Paint.Cap.SQUARE);
         scrubLinePaint2.setPathEffect(new DashPathEffect(new float[]{6, 10}, 0));
-
         //初始化SIM标记光标的样式颜色  //GC20200330
         scrubLinePaint3 = new Paint(Paint.ANTI_ALIAS_FLAG);
         scrubLinePaint3.setStyle(Paint.Style.STROKE);
@@ -191,8 +178,13 @@ public class SparkView extends View implements ScrubGestureDetector.ScrubListene
         scrubGestureDetector = new ScrubGestureDetector(this, handler, touchSlop);
         scrubGestureDetector.setEnabled(scrubEnabled);
         setOnTouchListener(scrubGestureDetector);
+
     }
 
+    @Override
+    protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+        super.onMeasure(widthMeasureSpec, heightMeasureSpec);
+    }
 
     @Override
     protected void onSizeChanged(int w, int h, int oldW, int oldH) {
@@ -200,11 +192,6 @@ public class SparkView extends View implements ScrubGestureDetector.ScrubListene
         updateContentRect();
         populatePath();
 
-    }
-
-    @Override
-    protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-        super.onMeasure(widthMeasureSpec, heightMeasureSpec);
     }
 
     /**
@@ -219,7 +206,6 @@ public class SparkView extends View implements ScrubGestureDetector.ScrubListene
         }
 
         final int adapterCount = adapter.getCount();
-
         // to draw anything, we need 2 or more points
         if (adapterCount < 2) {
             clearData();
@@ -227,20 +213,17 @@ public class SparkView extends View implements ScrubGestureDetector.ScrubListene
         }
 
         scaleHelper = new ScaleHelper(adapter, contentRect, lineWidth, fill);
-
         // xPoints is only used in scrubbing, skip if disabled
         if (xPoints == null) {
             xPoints = new ArrayList<>(adapterCount);
         } else {
             xPoints.clear();
         }
-
         // make our main graph path
         sparkPath.reset();
         for (int i = 0; i < adapterCount; i++) {
             final float x = scaleHelper.getX(adapter.getX(i));
             final float y = scaleHelper.getY(adapter.getY(i));
-
             if (i == 0) {
                 sparkPath.moveTo(x, y);
             } else {
@@ -262,13 +245,12 @@ public class SparkView extends View implements ScrubGestureDetector.ScrubListene
         }
 
         //画第二条线
-        Log.e("QQQ", "adapter" + ".getIsShowCompare()" + adapter.getCompare());
+        Log.e("画第二条线", "adapter.getCompare() = " + adapter.getCompare());
         if (adapter.getCompare()) {
             sparkPath2.reset();
             for (int i = 0; i < adapterCount; i++) {
                 final float x = scaleHelper.getX(adapter.getX(i));
                 final float y = scaleHelper.getY(adapter.getY1(i)) + moveY;
-
                 if (i == 0) {
                     sparkPath2.moveTo(x, y);
                 } else {
@@ -276,7 +258,6 @@ public class SparkView extends View implements ScrubGestureDetector.ScrubListene
                 }
                 xPoints.add(x);
             }
-
             // if we're filling the graph in, close the path's circuit
             if (fill) {
                 float lastX = scaleHelper.getX(adapter.getCount() - 1);
@@ -290,10 +271,8 @@ public class SparkView extends View implements ScrubGestureDetector.ScrubListene
             }
             renderPath2.reset();
             renderPath2.addPath(sparkPath2);
-
         } else {
             renderPath2.reset();
-
         }
 
         // make our base line path
@@ -308,45 +287,7 @@ public class SparkView extends View implements ScrubGestureDetector.ScrubListene
         renderPath.addPath(sparkPath);
 
         invalidate();
-    }
 
-    /**
-     * Get the scaled (pixel) coordinate of your given x value. If no scale is currently computed
-     * (for instance {@link BaseSparkAdapter} has not been set or has less than 2 points of data). This
-     * mode will return the unscaled value.
-     *
-     * @param x the value to scale (should be the same units as your graph's data points)
-     * @return the pixel coordinates of where this point is located in SparkView's bounds
-     */
-    public float getScaledX(float x) {
-        if (scaleHelper == null) {
-            Log.w(TAG, "getScaledX() - no scale available yet.");
-            return x;
-        }
-        return scaleHelper.getX(x);
-    }
-
-    /**
-     * Get the scaled (pixel) coordinate of your given y value. If no scale is currently computed
-     * (for instance {@link BaseSparkAdapter} has not been set or has less than 2 points of data). This
-     * mode will return the unscaled value.
-     *
-     * @param y the value to scale (should be the same units as your graph's data points)
-     * @return the pixel coordinates of where this point is located in SparkView's bounds
-     */
-    public float getScaledY(float y) {
-        if (scaleHelper == null) {
-            Log.w(TAG, "getScaledX() - no scale available yet.");
-            return y;
-        }
-        return scaleHelper.getY(y);
-    }
-
-    /**
-     * Gets a copy of the sparkLine path
-     */
-    public Path getSparkLinePath() {
-        return new Path(sparkPath);
     }
 
     /**
@@ -357,12 +298,6 @@ public class SparkView extends View implements ScrubGestureDetector.ScrubListene
         scrubLinePath.moveTo(x, getPaddingTop());
         scrubLinePath.lineTo(x, getHeight() - getPaddingBottom());
         invalidate();
-    }
-
-
-    public void setSparkViewMove(float y) {
-        moveY = y;
-        populatePath();
     }
 
     /**
@@ -376,7 +311,6 @@ public class SparkView extends View implements ScrubGestureDetector.ScrubListene
     }
 
     int currentRealPosition;
-
     /**
      * @param position 实光标位置（设置固定值）
      */
@@ -392,7 +326,7 @@ public class SparkView extends View implements ScrubGestureDetector.ScrubListene
                 invalidate();
             }
         } catch (Exception l_ex) {
-            //20200521  //G?不知道为啥加
+            //20200521  //GC?不知道为啥加
             String str = l_ex.getMessage().toString();
             scrubLinePath.reset();
             setScrubLineRealDisappear();
@@ -425,6 +359,9 @@ public class SparkView extends View implements ScrubGestureDetector.ScrubListene
         }
     }
 
+    /**
+     * 去掉虚光标
+     */
     public void setScrubLineVirtualDisappear() {
         scrubLinePath2.reset();
         invalidate();
@@ -446,9 +383,17 @@ public class SparkView extends View implements ScrubGestureDetector.ScrubListene
         }
     }
 
+    /**
+     * 去掉SIM标记光标
+     */
     public void setScrubLineSimDisappear() {
         scrubLinePath3.reset();
         invalidate();
+    }
+
+    public void setSparkViewMove(float y) {
+        moveY = y;
+        populatePath();
     }
 
     @Override
@@ -466,7 +411,7 @@ public class SparkView extends View implements ScrubGestureDetector.ScrubListene
         canvas.drawPath(renderPath2, baseLinePaint);
         canvas.drawPath(scrubLinePath, scrubLinePaint);
         canvas.drawPath(scrubLinePath2, scrubLinePaint2);
-        //GC20200330
+        //初始化   //GC20200330
         canvas.drawPath(scrubLinePath3, scrubLinePaint3);
 
         //TODO 20191224  屏蔽掉不知道干啥的
@@ -476,268 +421,6 @@ public class SparkView extends View implements ScrubGestureDetector.ScrubListene
             setScrubLineVirtual(255);
         }
 
-        //setScrubLineReal(0);
-        //setScrubLineVirtual(255);
-
-        //setScrubLine(50);
-        /*drawTria(canvas, xPoints.get(startPoint), getHeight() - getPaddingBottom(),
-                xPoints.get(startPoint), getPaddingTop(), 30, 10);*/
-
-    }
-
-    public void setStartPoint(int startPoint) {
-        this.startPoint = startPoint;
-    }
-
-    /*protected void drawTria(Canvas canvas, float fromX, float fromY, float toX, float toY, int heigth, int bottom) {
-        // heigth和bottom分别为三角形的高与底的一半,调节三角形大小
-        canvas.drawLine(xPoints.get(startPoint), getHeight() - getPaddingBottom(), xPoints.get(startPoint), getPaddingTop(), arrowLinePaint);
-        float juli = (float) Math.sqrt((toX - fromX) * (toX - fromX)
-                + (toY - fromY) * (toY - fromY));// 获取线段距离
-        float juliX = toX - fromX;// 有正负，不要取绝对值
-        float juliY = toY - fromY;// 有正负，不要取绝对值
-        float dianX = toX - (heigth / juli * juliX);
-        float dianY = toY - (heigth / juli * juliY);
-        float dian2X = fromX + (heigth / juli * juliX);
-        float dian2Y = fromY + (heigth / juli * juliY);
-        //终点的箭头
-        Path path = new Path();
-        path.moveTo(toX, toY);// 此点为三边形的起点
-        path.lineTo(dianX + (bottom / juli * juliY), dianY
-                - (bottom / juli * juliX));
-        path.lineTo(dianX - (bottom / juli * juliY), dianY
-                + (bottom / juli * juliX));
-        path.close(); // 使这些点构成封闭的三边形
-        canvas.drawPath(path, arrowLinePaint);
-    }*/
-
-    /**
-     * Get the color of the sparkline
-     */
-    @ColorInt
-    public int getLineColor() {
-        return lineColor;
-    }
-
-    /**
-     * Set the color of the sparkline
-     */
-    public void setLineColor(@ColorInt int lineColor) {
-        this.lineColor = lineColor;
-        sparkLinePaint.setColor(lineColor);
-        invalidate();
-    }
-
-    /**
-     * Get the width in pixels of the sparkline's stroke
-     */
-    public float getLineWidth() {
-        return lineWidth;
-    }
-
-    /**
-     * Set the width in pixels of the sparkline's stroke
-     */
-    public void setLineWidth(float lineWidth) {
-        this.lineWidth = lineWidth;
-        sparkLinePaint.setStrokeWidth(lineWidth);
-        invalidate();
-    }
-
-    /**
-     * Get the corner radius in pixels used when rounding the sparkline's segments.
-     */
-    public float getCornerRadius() {
-        return cornerRadius;
-    }
-
-    /**
-     * Set the corner radius in pixels to use when rounding the sparkline's segments. Passing 0
-     * indicates that corners should not be rounded.
-     */
-    public void setCornerRadius(float cornerRadius) {
-        this.cornerRadius = cornerRadius;
-        if (cornerRadius != 0) {
-            sparkLinePaint.setPathEffect(new CornerPathEffect(cornerRadius));
-        } else {
-            sparkLinePaint.setPathEffect(null);
-        }
-        invalidate();
-    }
-
-    /**
-     * Whether or not this view animates changes to its data.
-     */
-    public boolean getAnimateChanges() {
-        return animateChanges;
-    }
-
-    /**
-     * Whether or not this view should animate changes to its data.
-     */
-    public void setAnimateChanges(boolean animate) {
-        this.animateChanges = animate;
-    }
-
-    /**
-     * Get the {@link Paint} used to draw the scrub line. Any custom modifications to this
-     * {@link Paint} will not reflect until the next call to {@link #invalidate()}
-     */
-    public Paint getScrubLinePaint() {
-        return scrubLinePaint;
-    }
-
-    /**
-     * Set the {@link Paint} to be used to draw the scrub line. Warning: setting a paint other than
-     * the instance returned by {@link #getScrubLinePaint()} may result in loss of style attributes
-     * specified on this view.
-     */
-    public void setScrubLinePaint(Paint scrubLinePaint) {
-        this.scrubLinePaint = scrubLinePaint;
-        invalidate();
-    }
-
-    /**
-     * Return whether or not this sparkline should fill the area underneath.
-     */
-    public boolean isFill() {
-        return fill;
-    }
-
-    /**
-     * Set whether or not this sparkline should fill the area underneath.
-     */
-    public void setFill(boolean fill) {
-        if (this.fill != fill) {
-            this.fill = fill;
-            sparkLinePaint.setStyle(fill ? Paint.Style.FILL : Paint.Style.STROKE);
-            populatePath();
-        }
-    }
-
-    /**
-     * Get the {@link Paint} used to draw the sparkline. Any modifications to this {@link Paint}
-     * will not reflect until the next call to {@link #invalidate()}
-     */
-    public Paint getSparkLinePaint() {
-        return sparkLinePaint;
-    }
-
-    /**
-     * Set the {@link Paint} to be used to draw the sparkline. Warning: setting a paint other than
-     * the instance returned by {@link #getSparkLinePaint()} may result in loss of style attributes
-     * specified on this view.
-     */
-    public void setSparkLinePaint(Paint pathPaint) {
-        this.sparkLinePaint = pathPaint;
-        invalidate();
-    }
-
-    /**
-     * Get the color of the base line
-     */
-    @ColorInt
-    public int getBaseLineColor() {
-        return baseLineColor;
-    }
-
-    /**
-     * Set the color of the base line
-     */
-    public void setBaseLineColor(@ColorInt int baseLineColor) {
-        this.baseLineColor = baseLineColor;
-        baseLinePaint.setColor(baseLineColor);
-        invalidate();
-    }
-
-    /**
-     * Get the width in pixels of the base line's stroke
-     */
-    public float getBaseLineWidth() {
-        return baseLineWidth;
-    }
-
-    /**
-     * Set the width in pixels of the base line's stroke
-     */
-    public void setBaseLineWidth(float baseLineWidth) {
-        this.baseLineWidth = baseLineWidth;
-        baseLinePaint.setStrokeWidth(baseLineWidth);
-        invalidate();
-    }
-
-    /**
-     * Get the {@link Paint} used to draw the base line. Any modifications to this {@link Paint}
-     * will not reflect until the next call to {@link #invalidate()}
-     */
-    public Paint getBaseLinePaint() {
-        return baseLinePaint;
-    }
-
-    /**
-     * Set the {@link Paint} to be used to draw the base line. Warning: setting a paint other than
-     * the instance returned by {@link #getBaseLinePaint()} ()} may result in loss of style
-     * attributes specified on this view.
-     */
-    public void setBaseLinePaint(Paint baseLinePaint) {
-        this.baseLinePaint = baseLinePaint;
-        invalidate();
-    }
-
-    /**
-     * Get the color of the scrub line
-     */
-    @ColorInt
-    public int getScrubLineColor() {
-        return scrubLineColor;
-    }
-
-    /**
-     * Set the color of the scrub line
-     */
-    public void setScrubLineColor(@ColorInt int scrubLineColor) {
-        this.scrubLineColor = scrubLineColor;
-        scrubLinePaint.setColor(scrubLineColor);
-        invalidate();
-    }
-
-    /**
-     * Get the width in pixels of the scrub line's stroke
-     */
-    public float getScrubLineWidth() {
-        return scrubLineWidth;
-    }
-
-    /**
-     * Set the width in pixels of the scrub line's stroke
-     */
-    public void setScrubLineWidth(float scrubLineWidth) {
-        this.scrubLineWidth = scrubLineWidth;
-        scrubLinePaint.setStrokeWidth(scrubLineWidth);
-        invalidate();
-    }
-
-    /**
-     * Return true if scrubbing is enabled on this view
-     */
-    public boolean isScrubEnabled() {
-        return scrubEnabled;
-    }
-
-    /**
-     * Set whether or not to enable scrubbing on this view.
-     */
-    public void setScrubEnabled(boolean scrubbingEnabled) {
-        this.scrubEnabled = scrubbingEnabled;
-        scrubGestureDetector.setEnabled(scrubbingEnabled);
-        invalidate();
-    }
-
-    /**
-     * Get the current {@link com.robinhood.spark.SparkView.OnScrubListener}
-     */
-    public OnScrubListener getScrubListener() {
-        return scrubListener;
     }
 
     /**
@@ -746,17 +429,6 @@ public class SparkView extends View implements ScrubGestureDetector.ScrubListene
      */
     public void setScrubListener(OnScrubListener scrubListener) {
         this.scrubListener = scrubListener;
-    }
-
-    public void setViewMoveWaveListener(MoveWaveView.ViewMoveWaveListener viewMoveWaveListener) {
-        this.viewMoveWaveListener = viewMoveWaveListener;
-    }
-
-    /**
-     * Get the backing {@link BaseSparkAdapter}
-     */
-    public BaseSparkAdapter getAdapter() {
-        return adapter;
     }
 
     /**
@@ -771,37 +443,6 @@ public class SparkView extends View implements ScrubGestureDetector.ScrubListene
             this.adapter.registerDataSetObserver(dataSetObserver);
         }
         populatePath();
-    }
-
-    private void doPathAnimation() {
-        if (pathAnimator != null) {
-            pathAnimator.cancel();
-        }
-
-        if (shortAnimationTime == 0) {
-            shortAnimationTime = getResources().getInteger(android.R.integer.config_shortAnimTime);
-        }
-
-        final PathMeasure pathMeasure = new PathMeasure(sparkPath, false);
-
-        float endLength = pathMeasure.getLength();
-        if (endLength == 0) {
-            return;
-        }
-
-        pathAnimator = ValueAnimator.ofFloat(0, endLength);
-        pathAnimator.setDuration(shortAnimationTime);
-        pathAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
-            @Override
-            public void onAnimationUpdate(ValueAnimator animation) {
-                float animatedPathLength = (Float) animation.getAnimatedValue();
-                renderPath.reset();
-                pathMeasure.getSegment(0, animatedPathLength, renderPath, true);
-                renderPath.rLineTo(0, 0);
-                invalidate();
-            }
-        });
-        pathAnimator.start();
     }
 
     private void clearData() {
@@ -976,16 +617,12 @@ public class SparkView extends View implements ScrubGestureDetector.ScrubListene
         //GC20190628 光标位置限制，触摸有效范围
         if (x >= 8.9929 & x <= 1111.1304 & index < 509) {
             if (y < 400) {
-                //新加纵坐标范围响应     //20200521      //GC? 影响虚光标和实光标的重叠?
+                //新加纵坐标范围响应     //20200521
 //                setScrubLineVirtualMove(x);
             }
         }
         Log.i("position", String.valueOf(x));
         Log.e("【SparkView内部】", "X:" + x + "/Y:" + y);
-    }
-
-    public float getScX() {
-        return scX;
     }
 
 
@@ -996,16 +633,6 @@ public class SparkView extends View implements ScrubGestureDetector.ScrubListene
             scrubListener.onScrubbed(null, 0);
         }
         invalidate();
-    }
-
-    @Override
-    public void onMoved(float x, float y) {
-
-    }
-
-    @Override
-    public void onMoveEnded() {
-
     }
 
     /**
@@ -1030,10 +657,6 @@ public class SparkView extends View implements ScrubGestureDetector.ScrubListene
         public void onChanged() {
             super.onChanged();
             populatePath();
-
-//            if (animateChanges) {
-//                doPathAnimation();
-//            }
         }
 
         @Override
@@ -1042,4 +665,15 @@ public class SparkView extends View implements ScrubGestureDetector.ScrubListene
             clearData();
         }
     };
+
+    @Override
+    public void onMoved(float x, float y) {
+
+    }
+
+    @Override
+    public void onMoveEnded() {
+
+    }
+
 }

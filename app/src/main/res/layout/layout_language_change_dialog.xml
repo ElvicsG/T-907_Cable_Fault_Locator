@@ -24,7 +24,7 @@
             android:layout_height="wrap_content"
             android:background="@drawable/bg_language_change"
             app:layout_marginLeftPercent="2.6%"
-            app:layout_marginRightPercent="2.6%"><!--百分比运用//GC20200525-->
+            app:layout_marginRightPercent="2.6%"><!--语言对话框百分比运用//GC20200525-->
 
             <LinearLayout
                 android:id="@+id/rl_info"

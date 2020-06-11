@@ -73,7 +73,7 @@ public class ModeActivity extends BaseActivity {
     @BindView(R.id.tv_distance)
     TextView tvDistance;
     /**
-     * 显示自动测距结果 //GC20190708
+     * 自动测距结果 //GC20190708
      */
     @BindView(R.id.tv_information)
     TextView tvInformation;
@@ -107,8 +107,8 @@ public class ModeActivity extends BaseActivity {
     ImageView tvHelp;
     @BindView(R.id.rl_feature)
     LinearLayout rlFeature;
-    @BindView(R.id.fullWave)
-    SparkView fullWave;
+    @BindView(R.id.mainWave)
+    SparkView mainWave;
     @BindView(R.id.tv_mode)
     TextView tvMode;
     @BindView(R.id.tv_range_value)
@@ -242,7 +242,7 @@ public class ModeActivity extends BaseActivity {
     private int fenzi1;
     //初始化滑块位置
     private int fenzi2;
-    private int CurrentActionDownValue = 0;
+    private int currentActionDownX = 0;
 
     private boolean alreadyDisplayWave;
     //20200407
@@ -266,9 +266,50 @@ public class ModeActivity extends BaseActivity {
      * 全局的handler对象用来执行UI更新
      */
     public static final int DO_WAVE = 1;
-    public static final int ORGANIZE_WAVE = 2;
-    public static final int VIEW_REFRESH = 3;
-    public static final int DISPLAY_DATABASE = 4;
+    public static final int VIEW_REFRESH = 2;
+    public static final int DISPLAY_DATABASE = 3;
+
+    public Handler handler = new Handler(msg -> {
+        switch (msg.what) {
+            case DO_WAVE:
+                //处理波形数据
+                int[] wifiStreamNew = msg.getData().getIntArray("WAVE");
+                assert wifiStreamNew != null;
+                doWifiWave(wifiStreamNew);
+                break;
+            case VIEW_REFRESH:
+                if (mode != SIM) {
+                    //组织波形数据    //SIM需要单独写
+                    if (density < densityMax) {
+                        //有缩放时
+                        organizeZoomWaveData(currentStart);
+                    } else {
+                        organizeWaveData();
+                    }
+                    //显示波形
+                    displayWave();
+                }
+                //TODO 20200407 波形绘制完毕，恢复测试按钮可用性，允许请求电量
+                Constant.isTesting = false;
+                ConnectService.canAskPower = true;
+                allowSetRange = true;
+                tvTest.setEnabled(true);
+                Log.e("【请求电量时机控制】", "波形绘制完毕，允许请求电量。");
+                break;
+            case DISPLAY_DATABASE:
+                //显示记录波形
+                setDateBaseParameter();
+                try {
+                    organizeWaveData();
+                    displayWave();
+                } catch (Exception l_ex) {
+                }
+                break;
+            default:
+                break;
+        }
+        return false;
+    });
 
     /**
      * 定义监听广播
@@ -284,7 +325,7 @@ public class ModeActivity extends BaseActivity {
             switch (action) {
                 case BROADCAST_ACTION_DEVICE_CONNECTED:
                     Log.e("ModeActivity", "连接成功");
-                    //网络连接，更换网络图标   //GC20200325
+                    //网络连接，更换网络图标
                     ConnectService.isConnected = true;
                     ivWifiStatus.setImageResource(R.drawable.ic_wifi_connected);
                     //重连有对话框消对话框    //GC20200319
@@ -333,7 +374,7 @@ public class ModeActivity extends BaseActivity {
                             if (mode == SIM) {
                                 handler.postDelayed(() -> {
                                     //脉宽
-                                    setPulseWidth(pulseWidth);
+                                    setPulseWidth(pulseWidthSim);
                                 }, 20);
                             }
                         }
@@ -433,9 +474,7 @@ public class ModeActivity extends BaseActivity {
         }
         myChartAdapterMainWave = new MyChartAdapterBase(waveArray, null,
                 false, 0, false);
-        myChartAdapterFullWave = new MyChartAdapterBase(waveArray, null,
-                false, 0, false);
-        fullWave.setAdapter(myChartAdapterMainWave);
+        mainWave.setAdapter(myChartAdapterMainWave);
         setMoveView();
         Log.i("Draw", "初始化绘制结束");
     }
@@ -443,94 +482,116 @@ public class ModeActivity extends BaseActivity {
     /**
      * 初始化波形移动监听事件
      */
-    int moverMoveValue = 0;
-    //当前滑块左侧在510个点的数值
-    int currentMoverPosition510 = 0;
     private void initViewMoveWave() {
 
         viewMoveVerticalWave.setViewMoveWaveListener(new MoveWaveView.ViewMoveWaveListener() {
             @Override
             public void onMoved(float x, float y) {
                 //上下移动波形
-                fullWave.setSparkViewMove(y);
+                mainWave.setSparkViewMove(y);
                 Log.e("ModeActivity", y + "");
             }
             @Override
             public void onMoveEnded() {
-
             }
         });
         fenzi1 = (dataLength / (densityMax / density)) - 510;
 
-        //TODO 20200520 下方滑条移动时，滑动波形,加注释
-        mvWave.setViewMoveWaveListener(new MoveView.ViewMoveWaveListener() {
-
-            @Override
-            public void onMoved(float x) {
-                Log.e("【滑块】", "当前X：" + x + "/长度：" + mvWave.getParentWidth() + "/510Value:" + get510Value(x, mvWave.getParentWidth()));
-                //滑块X在510个点中的位置
-                int currentMoverX = get510Value(x, mvWave.getParentWidth());
-                //计算滑块移动的数值，在波形框宽度510中的对应数值
-                moverMoveValue = currentMoverX - currentMoverPosition510;
-                //因当前波形是缩放时从某个点开始取的，因此滑块左侧的位置就是重新抽点的起始点，按照比例可以算出来
-                organizeMoveWaveData(currentMoverX * dataLength / 510);
-                //20200523  添加
-                currentStart = currentMoverX * dataLength / 510;
-                //比对波形
-                try {
-                    organizeCompareWaveData(currentMoverX * dataLength / 510);
-                } catch (Exception l_Ex) {
-                }
-                Log.e("【滑块】", "currentStart:" + currentStart + "/currentMoverX:" + currentMoverX + "moverMoveValue：" + moverMoveValue);
-                //重新绘制波形
-                displayWave();
-
-                //滑块移动时变换虚光标位置
-                positionVirtual = positionVirtual - moverMoveValue * (densityMax / density);
-                //滑块移动时变换实光标位置
-                positionReal = positionReal - moverMoveValue * (densityMax / density);
-                //滑块移动时变换SIM标记光标的位置    //GC20200330
-                positionSim = positionSim - moverMoveValue * (densityMax / density);
-
-                //重新设置当前的滑块左侧位置数值
-                //重新定位实光标
-                if (positionReal > 0 && positionReal <= 510) {
-                    fullWave.setScrubLineReal(positionReal);
-                } else {
-                    fullWave.setScrubLineRealDisappear();
-                }
-
-                //重新定位SIM标记光标    //GC20200330
-                if (mode == SIM) {
-                    if (positionSim > 0 && positionSim <= 510) {
-                        fullWave.setScrubLineSim(positionSim);
-                    } else {
-                        fullWave.setScrubLineSimDisappear();
-                    }
-                }
-
-                //重新定位虚光标
-                if (positionVirtual >= 0 && positionVirtual <= 510) {
-                    fullWave.setScrubLineVirtual(positionVirtual);
-                } else {
-                    fullWave.setScrubLineVirtualDisappear();
-                }
-
-                //如果零点为0，而且当前绘制波形的起点也是0，说明波形在最左侧，需要在0位置显示实光标。
-                if (zero == 0 & currentMoverPosition510 == 0) {
-                    fullWave.setScrubLineReal(0);
-                }
-
-                //重新赋值当前波形的绘制起始位置
-                currentMoverPosition510 = currentMoverX;
-                //20200523
-                if ((zero == 0 || zero == 12) & currentMoverPosition510 == 0) {
-                    fullWave.setScrubLineReal(zero / densityMax);
-                }
-                Log.e("【光标参数】", "positionReal：" + positionReal + "/zero:" + zero + "/positionVirtual:" + positionVirtual + "/pointDistance:" + pointDistance + "/MoverPosition:" + (currentMoverX * dataLength / 510));
-
+        //下方滑条移动时，重新绘制波形
+        mvWave.setViewMoveWaveListener(x -> {
+            //滑块左侧位置（从0开始）
+            int currentMoverX = get510Value(x, mvWave.getParentWidth());
+            Log.e("【滑块】", "当前X：" + x + " /控件长度：" + mvWave.getParentWidth() + "左侧位置" + currentMoverX);
+            //波形起始点在原始数据中的位置
+            currentStart = currentMoverX * densityMax;
+            //重新抽点绘制波形
+            organizeZoomWaveData(currentStart);
+            try {
+                organizeCompareWaveData(currentStart);
+            } catch (Exception ignored) {
             }
+            displayWave();
+            //根据起始点判断是否画实光标     //GC20200611   滑块移动
+            if ( (zero < currentStart) || (zero >= currentStart + 510 * density) ){
+                mainWave.setScrubLineRealDisappear();
+            } else {
+                mainWave.setScrubLineReal(positionReal);
+            }
+            //判断是否画虚光标——需要监听虚光标位置变化，用来计算距离
+            positionVirtual = (pointDistance - currentStart) / density;
+            if ( (pointDistance < currentStart) || (pointDistance >= currentStart + 510 * density) ){
+                mainWave.setScrubLineVirtualDisappear();
+            } else {
+                mainWave.setScrubLineVirtual(positionVirtual);
+            }
+            //判断是是否画标记光标    //GC20200330
+            if (mode ==SIM) {
+                if ( (simStandardZero < currentStart) || (simStandardZero >= currentStart + 510 * density) ){
+                    mainWave.setScrubLineSimDisappear();
+                } else {
+                    positionSim = simStandardZero / density;
+                    mainWave.setScrubLineSim(positionSim);
+                }
+            }
+            //当前滑块左侧在510个点中的位置
+            currentMoverPosition510 = currentMoverX;
+            Log.e("【滑块】", "波形起始点位置: " + currentStart + " /当前滑块左侧510中的位置: " + currentMoverPosition510);
         });
+
+    }
+
+    /**
+     * 将滑块左侧在滑条的原始位置转换为滑条长度为510的数值（由0开始）
+     *
+     * @param x 滑块左侧在滑条控件里面的位置，单位为像素
+     * @param length 滑条长度
+     * @return 转换好的值
+     */
+    private int get510Value(float x, float length) {
+        return (int) (510 * x / length);
+    }
+
+    /**
+     * 在sparkView界面显示波形
+     */
+    private void displayWave() {
+        if (densityMax == 1) {
+            //如果最大比例为1，不允许按缩放按键     //20200523  //GN界面优化可能用到
+            tvZoomPlus.setEnabled(false);
+            tvZoomMin.setEnabled(false);
+        } else {
+            tvZoomPlus.setEnabled(true);
+        }
+        if (mode == SIM) {
+            if (isDatabase) {
+                //数据库SIM上翻下翻按钮无效  //GC20200604
+                tvWavePre.setEnabled(false);
+                tvWavePre.setImageResource(R.drawable.bg_wave_pre_s_false);
+                tvWaveNext.setEnabled(false);
+                tvWaveNext.setImageResource(R.drawable.bg_wave_next_s_false);
+                //数据库SIM波形无波形序号
+                tvWaveText.setVisibility(View.GONE);
+                tvWaveValue.setVisibility(View.GONE);
+            } else {
+                tvWaveText.setVisibility(View.VISIBLE);
+                tvWaveValue.setVisibility(View.VISIBLE);
+            }
+        }
+        //画波形
+        myChartAdapterMainWave.setmTempArray(waveDraw);
+        myChartAdapterMainWave.setShowCompareLine(isCom);
+        if (mode == SIM) {
+            if (isCom) {
+                myChartAdapterMainWave.setmCompareArray(waveCompare);
+            }
+        }
+        myChartAdapterMainWave.notifyDataSetChanged();
+        //有对话框消对话框
+        if (tDialog != null) {
+            tDialog.dismissAllowingStateLoss();
+            Log.e("DIA", "正在接受数据隐藏" + " 波形绘制完成");
+        }
+        alreadyDisplayWave = true;
 
     }
 
@@ -558,7 +619,7 @@ public class ModeActivity extends BaseActivity {
         ParamInfo paramInfo = (ParamInfo) StateUtils.getObject(ModeActivity.this, Constant.PULSE_WIDTH_INFO_KEY);
         if (paramInfo != null) {
             if (hasSavedPulseWidth) {
-                //初始化脉宽（保存过脉宽，读取存储的数值）    //GC20200331
+                //保存过脉宽才进行读取和初始化操作   //GC20200331
                 pulseWidth = paramInfo.getPulseWidth();
                 etPulseWidth.setText(String.valueOf(pulseWidth));
             }
@@ -592,7 +653,7 @@ public class ModeActivity extends BaseActivity {
     }
 
     /**
-     * 读取主页设置中存储的电缆长度，并初始化范围    （添加根据范围选择波宽度）//GC20200331
+     * 读取主页设置中存储的电缆长度，并初始化范围
      */
     private void initRange() {
         ParamInfo paramInfo = (ParamInfo) StateUtils.getObject(ModeActivity.this, Constant.PARAM_INFO_KEY);
@@ -610,10 +671,12 @@ public class ModeActivity extends BaseActivity {
                     tvRangeValue.setText(getResources().getString(R.string.btn_500m));
                 }
                 //初始化脉宽数值（未保存过脉宽） //GC20200331
-                if (!hasSavedPulseWidth || mode == SIM) {
+                if (!hasSavedPulseWidth) {
                     pulseWidth = 40;
                     etPulseWidth.setText(String.valueOf(40));
                 }
+                //初始化SIM的脉宽值    //GC20200527
+                pulseWidthSim = 320;
             } else if (localRange <= 250) {
                 range = (0x99);
                 rangeState = 0;
@@ -623,11 +686,11 @@ public class ModeActivity extends BaseActivity {
                 } else {
                     tvRangeValue.setText(getResources().getString(R.string.btn_250m));
                 }
-                //GC20200331
-                if (!hasSavedPulseWidth || mode == SIM) {
+                if (!hasSavedPulseWidth) {
                     pulseWidth = 40;
                     etPulseWidth.setText(String.valueOf(40));
                 }
+                pulseWidthSim = 320;
             } else if (localRange > 250 && localRange <= 500) {
                 range = (0x11);
                 rangeState = 1;
@@ -637,11 +700,11 @@ public class ModeActivity extends BaseActivity {
                 } else {
                     tvRangeValue.setText(getResources().getString(R.string.btn_500m));
                 }
-                //GC20200331
-                if (!hasSavedPulseWidth || mode == SIM) {
+                if (!hasSavedPulseWidth) {
                     pulseWidth = 40;
                     etPulseWidth.setText(String.valueOf(40));
                 }
+                pulseWidthSim = 320;
             } else if (localRange > 500 && localRange <= 1000) {
                 range = (0x22);
                 rangeState = 2;
@@ -651,11 +714,11 @@ public class ModeActivity extends BaseActivity {
                 } else {
                     tvRangeValue.setText(getResources().getString(R.string.btn_1km));
                 }
-                //GC20200331
-                if (!hasSavedPulseWidth || mode == SIM) {
+                if (!hasSavedPulseWidth) {
                     pulseWidth = 80;
                     etPulseWidth.setText(String.valueOf(80));
                 }
+                pulseWidthSim = 320;
             } else if (localRange > 1000 && localRange <= 2000) {
                 range = (0x33);
                 rangeState = 3;
@@ -665,11 +728,11 @@ public class ModeActivity extends BaseActivity {
                 } else {
                     tvRangeValue.setText(getResources().getString(R.string.btn_2km));
                 }
-                //GC20200331
-                if (!hasSavedPulseWidth || mode == SIM) {
+                if (!hasSavedPulseWidth) {
                     pulseWidth = 160;
                     etPulseWidth.setText(String.valueOf(160));
                 }
+                pulseWidthSim = 720;
             } else if (localRange > 2000 && localRange <= 4000) {
                 range = (0x44);
                 rangeState = 4;
@@ -679,11 +742,11 @@ public class ModeActivity extends BaseActivity {
                 } else {
                     tvRangeValue.setText(getResources().getString(R.string.btn_4km));
                 }
-                //GC20200331
-                if (!hasSavedPulseWidth || mode == SIM) {
+                if (!hasSavedPulseWidth) {
                     pulseWidth = 320;
                     etPulseWidth.setText(String.valueOf(320));
                 }
+                pulseWidthSim = 2560;
             } else if (localRange > 4000 && localRange <= 8000) {
                 range = (0x55);
                 rangeState = 5;
@@ -693,11 +756,11 @@ public class ModeActivity extends BaseActivity {
                 } else {
                     tvRangeValue.setText(getResources().getString(R.string.btn_8km));
                 }
-                //GC20200331
-                if (!hasSavedPulseWidth || mode == SIM) {
+                if (!hasSavedPulseWidth) {
                     pulseWidth = 640;
                     etPulseWidth.setText(String.valueOf(640));
                 }
+                pulseWidthSim = 3600;
             } else if (localRange > 8000 && localRange <= 16000) {
                 range = (0x66);
                 rangeState = 6;
@@ -707,11 +770,11 @@ public class ModeActivity extends BaseActivity {
                 } else {
                     tvRangeValue.setText(getResources().getString(R.string.btn_16km));
                 }
-                //GC20200331
-                if (!hasSavedPulseWidth || mode == SIM) {
+                if (!hasSavedPulseWidth) {
                     pulseWidth = 1280;
                     etPulseWidth.setText(String.valueOf(1280));
                 }
+                pulseWidthSim = 7120;
             } else if (localRange > 16000 && localRange <= 32000) {
                 range = (0x77);
                 rangeState = 7;
@@ -721,11 +784,11 @@ public class ModeActivity extends BaseActivity {
                 } else {
                     tvRangeValue.setText(getResources().getString(R.string.btn_32km));
                 }
-                //GC20200331
-                if (!hasSavedPulseWidth || mode == SIM) {
+                if (!hasSavedPulseWidth) {
                     pulseWidth = 2560;
                     etPulseWidth.setText(String.valueOf(2560));
                 }
+                pulseWidthSim = 10200;
             } else if (localRange > 32000) {
                 range = (0x88);
                 rangeState = 8;
@@ -735,11 +798,11 @@ public class ModeActivity extends BaseActivity {
                 } else {
                     tvRangeValue.setText(getResources().getString(R.string.btn_64km));
                 }
-                //GC20200331
-                if (!hasSavedPulseWidth || mode == SIM) {
+                if (!hasSavedPulseWidth) {
                     pulseWidth = 5120;
                     etPulseWidth.setText(String.valueOf(5120));
                 }
+                pulseWidthSim = 10200;
             }
         } else {
             //没有设置的距离
@@ -751,10 +814,12 @@ public class ModeActivity extends BaseActivity {
                 tvRangeValue.setText(getResources().getString(R.string.btn_500m));
             }
             //GC20200331
-            if (!hasSavedPulseWidth || mode == SIM) {
+            if (!hasSavedPulseWidth) {
                 pulseWidth = 40;
                 etPulseWidth.setText(String.valueOf(40));
             }
+            //GC20200527
+            pulseWidthSim = 320;
         }
         Constant.RangeValue = range;
         //GC20200428
@@ -793,10 +858,8 @@ public class ModeActivity extends BaseActivity {
         calculateDistance(Math.abs(pointDistance - zero));
         //初始化自动测距结果显示    //GC20190708
         tvInformation.setVisibility(View.GONE);
-        //SIM光标位置初始化    //GC20190712
-        simZero = StateUtils.getInt(ModeActivity.this, AppConfig.CURRENT_CURSOR_POSITION, 12);
-        //GC20200330
-        simPosition = 12;
+        //SIM光标位置初始化（可以自定义）    //GC20190712
+        simOriginalZero = StateUtils.getInt(ModeActivity.this, AppConfig.CURRENT_CURSOR_POSITION, 12);
         //测试缆信息添加    //GC20200103
         leadLength = getLocalLength();
         leadVop = getLocalVop();
@@ -822,111 +885,90 @@ public class ModeActivity extends BaseActivity {
      * 监听虚光标位置变化
      */
     private void setChartListener() {
-
-        //TODO 20200520 加注释，滑动波形，波形下方区域拿出，做波形的左右滑动
-        fullWave.setScrubListener(new SparkView.OnScrubListener() {
+        //波形下方部分区域拿出，做波形的左右滑动
+        mainWave.setScrubListener(new SparkView.OnScrubListener() {
             @Override
             public void onActionDown(Object x, float y) {
-                Log.e("【ActionDown】", "ActionDown:" + x + "/Y:" + y);
-                //手指按下记录位置
-                CurrentActionDownValue = (Integer) x;
+                Log.e("【波形区域坐标】", "onActionDown:" + " /X:"  + x + " /Y:" + y);
+                //手指按下的横坐标位置记录
+                currentActionDownX = (Integer) x;
             }
-
             @Override
             public void onScrubbed(Object value, float y) {
-                //手触摸区域判断，值越小，波形滑动区域越大
-                if (y < 400) {
+                //y值越小，波形滑动区域越大  //GC20200528
+                if (y < 600) {
                     if ((Integer) value <= 510) {
                         //画虚光标
-                        fullWave.setScrubLineVirtual((Integer) value);
-                        //虚光标移动的点数  //GC20191218
-                        cursorMoveValue = (int) value - positionVirtual;
-                        Log.e("【虚光标】", "滑动开始：value:" + value + "/positionVirtual:" + positionVirtual + "/cursorMoveValue:" + cursorMoveValue + "/pointDistance" + pointDistance + "/zero:" + zero); //GN 数值变化0-509
-                        //在原始数据中的位置
-                        pointDistance = pointDistance + cursorMoveValue * density;
-                        Log.e("【虚光标】", "滑动中：value:" + value + "/positionVirtual:" + positionVirtual + "/cursorMoveValue:" + cursorMoveValue + "/pointDistance" + pointDistance + "/zero:" + zero); //GN 数值变化0-509
-                        //记忆移动后虚光标在画布中的位置
+                        mainWave.setScrubLineVirtual((Integer) value);
+                        //虚光标变化的数值
+                        positionVirtualChange = (int) value - positionVirtual;
+                        Log.e("【波形区域虚光标】", "当前位置" + value + " /变化前positionVirtual:" + positionVirtual + " /虚光标变化值:" + positionVirtualChange);
+                        //变化后虚光标在原始数据中的位置
+                        pointDistance = pointDistance + positionVirtualChange * density;
+                        //虚光标在画布中的位置
                         positionVirtual = (int) value;
-                        int WaveDataStart = currentMoverPosition510 * dataLength / 510;
-                        Log.e("【虚光标】", "滑动结束：value:" + value + "/positionVirtual:" + positionVirtual + "/cursorMoveValue:" + cursorMoveValue + "/pointDistance" + pointDistance + "/zero:" + zero + "/WaveDataStart:" + WaveDataStart); //GN 数值变化0-509
-
-                        if (positionVirtual == 0 && zero == 0 && WaveDataStart < 510) {
+                        //监听虚光标变化去掉 //GC20200611
+                        /*int waveDataStart = currentMoverPosition510 * dataLength / 510;
+                        Log.e("【虚光标】", "滑动结束：value:" + value + "/positionVirtual:" + positionVirtual + "/positionVirtualChange:" + positionVirtualChange + "/pointDistance" + pointDistance + "/zero:" + zero + "/waveDataStart:" + waveDataStart);
+                        if (positionVirtual == 0 && zero == 0 && waveDataStart < 510) {
                             pointDistance = 0;
-                        }
+                        }*/
                         //距离显示
                         calculateDistance(Math.abs(pointDistance - zero));
                     }
                 } else {
-                    Log.e("【新滑块】", "value：" + value);
-                    Log.e("【新滑块】", "CurrentActionDownValue：" + CurrentActionDownValue);
+                    Log.e("【波形区域滑块】", "value：" + value + " /currentActionDownX：" + currentActionDownX);
                     //计算手指滑动的距离
-                    moverMoveValue = (Integer) value - CurrentActionDownValue;
-                    Log.e("【新滑块】", "moverMoveValue：" + moverMoveValue);
-                    Log.e("【新滑块】", "前currentMoverPosition510：" + currentMoverPosition510);
-
-                    //滑块X位置
+                    moverMoveValue = (Integer) value - currentActionDownX;
+                    //当前滑块左侧在510个点中的位置
                     currentMoverPosition510 = currentMoverPosition510 + moverMoveValue;
+                    Log.e("【波形区域滑块】", "当前滑块左侧510中的位置：" + currentMoverPosition510);
+                    currentStart = currentMoverPosition510 * densityMax;
                     //滑块x位置大于等于0且滑块X位置+滑块宽度不超过波形区域，则允许波形滑动。
                     if (currentMoverPosition510 >= 0 && (currentMoverPosition510 + (mvWave.getWidth() * 510 / mvWave.getParentWidth())) <= 510 && density != densityMax) {
-                        Log.e("【新滑块】", "后currentMoverPosition510：" + currentMoverPosition510);
-
-                        //因当前波形是缩放时从某个点开始取的，因此滑块左侧的位置就是重新抽点的起始点，按照比例可以算出来
-                        organizeMoveWaveData(currentMoverPosition510 * dataLength / 510);
-                        //比对波形
+                        //重新抽点绘制波形
+                        organizeZoomWaveData(currentStart);
                         try {
-                            organizeCompareWaveData(currentMoverPosition510 * dataLength / 510);
-                        } catch (Exception l_Ex) {
+                            organizeCompareWaveData(currentStart);
+                        } catch (Exception ignored) {
                         }
-                        Log.e("【滑块】", "currentMoverX:" + currentMoverPosition510 + "moverMoveValue：" + moverMoveValue);
                         //重新绘制波形
                         displayWave();
-                        //滑块移动时变换虚光标位置
-                        positionVirtual = positionVirtual - moverMoveValue * (densityMax / density);
-                        //滑块移动时变换实光标位置
-                        positionReal = positionReal - moverMoveValue * (densityMax / density);
-                        //滑块移动时变换SIM标记光标的位置    //GC20200330
-                        positionSim = positionSim - moverMoveValue * (densityMax / density);
-
-                        //重新设置当前的滑块左侧位置数值
-                        //重新定位实光标
-                        if (positionReal > 0 && positionReal <= 510) {
-                            fullWave.setScrubLineReal(positionReal);
+                        //根据起始点判断是否画实光标     //GC20200611   滑块移动
+                        if ( (zero < currentStart) || (zero >= currentStart + 510 * density) ){
+                            mainWave.setScrubLineRealDisappear();
                         } else {
-                            fullWave.setScrubLineRealDisappear();
+                            mainWave.setScrubLineReal(positionReal);
                         }
-
-                        //重新定位SIM标记光标    //GC20200330
-                        if (mode == SIM) {
-                            if (positionSim > 0 && positionSim <= 510) {
-                                fullWave.setScrubLineSim(positionSim);
+                        //判断是否画虚光标——需要监听虚光标位置变化，用来计算距离
+                        positionVirtual = (pointDistance - currentStart) / density;
+                        if ( (pointDistance < currentStart) || (pointDistance >= currentStart + 510 * density) ){
+                            mainWave.setScrubLineVirtualDisappear();
+                        } else {
+                            mainWave.setScrubLineVirtual(positionVirtual);
+                        }
+                        //判断是是否画标记光标    //GC20200330
+                        if (mode ==SIM) {
+                            if ( (simStandardZero < currentStart) || (simStandardZero >= currentStart + 510 * density) ){
+                                mainWave.setScrubLineSimDisappear();
                             } else {
-                                fullWave.setScrubLineSimDisappear();
+                                positionSim = simStandardZero / density;
+                                mainWave.setScrubLineSim(positionSim);
                             }
                         }
 
-                        //重新定位虚光标
-                        if (positionVirtual >= 0 && positionVirtual <= 510) {
-                            fullWave.setScrubLineVirtual(positionVirtual);
-                        } else {
-                            fullWave.setScrubLineVirtualDisappear();
-                        }
-
-                        if (zero == 0 & currentMoverPosition510 == 0) {
-                            fullWave.setScrubLineReal(0);
-                        }
-
                         //手指拖动时关联移动滑块到指定位置
-                        int moverPositon;
-                        moverPositon = mvWave.getParentWidth() * currentMoverPosition510 / 510;
-                        setMoverPostion(moverPositon);
+                        int moverPosition;
+                        moverPosition = mvWave.getParentWidth() * currentMoverPosition510 / 510;
+                        setMoverPosition(moverPosition);
                     } else {
                         currentMoverPosition510 = currentMoverPosition510 - moverMoveValue;
                     }
-                    CurrentActionDownValue = (Integer) value;
+                    currentActionDownX = (Integer) value;
                 }
-
             }
         });
+
     }
 
     //初始化模式
@@ -970,58 +1012,125 @@ public class ModeActivity extends BaseActivity {
         }
     }
 
-    public Handler handler = new Handler(msg -> {
-        switch (msg.what) {
-            case DO_WAVE:
-                int[] wifiStreamNew = msg.getData().getIntArray("WAVE");
-                assert wifiStreamNew != null;
-                doWifiWave(wifiStreamNew);
-                break;
-            case ORGANIZE_WAVE:
+    /**
+     * 处理APP接收的波形数据
+     */
+    private void doWifiWave(int[] wifiArray) {
+        if (wifiArray[3] == WAVE_TDR_ICM_DECAY) {
+            //非二次脉冲波形
+            System.arraycopy(wifiArray, 8, waveArray, 0, dataMax);
+            Constant.WaveData = waveArray;
+            //GC20191231
+            if ((mode == ICM) ){
+                icmAutoTest();
+            } else if((mode == ICM_DECAY)){
+                icmAutoTestDC();    //GC20200109 增加DC方式下的自动测距
+            }
+            //组织数据画波形
+            handler.sendEmptyMessage(VIEW_REFRESH);
+        } else if (wifiArray[3] == WAVE_SIM
+                || wifiArray[3] == 0x88 || wifiArray[3] == 0x99 || wifiArray[3] == 0xAA || wifiArray[3] == 0xBB
+                || wifiArray[3] == 0xCC || wifiArray[3] == 0xDD || wifiArray[3] == 0xEE || wifiArray[3] == 0xFF) {
+            //二次脉冲波形
+            if (wifiArray[3] == WAVE_SIM) {
+                System.arraycopy(wifiArray, 8, waveArray, 0, dataMax);
+                Constant.WaveData = waveArray;
+                //重合判断准备    //GC20200529
+                simSum[0] = 0;
+                for (int i = 0; i < dataMax; i++) {
+                    simSum[0] += waveArray[i];
+                }
+                Log.e("【MIM】", "第1条");
+            }
+            if (wifiArray[3] == 0x88) {
+                System.arraycopy(wifiArray, 8, simArray1, 0, dataMax);
+                Constant.TempData1 = simArray1;
+                simSum[1] = 0;
+                for (int i = 0; i < dataMax; i++) {
+                    simSum[1] += simArray1[i];
+                }
+                Log.e("【MIM】", "第2条");
+            }
+            if (wifiArray[3] == 0x99) {
+                System.arraycopy(wifiArray, 8, simArray2, 0, dataMax);
+                Constant.TempData2 = simArray2;
+                simSum[2] = 0;
+                for (int i = 0; i < dataMax; i++) {
+                    simSum[2] += simArray2[i];
+                }
+                Log.e("【MIM】", "第3条");
+            }
+            if (wifiArray[3] == 0xAA) {
+                System.arraycopy(wifiArray, 8, simArray3, 0, dataMax);
+                Constant.TempData3 = simArray3;
+                simSum[3] = 0;
+                for (int i = 0; i < dataMax; i++) {
+                    simSum[3] += simArray3[i];
+                }
+                Log.e("【MIM】", "第4条");
+            }
+            if (wifiArray[3] == 0xBB) {
+                System.arraycopy(wifiArray, 8, simArray4, 0, dataMax);
+                Constant.TempData4 = simArray4;
+                simSum[4] = 0;
+                for (int i = 0; i < dataMax; i++) {
+                    simSum[4] += simArray4[i];
+                }
+                Log.e("【MIM】", "第5条");
+            }
+            if (wifiArray[3] == 0xCC) {
+                System.arraycopy(wifiArray, 8, simArray5, 0, dataMax);
+                Constant.TempData5 = simArray5;
+                simSum[5] = 0;
+                for (int i = 0; i < dataMax; i++) {
+                    simSum[5] += simArray5[i];
+                }
+                Log.e("【MIM】", "第6条");
+            }
+            if (wifiArray[3] == 0xDD) {
+                System.arraycopy(wifiArray, 8, simArray6, 0, dataMax);
+                Constant.TempData6 = simArray6;
+                simSum[6] = 0;
+                for (int i = 0; i < dataMax; i++) {
+                    simSum[6] += simArray6[i];
+                }
+                Log.e("【MIM】", "第7条");
+            }
+            if (wifiArray[3] == 0xEE) {
+                System.arraycopy(wifiArray, 8, simArray7, 0, dataMax);
+                Constant.TempData7 = simArray7;
+                simSum[7] = 0;
+                for (int i = 0; i < dataMax; i++) {
+                    simSum[7] += simArray7[i];
+                }
+                Log.e("【MIM】", "第8条");
+            }
+            if (wifiArray[3] == 0xFF) {
+                System.arraycopy(wifiArray, 8, simArray8, 0, dataMax);
+                Constant.TempData8 = simArray8;
+                //数据全部获取完成，组织数据    //GC20200601
                 if (density < densityMax) {
-                    organizeNormalWaveData();
+                    organizeZoomWaveData(currentStart);
                 } else {
                     organizeWaveData();
                 }
-                break;
-            //显示波形
-            case VIEW_REFRESH:
-                resetWhatNeed();
-                //Log.e("【时效测试】", "开始组织波形数据");
-                if (density < densityMax) {
-                    //setDensity(density);
-                    organizeNormalWaveData();
-                    // Log.e("【时效测试】", "组织波形数据完毕");
-                    displayWave();
-                } else {
-                    organizeWaveData();
-                    // Log.e("【时效测试】", "组织波形数据完毕");
-                    displayWave();
+                simSum[8] = 0;
+                for (int i = 0; i < dataMax; i++) {
+                    simSum[8] += simArray8[i];
                 }
-
-                //TODO 20200407 波形绘制完毕，恢复测试按钮可用性，允许请求电量
-                Constant.isTesting = false;
-                ConnectService.canAskPower = true;
-                allowSetRange = true;
-                tvTest.setEnabled(true);
-                Log.e("【请求电量时机控制】", "波形绘制完毕，允许请求电量。");
-
-                //Log.e("【时效测试】", "绘制完毕");
-                break;
-            //显示本地存储的数据
-            case DISPLAY_DATABASE:
-                setDateBaseParameter();
-                try {
-                    organizeWaveData();
-                    displayWave();
-                } catch (Exception l_ex) {
-                }
-                break;
-            default:
-                break;
+                //SIM波形全部获取完成   //GC20200529
+                receiveSimOver = true;
+                Log.e("【MIM】", "第9条");
+            }
+            if (receiveSimOver) {
+                //SIM筛选功能添加 //GC20200529
+                selectBestSim();
+                handler.sendEmptyMessage(VIEW_REFRESH);
+                receiveSimOver = false;
+            }
         }
-        return false;
-    });
+
+    }
 
     //读取本地存储的波速度信息，默认为172，计算距离时要求是米单位，所以如果数据库里存的是英尺数，应该转换为米数。
     private double getLocalValue() {
@@ -1077,34 +1186,10 @@ public class ModeActivity extends BaseActivity {
     }
 
     /**
-     * 相同范围下点测试获取新波形数据
-     */
-    private void organizeNormalWaveData() {
-        for (int i = currentMoverPosition510 * dataLength / 510, j = 0; j < 510; i = i + density, j++) {
-            //组织TDR、ICM、ICM_DECAY、DECAY和SIM的第一条波形的数据
-            waveDraw[j] = Constant.WaveData[i + index];
-            //组织SIM的第二条波形的数据
-            if (mode == SIM) {
-                waveCompare[j] = Constant.SimData[i];
-                if (!isDatabase) {
-                    simDraw1[j] = simArray1[i];
-                    simDraw2[j] = simArray2[i];
-                    simDraw3[j] = simArray3[i];
-                    simDraw4[j] = simArray4[i];
-                    simDraw5[j] = simArray5[i];
-                    simDraw6[j] = simArray6[i];
-                    simDraw7[j] = simArray7[i];
-                    simDraw8[j] = simArray8[i];
-                }
-            }
-        }
-    }
-
-    /**
      * 处理APP接收的命令
      */
     private void doWifiCommand(int[] wifiArray) {
-        //仪器触发时：APP发送接收数据命令
+        //判断仪器触发时：APP发送接收数据命令
         if ((wifiArray[5] == COMMAND_TRIGGER) && (wifiArray[6] == TRIGGERED)) {
             command = COMMAND_RECEIVE_WAVE;
             dataTransfer = mode;
@@ -1146,71 +1231,6 @@ public class ModeActivity extends BaseActivity {
 
     }
 
-    //缩放时重新组织记忆的波形数据
-    private void organizeCompareWaveData(int start) {
-        //按比例抽出510个点
-        for (int i = start, j = 0; j < 510; i = i + density, j++) {
-            //组织TDR、ICM、ICM_DECAY、DECAY和SIM的第一条波形的数据
-            waveCompareDraw[j] = waveCompare[i];
-        }
-        int[] waveDraw250 = new int[256];
-        //需要操作的数据长度
-        if ((mode == TDR) || (mode == SIM)) {
-            //250m范围下用于比较的数据  //GC20191223
-            if (range == RANGE_250) {
-                //取出前256个点的数数据（用于差值计算）
-                for (int i = 0, j = 0; i < 256; i++, j++) {
-                    waveDraw250[j] = waveCompareDraw[i];
-                }
-                //利用原始的256个点数据算出差值的255个点
-                for (int i = 0, j = 1; i < 255; i++, j += 2) {
-                    waveCompareDraw[j] = waveDraw250[i] + (waveDraw250[i + 1] - waveDraw250[i]) / 2;
-                }
-                //将原始255个点分散
-                for (int i = 0, j = 0; j < 255; i++, j++) {
-                    waveCompareDraw[2 * j] = waveDraw250[i];
-                }
-            }
-        }
-
-    }
-
-    //滑块移动过程中，重新组织需要绘制的波形数据
-    private void organizeMoveWaveData(int start) {
-        //按比例抽出510个点
-        for (int i = start, j = 0; j < 510; i = i + density, j++) {
-            //组织TDR、ICM、ICM_DECAY、DECAY和SIM的第一条波形的数据
-            if (i < Constant.WaveData.length) {
-                waveDraw[j] = Constant.WaveData[i];
-            }
-            //组织SIM的第二条波形的数据
-            if (mode == SIM) {
-                waveCompare[j] = Constant.SimData[i];
-                if (!isDatabase) {
-                    simDraw1[j] = simArray1[i];
-                    simDraw2[j] = simArray2[i];
-                    simDraw3[j] = simArray3[i];
-                    simDraw4[j] = simArray4[i];
-                    simDraw5[j] = simArray5[i];
-                    simDraw6[j] = simArray6[i];
-                    simDraw7[j] = simArray7[i];
-                    simDraw8[j] = simArray8[i];
-                }
-            }
-        }
-    }
-
-    /**
-     * 根据滑块位置获取在波形框中的位置
-     *
-     * @param x     滑块左侧在滑条的位置，单位为像素
-     * @param right 滑条长度
-     * @return 转换好的值
-     */
-    private int get510Value(float x, float right) {
-        return (int) (510 * x / right);
-    }
-
     private void initTDRView() {
         viewMoveVerticalWave.setVisibility(View.GONE);
         tvMode.setText(getResources().getText(R.string.btn_tdr));
@@ -1249,7 +1269,7 @@ public class ModeActivity extends BaseActivity {
         tvWavePre.setVisibility(View.GONE);
         tvBalancePlus.setVisibility(View.GONE);
         tvBalanceMin.setVisibility(View.GONE);
-        //布局修正  //GC20200526
+        //信息框比例前方多了空格   布局修正  //GC20200525
         tvBalanceSpace.setVisibility(View.GONE);
         tvBalanceText.setVisibility(View.GONE);
         tvBalanceValue.setVisibility(View.GONE);
@@ -1289,7 +1309,8 @@ public class ModeActivity extends BaseActivity {
         tvTriggerDelay.setImageResource(R.drawable.bg_trigger_delay_s_selector);
         tvCal.setImageResource(R.drawable.bg_cal_s_selector);
         tvRange.setImageResource(R.drawable.bg_range_s_selector);
-        tvWavePre.setImageResource(R.drawable.bg_wave_pre_s_selector);
+        //SIM波形上翻状态初始化   //GC20200604
+        tvWavePre.setImageResource(R.drawable.bg_wave_pre_s_false);
         tvWaveNext.setImageResource(R.drawable.bg_wave_next_s_selector);
         tvFile.setImageResource(R.drawable.bg_file_s_selector);
 
@@ -1321,8 +1342,8 @@ public class ModeActivity extends BaseActivity {
         tvOrigin.setVisibility(View.GONE);
         tvPulseWidth.setVisibility(View.GONE);
         tvTriggerDelay.setVisibility(View.GONE);
-        tvWaveValue.setVisibility(View.GONE);
         tvWaveText.setVisibility(View.GONE);
+        tvWaveValue.setVisibility(View.GONE);
         tvWaveSpace.setVisibility(View.GONE);
     }
 
@@ -1345,7 +1366,7 @@ public class ModeActivity extends BaseActivity {
             //DECAY方式距离/2
             distance = (((double) cursorDistance * velocity / 2) * k) / 2 * 0.01;
         } else if ((mode == TDR) || (mode == SIM)) {
-            //GC20191226    250m范围/2
+            //250m范围距离/2  //GC20191225
             if (range == RANGE_250) {
                 distance = (((double) cursorDistance * velocity / 2) * k) / 2 * 0.01;
             }
@@ -1397,211 +1418,12 @@ public class ModeActivity extends BaseActivity {
     public void setDensity(int density) {
         this.density = density;
         tvZoomValue.setText("1 : " + density);
-        Log.e("GT", "density：" + density);
-        //GC20191219
-        organizeZoomWaveData();
+        organizeClickZoomData();
         displayWave();
     }
 
     public int getDensity() {
         return density;
-    }
-
-    /**
-     * 组织需要绘制的放大缩小波形数组（抽点510个）  //GC20191219
-     * 缩放时重新组织绘制的波形数据，重新绘制虚实光标。
-     */
-    public int currentStart = 0;
-    private void organizeZoomWaveData() {
-        //抽点的起始位置和虚光标位置
-        currentStart = 0;
-        //Log.e("【滑块相关】-开始处理缩放数据前", "densityMax:" + densityMax + "/density:" + density + "/pointDistance:" + pointDistance + "/positionVirtual" + positionVirtual + "/positionReal:" + positionReal + "/zero:" + zero + "/datalength:" + dataLength + "/start:" + currentStart);
-        if (pointDistance < 255 * density) {
-            //波形靠最右侧
-            positionVirtual = pointDistance / density;
-            Log.e("GT", "1：start：" + currentStart);
-            //根据起始点判断是否画实光标
-            if (zero > 510 * density) {
-                //不画实光标
-                positionReal = zero / density;
-                fullWave.setScrubLineRealDisappear();
-            } else {
-                //画实光标
-                positionReal = zero / density;
-                Log.e("GT", "1：positionReal：" + positionReal);
-                fullWave.setScrubLineReal(positionReal);
-            }
-            //GC20200330
-            if (mode ==SIM) {
-                if (simPosition > 510 * density) {
-                    //不画紫色实光标
-                    positionSim = simPosition / density;
-                    fullWave.setScrubLineSimDisappear();
-                } else {
-                    //画紫色实光标
-                    positionSim = simPosition / density;
-                    fullWave.setScrubLineSim(positionSim);
-                }
-            }
-
-        } else if ((pointDistance >= 255 * density) && (pointDistance < dataLength - 255 * density)) {
-            //波形靠以虚光标原始位置为中心
-            Log.e("GT", "2：dataLength：" + dataLength);
-            Log.e("GT", "2：pointDistance：" + pointDistance);
-            currentStart = pointDistance - 255 * density;
-            positionVirtual = 255;
-            Log.e("GT", "2：start：" + currentStart);
-            //根据虚光标位置判断是否画实光标
-            if ((pointDistance - zero) > 255 * density) {
-                positionReal = positionVirtual - (pointDistance - zero) / density;
-                //不画实光标
-                fullWave.setScrubLineRealDisappear();
-            } else if ((zero - pointDistance) >= 254 * density) {
-                positionReal = positionVirtual - (pointDistance - zero) / density;
-                //不画实光标
-                fullWave.setScrubLineRealDisappear();
-            } else {
-                //画实光标
-                positionReal = positionVirtual - (pointDistance - zero) / density;
-                Log.e("GT", "2：positionReal：" + positionReal);
-                fullWave.setScrubLineReal(positionReal);
-            }
-            //GC20200330
-            if (mode == SIM) {
-                if ((pointDistance - simPosition) > 255 * density) {
-                    fullWave.setScrubLineSimDisappear();
-                } else if ((simPosition - pointDistance) >= 254 * density) {
-                    //不画紫色实光标
-                    fullWave.setScrubLineSimDisappear();
-                } else {
-                    //画紫色实光标
-                    positionSim = positionVirtual - (pointDistance - simPosition) / density;
-                    fullWave.setScrubLineSim(positionSim);
-                }
-            }
-
-        } else if (pointDistance >= dataLength - 255 * density) {
-            //波形靠最左侧
-            currentStart = dataLength - 510 * density;
-            positionVirtual = 510 - (dataLength - pointDistance) / density;
-            Log.e("GT", "3：positionVirtual：" + positionVirtual);
-            Log.e("GT", "3：start：" + currentStart);
-            //根据起始点判断是否画实光标
-            if (zero > dataLength - 510 * density) {
-                //画实光标
-                positionReal = 510 - (dataLength - zero) / density;
-                Log.e("GT", "3：positionReal：" + positionReal);
-                fullWave.setScrubLineReal(positionReal);
-            } else {
-                //不画实光标
-                positionReal = 510 - (dataLength - zero) / density;
-                fullWave.setScrubLineRealDisappear();
-            }
-            //GC20200330
-            if (mode == SIM) {
-                if (simPosition > dataLength - 510 * density) {
-                    //画紫色实光标
-                    positionSim = 510 - (dataLength - simPosition) / density;
-                    fullWave.setScrubLineReal(positionReal);
-                } else {
-                    //不画紫色实光标
-                    positionSim = 510 - (dataLength - simPosition) / density;
-                    fullWave.setScrubLineSimDisappear();
-                }
-            }
-        }
-        //还原状态
-        if (density == densityMax) {
-            currentStart = 0;
-            positionVirtual = pointDistance / densityMax;
-            positionReal = zero / densityMax;
-            //画实光标
-            fullWave.setScrubLineReal(positionReal);
-
-            //画SIM标记光标    //GC20200330
-            if (mode == SIM) {
-                positionSim = simPosition / densityMax;
-                fullWave.setScrubLineSim(positionSim);
-            }
-            Log.e("GT", "4：还原");
-        }
-        //画虚光标
-        fullWave.setScrubLineVirtual(positionVirtual);
-
-        //Log.e("【滑块相关】-开始处理缩放数据后", "densityMax:" + densityMax + "/density:" + density + "/pointDistance:" + pointDistance + "/positionVirtual" + positionVirtual + "/positionReal:" + positionReal + "/zero:" + zero + "/datalength:" + dataLength + "/start:" + currentStart);
-        //按比例抽出510个点
-        for (int i = currentStart, j = 0; j < 510; i = i + density, j++) {
-            //组织TDR、ICM、ICM_DECAY、DECAY和SIM的第一条波形的数据
-            waveDraw[j] = Constant.WaveData[i + index];
-            //组织SIM的第二条波形的数据
-            if (mode == SIM) {
-                waveCompare[j] = Constant.SimData[i];
-                if (!isDatabase) {
-                    simDraw1[j] = simArray1[i];
-                    simDraw2[j] = simArray2[i];
-                    simDraw3[j] = simArray3[i];
-                    simDraw4[j] = simArray4[i];
-                    simDraw5[j] = simArray5[i];
-                    simDraw6[j] = simArray6[i];
-                    simDraw7[j] = simArray7[i];
-                    simDraw8[j] = simArray8[i];
-                }
-            }
-        }
-        //组织比对波形数据
-        try {
-            organizeCompareWaveData(currentStart);
-        } catch (Exception l_ex) {
-        }
-        //设置水平滑块左侧位置
-        int moverXValue = 0;
-        //转换为在波形框中的对应数值
-        moverXValue = currentStart * 510 / dataLength;
-        currentMoverPosition510 = moverXValue;
-        //Log.e("【滑块】", "" + moverXValue);
-
-        //转换为屏幕坐标
-        moverXValue = mvWave.getParentWidth() * moverXValue / 510;
-        //重新设置滑块大小
-        setHorizontalMoveView();
-        //移动滑块到指定位置
-        setMoverPostion(moverXValue);
-        // Log.e("【光标参数】", "positionReal：" + positionReal + "/zero:" + zero + "/positionVirtual:" + positionVirtual + "/pointDistance:" + pointDistance);
-
-    }
-
-    /**
-     * 在sparkView界面显示波形
-     */
-    private void displayWave() {
-        //画波形
-        myChartAdapterMainWave.setmTempArray(waveDraw);
-        myChartAdapterFullWave.setmTempArray(waveDrawFull);
-        myChartAdapterMainWave.setShowCompareLine(isCom);
-        myChartAdapterFullWave.setShowCompareLine(isCom);
-        if (mode == SIM) {
-            if (isCom) {
-                myChartAdapterMainWave.setmCompareArray(waveCompare);
-                myChartAdapterFullWave.setmCompareArray(waveCompareFull);
-
-            }
-        }
-        myChartAdapterMainWave.notifyDataSetChanged();
-        myChartAdapterFullWave.notifyDataSetChanged();
-        //有对话框消对话框
-        if (tDialog != null) {
-//            tDialog.dismiss();    //20200523  消掉对话框
-            tDialog.dismissAllowingStateLoss();
-            Log.e("DIA", "正在接受数据隐藏" + " 波形绘制完成");
-        }
-
-        alreadyDisplayWave = true;
-
-        //TODO 20200401 SIM模式下，读取数据库时，禁用上翻下翻
-        if (isDatabase) {
-            tvWaveNext.setEnabled(false);
-            tvWavePre.setEnabled(false);
-        }
     }
 
     //设置滑块参数
@@ -1625,16 +1447,12 @@ public class ModeActivity extends BaseActivity {
                 break;
             case 1:
                 gainState = 0;
-                //组织数据画波形
-                handler.sendEmptyMessage(VIEW_REFRESH);
                 //显示增益过大
                 tvInformation.setVisibility(View.VISIBLE);
                 tvInformation.setText(getResources().getString(R.string.gain_too_high));
                 return;
             case 2:
                 gainState = 0;
-                //组织数据画波形
-                handler.sendEmptyMessage(VIEW_REFRESH);
                 //显示增益过小
                 tvInformation.setVisibility(View.VISIBLE);
                 tvInformation.setText(getResources().getString(R.string.gain_too_low));
@@ -1650,8 +1468,6 @@ public class ModeActivity extends BaseActivity {
         breakdownJudgment();
         //显示不击穿 //GC20191231
         if (!breakDown) {
-            //组织数据画波形
-            handler.sendEmptyMessage(VIEW_REFRESH);
             //显示不击穿    //GC20190710
             tvInformation.setVisibility(View.VISIBLE);
             tvInformation.setText(getResources().getString(R.string.not_break_down));
@@ -1665,8 +1481,7 @@ public class ModeActivity extends BaseActivity {
         breakPointCalculate();
         //光标自动定位
         icmAutoCursor();
-        //组织数据画波形
-        handler.sendEmptyMessage(VIEW_REFRESH);
+
     }
 
     /**
@@ -1681,16 +1496,12 @@ public class ModeActivity extends BaseActivity {
                 break;
             case 1:
                 gainState = 0;
-                //组织数据画波形
-                handler.sendEmptyMessage(VIEW_REFRESH);
                 //显示增益过大
                 tvInformation.setVisibility(View.VISIBLE);
                 tvInformation.setText(getResources().getString(R.string.gain_too_high));
                 return;
             case 2:
                 gainState = 0;
-                //组织数据画波形
-                handler.sendEmptyMessage(VIEW_REFRESH);
                 //显示增益过小
                 tvInformation.setVisibility(View.VISIBLE);
                 tvInformation.setText(getResources().getString(R.string.gain_too_low));
@@ -1706,8 +1517,7 @@ public class ModeActivity extends BaseActivity {
         correlationSimpleDC();
         //光标自动定位
         icmAutoCursor();
-        //组织数据画波形
-        handler.sendEmptyMessage(VIEW_REFRESH);
+
     }
 
     /**
@@ -1718,9 +1528,16 @@ public class ModeActivity extends BaseActivity {
         int max = 0;
         int sub;
 
+        //求ICM波形头直线段数值大小    //GC20200606
+        int sum = 0;
+        for (int j = 0; j < 10; j++) {
+            sum += waveArray[j];
+        }
+        int ave = sum / 10;
+
         //计算波形有效数据的极值
         for (i = 0; i < dataMax - removeIcmDecay[rangeState]; i++) {
-            sub = waveArray[i] - 128;
+            sub = waveArray[i] - ave;
             if (Math.abs(sub) > max) {
                 max = Math.abs(sub);
             }
@@ -1731,8 +1548,8 @@ public class ModeActivity extends BaseActivity {
             return;
         }
         for (i = 0; i < dataMax - removeIcmDecay[rangeState]; i++) {
-            if ((waveArray[i] > 242) || (waveArray[i] < 16)) {
-//            if ((waveArray[i] > 242) || (waveArray[i] < 13)) {    //增益微调
+            if ((waveArray[i] > 242) || (waveArray[i] < 25)) {
+//            if ((waveArray[i] > 242) || (waveArray[i] < 13)) {    //A20200527  ICM增益大小判断微调
                 //判断增益过大
                 gainState = 1;
                 return;
@@ -1744,13 +1561,18 @@ public class ModeActivity extends BaseActivity {
      * 脉冲电流方式软件滤波   方向脉冲法自动计算-软件滤波，一阶滞后滤波，低通截止频率约750kHz（两个采样频率都是这个截止频率）
      */
     private void softwareFilter() {
-        int i;
-        for (i = 1; i < dataMax - removeIcmDecay[rangeState]; i++) {
+        //求ICM波形头直线断数值大小  //GC20200606
+        int sum = 0;
+        for (int i = 0; i < 10; i++) {
+            sum += waveArray[i];
+        }
+        int ave = sum / 10;
+        for (int i = 1; i < dataMax - removeIcmDecay[rangeState]; i++) {
             if (rangeState > 6) {
                 //25M采样——32km、64km范围
-                waveArrayFilter[i] = 0.6232 * waveArrayFilter[i - 1] + 0.3768 * (double) (waveArray[i] - 122);//1.5M
+                waveArrayFilter[i] = 0.6232 * waveArrayFilter[i - 1] + 0.3768 * (double) (waveArray[i] - ave);//1.5M
             } else {
-                waveArrayFilter[i] = 0.9058 * waveArrayFilter[i - 1] + 0.0942 * (double) (waveArray[i] - 122);//1.5M
+                waveArrayFilter[i] = 0.9058 * waveArrayFilter[i - 1] + 0.0942 * (double) (waveArray[i] - ave);//1.5M
             }
         }
     }
@@ -1781,7 +1603,8 @@ public class ModeActivity extends BaseActivity {
         //GC20191231    //方法三  刷新击穿判断
         breakDown = false;
         //计算均值做基准
-        for (i = start + 64; i < start + 72; i++) {
+//        for (i = start + 64; i < start + 72; i++) {
+        for (i = start + 174; i < start + 182; i++) {
             sum = sum + waveArrayIntegral[i];
         }
         sum = sum / (double)8;
@@ -2324,157 +2147,27 @@ public class ModeActivity extends BaseActivity {
         //重新定位实光标
         if (zero >= (currentMoverPosition510 * dataLength / 510) && zero <= ((currentMoverPosition510 * dataLength / 510) + (510*density))) {
             positionReal = (zero - (currentMoverPosition510 * dataLength / 510)) / density;
-            fullWave.setScrubLineReal(positionReal);
+            mainWave.setScrubLineReal(positionReal);
         } else {
-            fullWave.setScrubLineRealDisappear();
+            mainWave.setScrubLineRealDisappear();
         }
         //重新定位虚光标
         if (pointDistance >= (currentMoverPosition510 * dataLength / 510) && pointDistance <= ((currentMoverPosition510 * dataLength / 510) + (510*density))) {
             positionVirtual = (pointDistance - (currentMoverPosition510 * dataLength / 510)) / density;
-            fullWave.setScrubLineVirtual(positionVirtual);
+            mainWave.setScrubLineVirtual(positionVirtual);
         } else {
-            fullWave.setScrubLineVirtualDisappear();
+            mainWave.setScrubLineVirtualDisappear();
         }
 
         //光标定位
-        //fullWave.setScrubLineReal(positionReal);
-        //fullWave.setScrubLineVirtual(positionVirtual);
+        //mainWave.setScrubLineReal(positionReal);
+        //mainWave.setScrubLineVirtual(positionVirtual);
         //距离显示
         calculateDistance(Math.abs(pointDistance - zero));
     }
 
     /**
-     * @param balance 需要发送的平衡控制命令值 / 响应信息栏平衡变化
-     */
-    public void setBalance(int balance) {
-        this.balance = balance;
-        command = COMMAND_BALANCE;
-        dataTransfer = balance;
-        tvBalanceValue.setText(String.valueOf(balance));
-        //发送指令
-        startService();
-    }
-
-    public int getBalance() {
-        return balance;
-    }
-
-
-    //TODO 20101219输出命令和数据
-    private String getCommandStr(int cmdStr) {
-        String returnStr = "波速度";
-        switch (cmdStr) {
-            case 1:
-                returnStr = "1 测试";
-                break;
-            case 2:
-                returnStr = "2 模式";
-                break;
-            case 3:
-                returnStr = "3 范围";
-                break;
-            case 4:
-                returnStr = "4 增益";
-                break;
-            case 5:
-                returnStr = "5 延时";
-                break;
-            case 7:
-                returnStr = "7 平衡";
-                break;
-            case 9:
-                returnStr = "9 接受数据";
-                break;
-            default:
-                break;
-        }
-        return returnStr;
-    }
-
-    private String getDataTransfer(int cmdStr, int dataStr) {
-        String returnStr = "0";
-        if (cmdStr == 1) {
-            switch (dataStr) {
-                case 17:
-                    returnStr = "测试 11";
-                    break;
-                case 34:
-                    returnStr = "取消测试 22";
-                    break;
-            }
-        }
-        if (cmdStr == 2) {
-            switch (dataStr) {
-                case 17:
-                    returnStr = "TDR 11";
-                    break;
-                case 34:
-                    returnStr = "ICM 22";
-                    break;
-                case 85:
-                    returnStr = "ICM_DECAY 55";
-                    break;
-                case 51:
-                    returnStr = "SIM 33";
-                    break;
-                case 68:
-                    returnStr = "DECAY 44";
-                    break;
-            }
-        }
-        if (cmdStr == 3) {
-            switch (dataStr) {
-                case 153:
-                    returnStr = "范围 250";
-                    break;
-                case 17:
-                    returnStr = "范围 500";
-                    break;
-                case 34:
-                    returnStr = "范围 1KM";
-                    break;
-                case 51:
-                    returnStr = "范围 2KM";
-                    break;
-                case 68:
-                    returnStr = "范围 4KM";
-                    break;
-                case 85:
-                    returnStr = "范围 8KM";
-                    break;
-                case 102:
-                    returnStr = "范围 16KM";
-                    break;
-                case 119:
-                    returnStr = "范围 32KM";
-                    break;
-                case 136:
-                    returnStr = "范围 64KM";
-                    break;
-            }
-        }
-
-        if (cmdStr == 4) {
-            returnStr = "增益 " + String.valueOf(dataStr);
-
-        }
-        if (cmdStr == 5) {
-            returnStr = "延迟 " + String.valueOf(dataStr);
-
-        }
-        if (cmdStr == 7) {
-            returnStr = "平衡 " + String.valueOf(dataStr);
-
-        }
-        if (cmdStr == 9) {
-            returnStr = "开始接收数据 " + String.valueOf(dataStr);
-
-        }
-        return returnStr;
-    }
-
-    /**
-     * 组织需要绘制的波形数组（抽点510个）——最终得到waveDraw和waveCompare    //GC20191219
+     * 无缩放时波形抽点（抽点510个）——最终得到waveDraw和waveCompare
      */
     private void organizeWaveData() {
         //按最大比例抽出510个点
@@ -2496,24 +2189,22 @@ public class ModeActivity extends BaseActivity {
                 }
             }
         }
-
-        int[] waveDraw250 = new int[256];
-        int[] waveCompare250 = new int[256];
-        int[] simDraw2501 = new int[256];
-        int[] simDraw2502 = new int[256];
-        int[] simDraw2503 = new int[256];
-        int[] simDraw2504 = new int[256];
-        int[] simDraw2505 = new int[256];
-        int[] simDraw2506 = new int[256];
-        int[] simDraw2507 = new int[256];
-        int[] simDraw2508 = new int[256];
-
-        //需要操作的数据长度
+        //计算需要处理波形的原始长度dataLength
         if ((mode == TDR) || (mode == SIM)) {
             dataLength = dataMax - removeTdrSim[rangeState];
             //250m范围取点  //GC20191223
             if (range == RANGE_250) {
-                //取出前256个点的数数据（用于差值计算）
+                int[] waveDraw250 = new int[256];
+                int[] waveCompare250 = new int[256];
+                int[] simDraw2501 = new int[256];
+                int[] simDraw2502 = new int[256];
+                int[] simDraw2503 = new int[256];
+                int[] simDraw2504 = new int[256];
+                int[] simDraw2505 = new int[256];
+                int[] simDraw2506 = new int[256];
+                int[] simDraw2507 = new int[256];
+                int[] simDraw2508 = new int[256];
+                //取出前256个点的数数据（500m范围一半的点数不够，差值计算凑足510个点）
                 for (int i = 0, j = 0; i < 256; i++, j++) {
                     //组织TDR、SIM第一条波形的数据
                     waveDraw250[j] = waveDraw[i];
@@ -2570,29 +2261,215 @@ public class ModeActivity extends BaseActivity {
                     }
                 }
             }
-
         } else if ((mode == ICM) || (mode == DECAY) || (mode == ICM_DECAY)) {
-
             dataLength = dataMax - removeIcmDecay[rangeState];
+            //250m范围取点
             if (range == RANGE_250) {
                 dataLength = dataLength / 2;
             }
         }
-
-        //移动滑块到指定位置
+        //设置滑动块宽度
         setHorizontalMoveView();
+
+    }
+
+    /**
+     * 有缩放时波形抽点
+     */
+    private void organizeZoomWaveData(int start) {
+        //根据起始点位置，按比例抽出510个点
+        for (int i = start, j = 0; j < 510; i = i + density, j++) {
+            //组织TDR、ICM、ICM_DECAY、DECAY和SIM的第一条波形的数据
+            if (i < Constant.WaveData.length) {
+                waveDraw[j] = Constant.WaveData[i];
+            }
+            //组织SIM的第二条波形的数据
+            if (mode == SIM) {
+                waveCompare[j] = Constant.SimData[i];
+                if (!isDatabase) {
+                    simDraw1[j] = simArray1[i];
+                    simDraw2[j] = simArray2[i];
+                    simDraw3[j] = simArray3[i];
+                    simDraw4[j] = simArray4[i];
+                    simDraw5[j] = simArray5[i];
+                    simDraw6[j] = simArray6[i];
+                    simDraw7[j] = simArray7[i];
+                    simDraw8[j] = simArray8[i];
+                }
+            }
+        }
+    }
+
+    /**
+     * 记忆波形数据抽点（包含缩放时候）
+     */
+    private void organizeCompareWaveData(int start) {
+        //根据起始点位置，按比例抽出510个点
+        for (int i = start, j = 0; j < 510; i = i + density, j++) {
+            //组织TDR、ICM、ICM_DECAY、DECAY
+            waveCompareDraw[j] = waveCompare[i];
+        }
+        if ((mode == TDR) || (mode == SIM)) {
+            //250m范围  //GC20191223
+            if (range == RANGE_250) {
+                int[] waveDraw250 = new int[256];
+                //取出前256个点的数数据（用于差值计算）
+                for (int i = 0, j = 0; i < 256; i++, j++) {
+                    waveDraw250[j] = waveCompareDraw[i];
+                }
+                //利用原始的256个点数据算出差值的255个点
+                for (int i = 0, j = 1; i < 255; i++, j += 2) {
+                    waveCompareDraw[j] = waveDraw250[i] + (waveDraw250[i + 1] - waveDraw250[i]) / 2;
+                }
+                //将原始255个点分散
+                for (int i = 0, j = 0; j < 255; i++, j++) {
+                    waveCompareDraw[2 * j] = waveDraw250[i];
+                }
+            }
+        }
+
+    }
+
+    /**
+     * 缩放时根据虚光标位置确定起始点，然后抽510个点 //GC20200611
+     */
+    private void organizeClickZoomData() {
+        //画光标，确定起始点   //GC20200611
+        drawClickZoomCursor();
+        //按比例抽出510个点
+        for (int i = currentStart, j = 0; j < 510; i = i + density, j++) {
+            //组织TDR、ICM、ICM_DECAY、DECAY和SIM的第一条波形的数据
+            waveDraw[j] = Constant.WaveData[i + index];
+            //组织SIM的第二条波形的数据
+            if (mode == SIM) {
+                waveCompare[j] = Constant.SimData[i];
+                if (!isDatabase) {
+                    simDraw1[j] = simArray1[i];
+                    simDraw2[j] = simArray2[i];
+                    simDraw3[j] = simArray3[i];
+                    simDraw4[j] = simArray4[i];
+                    simDraw5[j] = simArray5[i];
+                    simDraw6[j] = simArray6[i];
+                    simDraw7[j] = simArray7[i];
+                    simDraw8[j] = simArray8[i];
+                }
+            }
+        }
+        //组织比对波形数据
+        try {
+            organizeCompareWaveData(currentStart);
+        } catch (Exception ignored) {
+        }
+        //根据起始点计算当前滑块左侧在510个点中的位置
+        currentMoverPosition510 = currentStart / densityMax;
+        //计算水平滑块左侧位置的屏幕坐标
+        int moverPosition;
+        moverPosition = mvWave.getParentWidth() * currentMoverPosition510 / 510;
+        //重新设置滑块大小
+        setHorizontalMoveView();
+        //移动滑块到指定位置
+        setMoverPosition(moverPosition);
+
+    }
+
+    /**
+     * 点击缩放按键时重新绘制光标    //GC20200611
+     */
+    private void drawClickZoomCursor() {
+        Log.e("【滑块-点击缩放】", "densityMax:" + densityMax + "/density:" + density + "/pointDistance:" + pointDistance + "/positionVirtual" + positionVirtual
+                + "/positionReal:" + positionReal + "/zero:" + zero + "/datalength:" + dataLength + "/currentStart:" + currentStart);
+        if (pointDistance < 255 * density) {
+            //虚光标无法位于正中心，起始点从0开始
+            currentStart = 0;
+            positionVirtual = pointDistance / density;
+            //判断是否画实光标
+            if (zero > currentStart + 510 * density) {
+                mainWave.setScrubLineRealDisappear();
+            } else {
+                positionReal = zero / density;
+                mainWave.setScrubLineReal(positionReal);
+            }
+            //判断是是否画标记光标
+            if (mode ==SIM) {
+                if (simStandardZero >= currentStart + 510 * density) {
+                    mainWave.setScrubLineSimDisappear();
+                } else {
+                    positionSim = simStandardZero / density;
+                    mainWave.setScrubLineSim(positionSim);
+                }
+            }
+        }
+        else if ((pointDistance >= 255 * density) && (pointDistance < dataLength - 255 * density)) {
+            //波形以虚光标原始位置为中心
+            currentStart = pointDistance - 255 * density;
+            positionVirtual = 255;
+            //判断是否画实光标
+            if ( (zero < currentStart) || (zero >= currentStart + 510 * density) ) {
+                mainWave.setScrubLineRealDisappear();
+            } else {
+                positionReal = positionVirtual - (pointDistance - zero) / density;
+                mainWave.setScrubLineReal(positionReal);
+            }
+            //判断是是否画标记光标
+            if (mode == SIM) {
+                if ( (zero < currentStart) || (zero >= currentStart + 510 * density) ) {
+                    mainWave.setScrubLineSimDisappear();
+                } else {
+                    positionSim = (simStandardZero - currentStart) / density;
+                    mainWave.setScrubLineSim(positionSim);
+                }
+            }
+        }
+        else {
+            //波形靠最左侧
+            currentStart = dataLength - 510 * density;
+            positionVirtual = (pointDistance - currentStart) / density;
+            //判断是否画实光标
+            if (zero < currentStart) {
+                mainWave.setScrubLineRealDisappear();
+            } else {
+                positionReal = (zero - currentStart) / density;
+                mainWave.setScrubLineReal(positionReal);
+            }
+            //判断是是否画标记光标
+            if (mode == SIM) {
+                if (simStandardZero < currentStart) {
+                    mainWave.setScrubLineSimDisappear();
+                } else {
+                    positionSim = (simStandardZero - currentStart)  / density;
+                    mainWave.setScrubLineReal(positionReal);
+                }
+            }
+        }
+        //还原状态
+        if (density == densityMax) {
+            currentStart = 0;
+            positionVirtual = pointDistance / densityMax;
+            //画实光标
+            positionReal = zero / densityMax;
+            mainWave.setScrubLineReal(positionReal);
+            //画SIM标记光标    //GC20200330
+            if (mode == SIM) {
+                positionSim = simStandardZero / densityMax;
+                mainWave.setScrubLineSim(positionSim);
+            }
+        }
+        //画虚光标
+        mainWave.setScrubLineVirtual(positionVirtual);
+        Log.e("【滑块-点击缩放计算后】", "/pointDistance:" + pointDistance + "/positionVirtual" + positionVirtual
+                + "/positionReal:" + positionReal + "/zero:" + zero + "/datalength:" + dataLength + "/currentStart:" + currentStart);
+
     }
 
     /**
      * 设置波形绘制参数
      */
     private void setWaveParameter() {
-        //记录当前显示波形的参数   //GC20190716 避免切换范围、方式之后存储的波形参数与波形数据不对应
+        //记录当前显示波形的参数
         Constant.ModeValue = mode;
         Constant.RangeValue = range;
         Constant.Gain = gain;
         Constant.Velocity = velocity;
-        //GC20190716 规避放大缩小操作的bug
         Constant.DensityMax = densityMax;
         if (density > densityMax) {
             density = densityMax;
@@ -2616,7 +2493,7 @@ public class ModeActivity extends BaseActivity {
             waveArray = new int[dataMax];
             Constant.WaveData = new int[dataMax];
             Constant.SimData = new int[dataMax];
-            //SIM第二条波形初始化
+            //SIM第二条波形原始数组初始化
             simArray1 = new int[dataMax];
             simArray2 = new int[dataMax];
             simArray3 = new int[dataMax];
@@ -2627,6 +2504,7 @@ public class ModeActivity extends BaseActivity {
             simArray8 = new int[dataMax];
             //利用比较功能绘制SIM的第二条波形数据
             isCom = true;
+
         }
 
         //TODO 201912241202 MIM模式下不要重置零点，因为positionReal整除会丢失精度
@@ -2639,115 +2517,779 @@ public class ModeActivity extends BaseActivity {
 
     }
 
+    int pulseRemove = 75;
+    int min1Pos;
+    int min2Pos;
+    int min3Pos;
+    int min4pos;
+    int min5Pos;
+    int min6Pos;
+    int min7Pos;
+    int min8Pos;
+    boolean selectSim1;
+    boolean selectSim2;
+    boolean selectSim3;
+    boolean selectSim4;
+    boolean selectSim5;
+    boolean selectSim6;
+    boolean selectSim7;
+    boolean selectSim8;
     /**
-     * 处理APP接收的波形数据
+     * SIM最优筛选  //GC20200529
      */
-    private void doWifiWave(int[] wifiArray) {
-        if (wifiArray[3] == WAVE_TDR_ICM_DECAY) {
-            System.arraycopy(wifiArray, 8, waveArray, 0, dataMax);
-            Constant.WaveData = waveArray;
-            //GC20190708
-//            handler.sendEmptyMessage(VIEW_REFRESH);
-            //GC20191231
-            if ((mode == ICM) ){
-                icmAutoTest();
-            } else if((mode == ICM_DECAY)){
-                icmAutoTestDC();    //GC20200109 增加DC方式下的自动测距
-            } else{
-                handler.sendEmptyMessage(VIEW_REFRESH);
+    public void selectBestSim() {
+        //添加增益判断    //GC20200609
+        gainJudgmentSim();
+        switch (gainState) {
+            case 0:
+                tvInformation.setText("");
+                break;
+            case 1:
+                gainState = 0;
+                //显示增益过大
+                tvInformation.setVisibility(View.VISIBLE);
+                tvInformation.setText(getResources().getString(R.string.gain_too_high));
+                //显示序号1波形
+                selectSim = 1;
+                setSelectSim(selectSim);
+                return;
+            case 2:
+                gainState = 0;
+                //显示增益过小
+                tvInformation.setVisibility(View.VISIBLE);
+                tvInformation.setText(getResources().getString(R.string.gain_too_low));
+                //显示序号1波形
+                selectSim = 1;
+                setSelectSim(selectSim);
+                return;
+            default:
+                break;
+        }
+        //筛选1.判断两条波形重合度
+        int sum = 0;
+        for (int i = 0, waveNum = 1; i < 8; i++, waveNum++) {
+            double p = Math.abs((float) (simSum[waveNum] - simSum[0]) / simSum[0]);
+//            if ((p > 0.213 || p < 0.019)) { //A20200606 重合系数微调
+            if (p > 0.213 ) {
+                //重合度不好,上下分离
+                overlapNum[i] = 0;
+                Log.e("SIM筛选1",waveNum + "不重合" + " /p = " + p);
+            } else {
+                //重合度好
+                overlapNum[i] = waveNum;
+                Log.e("SIM筛选1",waveNum + "重  合" + " /p = " + p);
             }
-        } else if (wifiArray[3] == WAVE_SIM || wifiArray[3] == 0x88
-                || wifiArray[3] == 0x99
-                || wifiArray[3] == 0xAA
-                || wifiArray[3] == 0xBB
-                || wifiArray[3] == 0xCC
-                || wifiArray[3] == 0xDD
-                || wifiArray[3] == 0xEE
-                || wifiArray[3] == 0xFF) {
-            if (wifiArray[3] == 0x77) {
-                System.arraycopy(wifiArray, 8, waveArray, 0, dataMax);
-                Constant.WaveData = waveArray;
-                Log.e("【MIM】", "第1条");
+            sum += overlapNum[i];
+        }
+        if (sum == 0) {
+            Log.e("SIM筛选1", " 没有重合的波形");
+            tvInformation.setVisibility(View.VISIBLE);
+            tvInformation.setText(getResources().getString(R.string.testAgain));
+            //无重合显示波形1  //GC20200601
+            selectSim = 1;
+            setSelectSim(selectSim);
+        }
+        else {
+            //筛选2.判断极值位置
+            int j = pulseRemove + 3;
+            int maxNum = 0;
+            int[] maxData = new int[65560];
+            int[] maxDataPos = new int[65560];
+            //寻找全长脉冲的极大值（去除发射脉冲和末尾数据）
+            while ( (j >= pulseRemove + 3) && (j < dataMax - removeTdrSim[rangeState]) ) {
+                if ( (waveArray[j] > waveArray[j - 1]) && (waveArray[j] >= waveArray[j + 1]) ) {
+                    if (waveArray[j - 1] >= waveArray[j - 2]) {
+                        if (waveArray[j - 2] > waveArray[j - 3]) {
+                            maxData[maxNum] = waveArray[j];
+                            maxDataPos[maxNum] = j;
+//                            Log.e("SIM筛选2", " /极大值大小 = " + maxData[maxNum] + " /极大值位置 = " + maxDataPos[maxNum]);
+                            maxNum++;
+                        }
+                    }
+                }
+                j++;
             }
-            if (wifiArray[3] == 0x88) {
-                System.arraycopy(wifiArray, 8, simArray1, 0, dataMax);
-                Constant.TempData1 = simArray1;
-                Constant.SimData = Constant.TempData1;
-                Log.e("【MIM】", "第2条");
+            if (maxNum == 0) {
+                Log.e("SIM筛选2", "没有极大值");
+                tvInformation.setVisibility(View.VISIBLE);
+                tvInformation.setText(getResources().getString(R.string.testAgain));
+                //无极大值显示波形1  //GC20200601
+                selectSim = 1;
+                setSelectSim(selectSim);
             }
-            if (wifiArray[3] == 0x99) {
-                System.arraycopy(wifiArray, 8, simArray2, 0, dataMax);
-                Constant.TempData2 = simArray2;
-                handler.sendEmptyMessage(ORGANIZE_WAVE);
-                Log.e("【MIM】", "第3条");
-            }
-            if (wifiArray[3] == 0xAA) {
-                System.arraycopy(wifiArray, 8, simArray3, 0, dataMax);
-                Constant.TempData3 = simArray3;
-                handler.sendEmptyMessage(ORGANIZE_WAVE);
-                Log.e("【MIM】", "第4条");
-            }
-            if (wifiArray[3] == 0xBB) {
-                System.arraycopy(wifiArray, 8, simArray4, 0, dataMax);
-                Constant.TempData4 = simArray4;
-                handler.sendEmptyMessage(ORGANIZE_WAVE);
-                Log.e("【MIM】", "第5条");
-            }
-            if (wifiArray[3] == 0xCC) {
-                System.arraycopy(wifiArray, 8, simArray5, 0, dataMax);
-                Constant.TempData5 = simArray5;
-                handler.sendEmptyMessage(ORGANIZE_WAVE);
-                Log.e("【MIM】", "第6条");
-            }
-            if (wifiArray[3] == 0xDD) {
-                System.arraycopy(wifiArray, 8, simArray6, 0, dataMax);
-                Constant.TempData6 = simArray6;
-                handler.sendEmptyMessage(ORGANIZE_WAVE);
-                Log.e("【MIM】", "第7条");
-            }
-            if (wifiArray[3] == 0xEE) {
-                System.arraycopy(wifiArray, 8, simArray7, 0, dataMax);
-                Constant.TempData7 = simArray7;
-                handler.sendEmptyMessage(ORGANIZE_WAVE);
-                Log.e("【MIM】", "第8条");
-            }
-            if (wifiArray[3] == 0xFF) {
-                System.arraycopy(wifiArray, 8, simArray8, 0, dataMax);
-                Constant.TempData8 = simArray8;
-                handler.sendEmptyMessage(ORGANIZE_WAVE);
-                Log.e("【MIM】", "第9条");
-            }
+            else {
+                int max = maxData[0];
+                int maxPos = maxDataPos[0];
+                for (int k = 0; k < maxNum; k++) {
+                    if(maxData[k] >= max) {
+                        max = maxData[k];
+                        maxPos = maxDataPos[k];
+                    }
+                }
+                Log.e("SIM筛选2", " /最大极大值位置 = " + maxPos);
+                //3.寻找燃弧脉冲的极小值点位置（去除发射脉冲和末尾数据）
+                for (int l = 0; l < 8; l++) {
+                    //重合才寻找极小值
+                    if (overlapNum[l] == 1) {
+                        int i1 = pulseRemove + 5;
+                        int minNum1 = 0;
+                        int[] minData1 = new int[65560];
+                        int[] minDataPos1 = new int[65560];
+                        while ( (i1 >= pulseRemove + 5) && (i1 < dataMax - removeTdrSim[rangeState]) ) {
+                            if ((simArray1[i1] < simArray1[i1 - 1]) && (simArray1[i1] <= simArray1[i1 + 1])) {
+                                if (simArray1[i1 - 1] <= simArray1[i1 - 2]) {
+                                    if (simArray1[i1 - 2] <= simArray1[i1 - 3]) {
+                                        if (simArray1[i1 - 3] <= simArray1[i1 - 4]) {
+                                            if (simArray1[i1 - 4] <= simArray1[i1 - 5]) {
+                                                minData1[minNum1] = simArray1[i1];
+                                                minDataPos1[minNum1] = i1;
+                                                minNum1++;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                            i1++;
+                        }
+                        if (minNum1 > 0) {
+                            int min1 = minData1[0];
+                            for(int k1 = 0; k1 < minNum1; k1++) {
+                                if(minData1[k1] <= min1) {
+                                    min1 = minData1[k1];
+                                    min1Pos = minDataPos1[k1];
+                                }
+                            }
+                            //与极大值点位置比较，判断是否进行相关计算   //20200601 断线故障处理优化
+                            if (min1Pos < maxPos + 60) { // if (min1Pos < maxPos + 30) { //20200610
+                                selectSim1 = true;
+                                Log.e("SIM筛选2", "1极小值符合要求  " + " /min1Pos = " + min1Pos);
+                            } else {
+                                Log.e("SIM筛选2", "1极小值不符合要求" + " /min1Pos = " + min1Pos);
+                            }
+                        } else {
+                            Log.e("SIM筛选2", "1未找到极小值");
+                        }
 
-            if (wifiArray[3] == 0x88) {
-                handler.sendEmptyMessage(VIEW_REFRESH);
+                    }
+
+                    if (overlapNum[l] == 2) {
+                        int i2 = pulseRemove + 5;
+                        int minNum2 = 0;
+                        int[] minData2 = new int[65560];
+                        int[] minDataPos2 = new int[65560];
+                        while ( (i2 >= pulseRemove + 5) && (i2 < dataMax - removeTdrSim[rangeState]) ) {
+                            if ( (simArray2[i2] < simArray2[i2 - 1]) && (simArray2[i2] <= simArray2[i2 + 1]) ) {
+                                if (simArray2[i2 - 1] <= simArray2[i2 - 2]) {
+                                    if (simArray2[i2 - 2] <= simArray2[i2 - 3]) {
+                                        if (simArray2[i2 - 3] <= simArray2[i2 - 4]) {
+                                            if (simArray2[i2 - 4] <= simArray2[i2 - 5]) {
+                                                minData2[minNum2] = simArray2[i2];
+                                                minDataPos2[minNum2] = i2;
+                                                minNum2++;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                            i2++;
+                        }
+                        if (minNum2 >= 1) {
+                            int min2 = minData2[0];
+                            for(int k2 = 0; k2 < minNum2; k2++) {
+                                if(minData2[k2] <= min2) {
+                                    min2 = minData2[k2];
+                                    min2Pos = minDataPos2[k2];
+                                }
+                            }
+                            if (min2Pos < maxPos + 60) {
+                                selectSim2 = true;
+                                Log.e("SIM筛选2", "2极小值符合要求  " + " /min2Pos = " + min2Pos);
+                            } else {
+                                Log.e("SIM筛选2", "2极小值不符合要求" + " /min2Pos = " + min2Pos);
+                            }
+                        } else {
+                            Log.e("SIM筛选2", "2未找到极小值");
+                        }
+
+                    }
+
+                    if (overlapNum[l] == 3) {
+                        int i3 = pulseRemove + 5;
+                        int minNum3 = 0;
+                        int[] minData3 = new int[65560];
+                        int[] minDataPos3 = new int[65560];
+                        while ( (i3 >= pulseRemove + 5) && (i3 < dataMax - removeTdrSim[rangeState]) ) {
+                            if ( (simArray3[i3] < simArray3[i3 - 1]) && (simArray3[i3] <= simArray3[i3 + 1]) ) {
+                                if (simArray3[i3 - 1] <= simArray3[i3 - 2]) {
+                                    if (simArray3[i3 - 2] <= simArray3[i3 - 3]) {
+                                        if (simArray3[i3 - 3] <= simArray3[i3 - 4]) {
+                                            if (simArray3[i3 - 4] <= simArray3[i3 - 5]) {
+                                                minData3[minNum3] = simArray3[i3];
+                                                minDataPos3[minNum3] = i3;
+                                                minNum3++;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                            i3++;
+                        }
+                        if (minNum3 >= 1) {
+                            int min3 = minData3[0];
+                            for(int k3 = 0; k3 < minNum3; k3++) {
+                                if(minData3[k3] <= min3) {
+                                    min3 = minData3[k3];
+                                    min3Pos = minDataPos3[k3];
+                                }
+                            }
+                            if (min3Pos < maxPos + 60) {
+                                selectSim3 = true;
+                                Log.e("SIM筛选2", "3极小值符合要求  " + " /min3Pos = " + min3Pos);
+                            } else {
+                                Log.e("SIM筛选2", "3极小值不符合要求" + " /min3Pos = " + min3Pos);
+                            }
+                        }else {
+                            Log.e("SIM筛选2", "3未找到极小值");
+                        }
+
+                    }
+
+                    if (overlapNum[l] == 4) {
+                        int i4 = pulseRemove + 5;
+                        int minNum4 = 0;
+                        int[] minData4 = new int[65560];
+                        int[] minDataPos4 = new int[65560];
+                        while ((i4 >= pulseRemove + 5) && (i4 < dataMax - removeTdrSim[rangeState]) ) {
+                            if ( (simArray4[i4] < simArray4[i4 - 1]) && (simArray4[i4] <= simArray4[i4 + 1]) ) {
+                                if (simArray4[i4 - 1] <= simArray4[i4 - 2]) {
+                                    if (simArray4[i4 - 2] <= simArray4[i4 - 3]) {
+                                        if (simArray4[i4 - 3] <= simArray4[i4 - 4]) {
+                                            if (simArray4[i4 - 4] <= simArray4[i4 - 5]) {
+                                                minData4[minNum4] = simArray4[i4];
+                                                minDataPos4[minNum4] = i4;
+                                                minNum4++;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                            i4++;
+                        }
+                        if (minNum4 >= 1) {
+                            int min4 = minData4[0];
+                            for(int k4 = 0; k4 < minNum4; k4++) {
+                                if(minData4[k4] <= min4) {
+                                    min4 = minData4[k4];
+                                    min4pos = minDataPos4[k4];
+                                }
+                            }
+                            if (min4pos < maxPos + 60) {
+                                selectSim4 = true;
+                                Log.e("SIM筛选2", "4极小值符合要求  " + " /min4pos = " + min4pos);
+                            }else {
+                                Log.e("SIM筛选2", "4极小值不符合要求" + " /min4pos = " + min4pos);
+                            }
+                        }else {
+                            Log.e("SIM筛选2", "4未找到极小值");
+                        }
+
+                    }
+
+                    if (overlapNum[l] == 5) {
+                        int i5 = pulseRemove + 5;
+                        int minNum5 = 0;
+                        int[] minData5 = new int[65560];
+                        int[] minDataPos5 = new int[65560];
+                        while ((i5 >= pulseRemove + 5) && (i5 < dataMax - removeTdrSim[rangeState]) ) {
+                            if ( (simArray5[i5] < simArray5[i5 - 1]) && (simArray5[i5] <= simArray5[i5 + 1]) ) {
+                                if (simArray5[i5 - 1] <= simArray5[i5 - 2]) {
+                                    if (simArray5[i5 - 2] <= simArray5[i5 - 3]) {
+                                        if (simArray5[i5 - 3] <= simArray5[i5 - 4]) {
+                                            if (simArray5[i5 - 4] <= simArray5[i5 - 5]) {
+                                                minData5[minNum5] = simArray5[i5];
+                                                minDataPos5[minNum5] = i5;
+                                                minNum5++;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                            i5++;
+                        }
+                        if (minNum5 >= 1) {
+                            int min5 = minData5[0];
+                            for(int k5 = 0; k5 < minNum5; k5++) {
+                                if(minData5[k5] <= min5) {
+                                    min5 = minData5[k5];
+                                    min5Pos = minDataPos5[k5];
+                                }
+                            }
+                            if (min5Pos < maxPos + 60) {
+                                selectSim5 = true;
+                                Log.e("SIM筛选2", "5极小值符合要求  " + " /min5Pos = " + min5Pos);
+                            }else {
+                                Log.e("SIM筛选2", "5极小值不符合要求" + " /min5Pos = " + min5Pos);
+                            }
+                        }else {
+                            Log.e("SIM筛选2", "5未找到极小值");
+                        }
+
+                    }
+
+                    if (overlapNum[l] == 6) {
+                        int i6 = pulseRemove + 5;
+                        int minNum6 = 0;
+                        int[] minData6 = new int[65560];
+                        int[] minDataPos6 = new int[65560];
+                        while ((i6 >= pulseRemove + 5) && (i6 < dataMax - removeTdrSim[rangeState]) ) {
+                            if ( (simArray6[i6] < simArray6[i6 - 1]) && (simArray6[i6] <= simArray6[i6 + 1]) ) {
+                                if (simArray6[i6 - 1] <= simArray6[i6 - 2]) {
+                                    if (simArray6[i6 - 2] <= simArray6[i6 - 3]) {
+                                        if (simArray6[i6 - 3] <= simArray6[i6 - 4]) {
+                                            if (simArray6[i6 - 4] <= simArray6[i6 - 5]) {
+                                                minData6[minNum6] = simArray6[i6];
+                                                minDataPos6[minNum6] = i6;
+                                                minNum6++;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                            i6++;
+                        }
+                        if (minNum6 >= 1) {
+                            int min6 = minData6[0];
+                            for(int k6 = 0; k6 < minNum6; k6++) {
+                                if(minData6[k6] <= min6) {
+                                    min6 = minData6[k6];
+                                    min6Pos = minDataPos6[k6];
+                                }
+                            }
+                            if (min6Pos < maxPos + 60) {
+                                selectSim6 = true;
+                                Log.e("SIM筛选2", "6极小值符合要求  " + " /min6Pos" + min6Pos);
+                            }else {
+                                Log.e("SIM筛选2", "6极小值不符合要求" + " /min6Pos = " + min6Pos);
+                            }
+                        }else {
+                            Log.e("SIM筛选2", "6未找到极小值");
+                        }
+                    }
+
+                    if (overlapNum[l] == 7) {
+                        int i7 = pulseRemove + 5;
+                        int minNum7 = 0;
+                        int[] minData7 = new int[65560];
+                        int[] minDataPos7 = new int[65560];
+                        while ( (i7 >= pulseRemove + 5) && (i7 < dataMax - removeTdrSim[rangeState]) ) {
+                            if ( (simArray7[i7] < simArray7[i7 - 1]) && (simArray7[i7] <= simArray7[i7 + 1]) ) {
+                                if (simArray7[i7 - 1] <= simArray7[i7 - 2]) {
+                                    if (simArray7[i7 - 2] <= simArray7[i7 - 3]) {
+                                        if (simArray7[i7 - 3] <= simArray7[i7 - 4]) {
+                                            if (simArray7[i7 - 4] <= simArray7[i7 - 5]) {
+                                                minData7[minNum7] = simArray7[i7];
+                                                minDataPos7[minNum7] = i7;
+                                                minNum7++;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                            i7++;
+                        }
+                        if (minNum7 >= 1) {
+                            int min7 = minData7[0];
+                            for(int k7 = 0; k7 < minNum7; k7++) {
+                                if(minData7[k7] <= min7) {
+                                    min7 = minData7[k7];
+                                    min7Pos = minDataPos7[k7];
+                                }
+                            }
+                            if (min7Pos < maxPos + 60) {
+                                selectSim7 = true;
+                                Log.e("SIM筛选2", "7极小值符合要求  " + " /min7Pos = " + min7Pos);
+                            }else {
+                                Log.e("SIM筛选2", "7极小值不符合要求" + " /min7Pos = " + min7Pos);
+                            }
+                        }else {
+                            Log.e("SIM筛选2", "7未找到极小值");
+                        }
+                    }
+
+                    if (overlapNum[l] == 8) {
+                        int i8 = pulseRemove + 5;
+                        int minNum8 = 0;
+                        int[] minData8 = new int[65560];
+                        int[] minDataPos8 = new int[65560];
+                        while ( (i8 >= pulseRemove + 5) && (i8 < dataMax - removeTdrSim[rangeState]) ) {
+                            if((simArray8[i8] < simArray8[i8 - 1]) && (simArray8[i8] <= simArray8[i8 + 1])) {
+                                if((i8 > pulseRemove + 5) && (simArray8[i8 - 1] <= simArray8[i8 - 2]) ) {
+                                    if((simArray8[i8 - 2] <= simArray8[i8 - 3]) ){
+                                        if((simArray8[i8 - 3] <= simArray8[i8 - 4]) ){
+                                            if((simArray8[i8 - 4] < simArray8[i8 - 5]) ) {
+                                                minData8[minNum8] = simArray8[i8];
+                                                minDataPos8[minNum8] = i8;
+                                                minNum8++;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                            i8++;
+                        }
+                        if (minNum8 >= 1) {
+                            int min8 = minData8[0];
+                            for(int k8 = 0; k8 < minNum8; k8++) {
+                                if(minData8[k8] <= min8) {
+                                    min8 = minData8[k8];
+                                    min8Pos = minDataPos8[k8];
+                                }
+                            }
+                            if (min8Pos < maxPos + 60) {
+                                selectSim8 = true;
+                                Log.e("SIM筛选2", "8极小值符合要求  " + " /min8Pos = " + min8Pos + " /maxPos = " + maxPos);
+                            }else {
+                                Log.e("SIM筛选2", "8极小值不符合要求" + " /min8Pos = " + min8Pos + " /maxPos = " + maxPos);
+                            }
+                        }else {
+                            Log.e("SIM筛选2", "8未找到极小值");
+                        }
+                    }
+                }
             }
         }
-        //记录当前显示波形的数据
+        //筛选3.波形做相关，给出最终结果
+        simRelevantJudgment();
+
     }
 
     /**
-     * 根据参数重置显示效果
+     * 二次脉冲方式增益自动判断
      */
-    public void resetWhatNeed() {
-        //二次脉冲显示组数重置
-        if (mode == SIM) {
-            selectSim = 1;
-            setSelectSim(selectSim);
-            //TODO 20200325 二次脉冲如果是从数据库显示，则禁用上翻下翻按键，测试后恢复。
-            if (!isDatabase) {
-                tvWaveNext.setEnabled(true);
-            } else {
-                tvWaveNext.setEnabled(false);
-                tvWavePre.setEnabled(false);
+    private void gainJudgmentSim() {
+        int i;
+        int max = 0;
+        int sub;
+
+        //计算波形有效数据的极值
+        for (i = 0; i < dataMax - removeTdrSim[rangeState]; i++) {
+            sub = waveArray[i] - 133;
+            if (Math.abs(sub) > max) {
+                max = Math.abs(sub);
             }
         }
-        //如果最大比例为1，不允许按缩放按键     //20200523  //GN界面优化可能用到
-        if (densityMax == 1) {
-            tvZoomPlus.setEnabled(false);
-            tvZoomMin.setEnabled(false);
-        } else {
-            tvZoomPlus.setEnabled(true);
+        if (max <= 42) {
+            //判断增益过小——如果最大值小于 15% 38
+            gainState = 2;
+            return;
         }
+        for (i = 0; i < dataMax - removeTdrSim[rangeState]; i++) {
+            if ((waveArray[i] > 242) || (waveArray[i] < 20)) {
+//            if ((waveArray[i] > 242) || (waveArray[i] < 13)) {    //A20200527  SIM增益大小判断微调
+                //判断增益过大
+                gainState = 1;
+                return;
+            }
+        }
+    }
+
+    /**
+     * 相关计算
+     */
+    public void simRelevantJudgment() {
+        simFilter();
+        int n,n1,n2,n3,n4,n5,n6,n7,n8;
+        int selectWaveNum = 1;
+        double r, r1;
+        double rMax = 0.0;
+
+        n = dataMax - removeTdrSim[rangeState];
+
+        if (selectSim1) {
+            n1 = min1Pos;
+            //负脉冲起始点
+            while (n1 > 1) {
+                if (simArray1[n1] <= simArray1[n1-1]) {
+                    n1 = n1 - 1 ;
+                } else {
+                    break;
+                }
+            }
+            //计算相关系数
+//            r = correlationCalculation(waveArray, simArray1, n1);
+            r = correlationCalculation(simArray0Filter, simArray1Filter, n1);
+            r1 = correlationCalculation(simArray0Filter, simArray1Filter, n);
+            Log.e("SIM筛选3", "1 相关系数 r1 = " + r + " /整体相关系数 = " + r1  + " /负脉冲起始点" + n1);
+            //GC20200609
+            if ( (r - r1) > 0.1 ) {
+                if (r > rMax) {
+                    rMax = r;
+                    selectWaveNum = 1;
+                    Log.e("SIM筛选3", "最终选第1条");
+                }
+            }
+        }
+
+        if (selectSim2) {
+            n2 = min2Pos;
+            while (n2 > 1) {
+                if (simArray2[n2] <= simArray2[n2-1]) {
+                    n2 = n2 - 1 ;
+                } else {
+                    break;
+                }
+            }
+//            r = correlationCalculation(waveArray, simArray2, n2);
+            r = correlationCalculation(simArray0Filter, simArray2Filter, n2);
+            r1 = correlationCalculation(simArray0Filter, simArray2Filter, n);
+            Log.e("SIM筛选3", "2 相关系数 r2 = " + r + " /整体相关系数 = " + r1  + " /负脉冲起始点" + n2);
+            if ( (r - r1) > 0.1 ) {
+                if (r > rMax) {
+                    rMax = r;
+                    selectWaveNum = 2;
+                    Log.e("SIM筛选3", "最终选第2条");
+                }
+            }
+        }
+
+        if (selectSim3) {
+            n3 = min3Pos;
+            while (n3 > 1) {
+                if (simArray3[n3] <= simArray3[n3-1]) {
+                    n3 = n3 - 1 ;
+                } else{
+                    break;
+                }
+            }
+//            r = correlationCalculation(waveArray, simArray3, n3);
+            r = correlationCalculation(simArray0Filter, simArray3Filter, n3);
+            r1 = correlationCalculation(simArray0Filter, simArray3Filter, n);
+            Log.e("SIM筛选3", "3 相关系数r3 = " + r + " /整体相关系数 = " + r1  + " /负脉冲起始点" + n3);
+            if ( (r - r1) > 0.1 ) {
+                if (r > rMax) {
+                    rMax = r;
+                    selectWaveNum = 3;
+                    Log.e("SIM筛选3", "最终选第3条");
+                }
+            }
+        }
+
+        if (selectSim4) {
+            n4 = min4pos;
+            while (n4 > 1) {
+                if (simArray4[n4] <= simArray4[n4 - 1]) {
+                    n4 = n4 - 1;
+                } else {
+                    break;
+                }
+            }
+//            r = correlationCalculation(waveArray, simArray4, n4);
+            r = correlationCalculation(simArray0Filter, simArray4Filter, n4);
+            r1 = correlationCalculation(simArray0Filter, simArray4Filter, n);
+            Log.e("SIM筛选3", "4 相关系数 r4 = " + r + " /整体相关系数 = " + r1  + " /负脉冲起始点" + n4);
+            if ( (r - r1) > 0.1 ) {
+                if (r > rMax) {
+                    rMax = r;
+                    selectWaveNum = 4;
+                    Log.e("SIM筛选3", "最终选第4条");
+                }
+            }
+        }
+
+        if (selectSim5) {
+            n5 = min5Pos;
+            while (n5 > 1) {
+                if (simArray5[n5] <= simArray5[n5 - 1]) {
+                    n5 = n5 - 1;
+                } else {
+                    break;
+                }
+            }
+//            r = correlationCalculation(waveArray, simArray5, n5);
+            r = correlationCalculation(simArray0Filter, simArray5Filter, n5);
+            r1 = correlationCalculation(simArray0Filter, simArray5Filter, n);
+            Log.e("SIM筛选3", "5 相关系数 r5 = " + r + " /整体相关系数 = " + r1  + " /负脉冲起始点" + n5);
+            if ( (r - r1) > 0.1 ) {
+                if (r > rMax) {
+                    rMax = r;
+                    selectWaveNum = 5;
+                    Log.e("SIM筛选3", "最终选第5条");
+                }
+            }
+        }
+
+        if (selectSim6) {
+            n6 = min6Pos;
+            while (n6 > 1) {
+                if (simArray6[n6] <= simArray6[n6 - 1]) {
+                    n6 = n6 - 1;
+                } else {
+                    break;
+                }
+            }
+//            r = correlationCalculation(waveArray, simArray6, n6);
+            r = correlationCalculation(simArray0Filter, simArray6Filter, n6);
+            r1 = correlationCalculation(simArray0Filter, simArray6Filter, n);
+            Log.e("SIM筛选3", "6 相关系数 r6 = " + r + " /整体相关系数 = " + r1  + " /负脉冲起始点" + n6);
+            if ( (r - r1) > 0.1 ) {
+                if (r > rMax) {
+                    rMax = r;
+                    selectWaveNum = 6;
+                    Log.e("SIM筛选3", "最终选第6条");
+                }
+            }
+        }
+
+        if (selectSim7) {
+            n7 = min7Pos;
+            while (n7 > 1) {
+                if (simArray7[n7] <= simArray7[n7 - 1]) {
+                    n7 = n7 - 1;
+                } else {
+                    break;
+                }
+            }
+//            r = correlationCalculation(waveArray, simArray7, n7);
+            r = correlationCalculation(simArray0Filter, simArray7Filter, n7);
+            r1 = correlationCalculation(simArray0Filter, simArray7Filter, n);
+            Log.e("SIM筛选3", "7 相关系数 r7 = " + r + " /整体相关系数 = " + r1  + " /负脉冲起始点" + n7);
+            if ( (r - r1) > 0.1 ) {
+                if (r > rMax) {
+                    rMax = r;
+                    selectWaveNum = 7;
+                    Log.e("SIM筛选3", "最终选第7条");
+                }
+            }
+        }
+
+        if(selectSim8) {
+            n8 = min8Pos;
+            while (n8 > 1) {
+                if (simArray8[n8] <= simArray8[n8 - 1]) {
+                    n8 = n8 - 1;
+                } else {
+                    break;
+                }
+            }
+//            r = correlationCalculation(waveArray, simArray8, n8);
+            r = correlationCalculation(simArray0Filter, simArray8Filter, n8);
+            r1 = correlationCalculation(simArray0Filter, simArray8Filter, n);
+            Log.e("SIM筛选3", "8 相关系数 r8 = " + r + " /整体相关系数 = " + r1 + " /负脉冲起始点" + n8);
+            if ( (r - r1) > 0.1 ) {
+                if (r > rMax) {
+                    rMax = r;
+                    selectWaveNum = 8;
+                    Log.e("SIM筛选3", "最终选第8条");
+                }
+            }
+        }
+
+        if (rMax > 0) {
+            //有最优波形
+            tvInformation.setVisibility(View.VISIBLE);
+            tvInformation.setText("");
+            //显示序号
+            selectSim = selectWaveNum;
+            setSelectSim(selectSim);
+
+        } else {
+            //没有最优波形
+            tvInformation.setVisibility(View.VISIBLE);
+            tvInformation.setText(getResources().getString(R.string.testAgain));
+            //无相关显示波形1  //GC20200601
+            selectSim = 1;
+            setSelectSim(selectSim);
+        }
+        //清标志位
+        selectSim1 = false;
+        selectSim2 = false;
+        selectSim3 = false;
+        selectSim4 = false;
+        selectSim5 = false;
+        selectSim6 = false;
+        selectSim7 = false;
+        selectSim8 = false;
+
+    }
+
+    /**
+     * 一阶高通数字滤波（得到用作相关计算的数组）
+     * k=0.9987;
+     * k=0.9139  1.5M
+     * k=0.9409  1M
+     */
+    public void simFilter() {
+        double k = 0.9139;
+        simArray0Filter[0] = (double) (waveArray[0] - 133);
+        for (int i = 1; i < dataMax; i++) {
+            simArray0Filter[i] = k * simArray0Filter[i - 1] + k * (double) (waveArray[i] - waveArray[i - 1]);
+        }
+        simArray1Filter[0] = (double) (simArray1[0] - 133);
+        for (int i = 1; i < dataMax; i++) {
+            simArray1Filter[i] = k * simArray1Filter[i - 1] + k * (double) (simArray1[i] - simArray1[i - 1]);
+        }
+        simArray2Filter[0] = (double) (simArray2[0] - 133);
+        for (int i = 1; i < dataMax; i++) {
+            simArray2Filter[i] = k * simArray2Filter[i - 1] + k * (double) (simArray2[i] - simArray2[i - 1]);
+        }
+        simArray3Filter[0] = (double) (simArray3[0] - 133);
+        for (int i = 1; i < dataMax; i++) {
+            simArray3Filter[i] = k * simArray3Filter[i - 1] + k * (double) (simArray3[i] - simArray3[i - 1]);
+        }
+        simArray4Filter[0] = (double) (simArray4[0] - 133);
+        for (int i = 1; i < dataMax; i++) {
+            simArray4Filter[i] = k * simArray4Filter[i - 1] + k * (double) (simArray4[i] - simArray4[i - 1]);
+        }
+        simArray5Filter[0] = (double) (simArray5[0] - 133);
+        for (int i = 1; i < dataMax; i++) {
+            simArray5Filter[i] = k * simArray5Filter[i - 1] + k * (double) (simArray5[i] - simArray5[i - 1]);
+        }
+        simArray6Filter[0] = (double) (simArray6[0] - 133);
+        for (int i = 1; i < dataMax; i++) {
+            simArray6Filter[i] = k * simArray6Filter[i - 1] + k * (double) (simArray6[i] - simArray6[i - 1]);
+        }
+        simArray7Filter[0] = (double) (simArray7[0] - 133);
+        for (int i = 1; i < dataMax; i++) {
+            simArray7Filter[i] = k * simArray7Filter[i - 1] + k * (double) (simArray7[i] - simArray7[i - 1]);
+        }
+        simArray8Filter[0] = (double) (simArray8[0] - 133);
+        for (int i = 1; i < dataMax; i++) {
+            simArray8Filter[i] = k * simArray8Filter[i - 1] + k * (double) (simArray8[i] - simArray8[i - 1]);
+        }
+
+    }
+
+    /**
+     * 计算相关系数
+     */
+    public double correlationCalculation(double[] a, double[] b, int n) {
+        double d1, d2, d3;
+        double mx, my;
+        int i;
+        d1 = d2 = d3 = mx = my = 0.0;
+
+        for(i = 0; i < n; i++) {
+            mx += a[i];
+            my += b[i];
+        }
+        mx = mx / n;
+        my = my / n;
+
+        //计算相关系数的数据组成部分
+        for(i = 0; i < n; i++) {
+            d1 += (a[i] - mx) * (b[i] - my);
+            d2 += (a[i] - mx) * (a[i] - mx);
+            d3 += (b[i] - my) * (b[i] - my);
+        }
+//        Log.e("SIM筛选3", " /d1 = " + d1 + " /d2 = " + d2 + " /d3 = " + d3);
+        d2 = Math.sqrt(d2 * d3);
+        if (d2 == 0) {
+            d1 = -1;
+        } else {
+            d1 = d1 / d2;
+        }
+        return d1;
+
     }
 
     /**
@@ -2770,8 +3312,8 @@ public class ModeActivity extends BaseActivity {
         pointDistance = Constant.PositonV;
         positionVirtual = pointDistance / densityMax;
         positionReal = zero / densityMax;
-        fullWave.setScrubLineVirtual(positionVirtual);
-        fullWave.setScrubLineReal(positionReal);
+        mainWave.setScrubLineVirtual(positionVirtual);
+        mainWave.setScrubLineReal(positionReal);
         Constant.DensityMax = densityMax;
         //显示故障距离   //20200522  单位转化逻辑修正
         Constant.CurrentLocation = Constant.SaveLocation;
@@ -2899,14 +3441,12 @@ public class ModeActivity extends BaseActivity {
      */
     private void setHorizontalMoveView() {
         //LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(rlWave.getWidth() / density, 30);
-
         LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(mvWave.getParentWidth() * 510 * density / dataLength, getResources().getDimensionPixelSize(R.dimen.dp_20));
         mvWave.setLayoutParams(layoutParams);
     }
 
     private void setHorizontalMoveViewOnlyHeight() {
         //LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(rlWave.getWidth() / density, 30);
-
         LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(mvWave.getWidth(), getResources().getDimensionPixelSize(R.dimen.dp_20));
         mvWave.setLayoutParams(layoutParams);
     }
@@ -2920,7 +3460,7 @@ public class ModeActivity extends BaseActivity {
         mvWave.setLayoutParams(layoutParams);
     }
 
-    private void setMoverPostion(int position) {
+    private void setMoverPosition(int position) {
         LinearLayout.LayoutParams layoutParams = (LinearLayout.LayoutParams) mvWave.getLayoutParams();
         layoutParams.leftMargin = position;
         mvWave.setLayoutParams(layoutParams);
@@ -2934,14 +3474,14 @@ public class ModeActivity extends BaseActivity {
         //光标距离
         if (mode == SIM) {
             //GC20190712
-            zero = simZero;
+            zero = simOriginalZero;
             if (range == RANGE_250) {
                 zero = zero * 2;
             }
             //GC20200330
-            zero2 = simPosition;
+            zero2 = simStandardZero;
             if (range == RANGE_250) {
-                zero2 = simPosition * 2;
+                zero2 = simStandardZero * 2;
             }
         } else {
             zero = 0;
@@ -2955,15 +3495,15 @@ public class ModeActivity extends BaseActivity {
 
         if (positionReal >= 0) {
             //G?? 条件是不是没用
-            fullWave.setScrubLineReal(positionReal);
+            mainWave.setScrubLineReal(positionReal);
         }
-        fullWave.setScrubLineVirtual(positionVirtual);
+        mainWave.setScrubLineVirtual(positionVirtual);
         //GC20200330
         if (mode == SIM) {
             positionSim = zero2 / densityMax;
-            fullWave.setScrubLineSim(positionSim);
+            mainWave.setScrubLineSim(positionSim);
         } else {
-            fullWave.setScrubLineSimDisappear();
+            mainWave.setScrubLineSimDisappear();
         }
     }
 
@@ -2996,7 +3536,6 @@ public class ModeActivity extends BaseActivity {
                 break;
             case RANGE_500:
                 rangeState = 1;
-                //GC20190709
                 switchDensity();
                 initCursor();
                 if (Constant.CurrentUnit == MI_UNIT) {
@@ -3119,7 +3658,6 @@ public class ModeActivity extends BaseActivity {
             case RANGE_500:
                 rangeState = 1;
                 switchDensity();
-                //GC20190709
                 if (Constant.CurrentUnit == MI_UNIT) {
                     tvRangeValue.setText(getResources().getString(R.string.btn_500m));
                 } else {
@@ -3213,13 +3751,54 @@ public class ModeActivity extends BaseActivity {
         Constant.Gain = gain;
         command = COMMAND_GAIN;
         dataTransfer = gain;
+        //增益按钮状态变化（包含数据库打开）    //GC20200604
+        if (gain == 31) {
+            tvGainAdd.setEnabled(false);
+            tvGainMin.setEnabled(true);
+            if (mode == SIM) {
+                tvGainAdd.setImageResource(R.drawable.bg_gain_plus_s_false);
+                tvGainMin.setImageResource(R.drawable.bg_gain_min_s_selector);
+            } else {
+                tvGainAdd.setImageResource(R.drawable.bg_gain_plus_false);
+                tvGainMin.setImageResource(R.drawable.bg_gain_min_selector);
+            }
+            gainButtonChanged = true;
+        } else if (gain == 0) {
+            tvGainAdd.setEnabled(true);
+            tvGainMin.setEnabled(false);
+            if (mode == SIM) {
+                tvGainAdd.setImageResource(R.drawable.bg_gain_plus_s_selector);
+                tvGainMin.setImageResource(R.drawable.bg_gain_min_s_false);
+            } else {
+                tvGainAdd.setImageResource(R.drawable.bg_gain_plus_selector);
+                tvGainMin.setImageResource(R.drawable.bg_gain_min_false);
+            }
+            gainButtonChanged = true;
+        } else {
+            if (gainButtonChanged) {
+                tvGainAdd.setEnabled(true);
+                tvGainMin.setEnabled(true);
+                if (mode == SIM) {
+                    tvGainAdd.setImageResource(R.drawable.bg_gain_plus_s_selector);
+                    tvGainMin.setImageResource(R.drawable.bg_gain_min_s_selector);
+                } else {
+                    tvGainAdd.setImageResource(R.drawable.bg_gain_plus_selector);
+                    tvGainMin.setImageResource(R.drawable.bg_gain_min_selector);
+                }
+                gainButtonChanged = false;
+            }
+        }
         //增益转为百分比   //GC20200313
         int temp = s2b(gain);
         tvGainValue.setText(String.valueOf(temp));
         startService();
     }
 
-    //增益转为百分比31转100    //GC20200313
+    /**
+     * 增益转为百分比31转100    //GC20200313
+     * @param s
+     * @return
+     */
     public int s2b(int s) {
         int b;
         float v = (float) s / 31.0f;
@@ -3235,9 +3814,42 @@ public class ModeActivity extends BaseActivity {
         tvGainValue.setText(String.valueOf(gain));
     }
 
-
     public int getGain() {
         return gain;
+    }
+
+    /**
+     * @param balance 需要发送的平衡控制命令值 / 响应信息栏平衡变化
+     */
+    public void setBalance(int balance) {
+        this.balance = balance;
+        command = COMMAND_BALANCE;
+        dataTransfer = balance;
+        //平衡按钮状态变化    //GC20200604
+        if (balance == 15) {
+            tvBalancePlus.setEnabled(false);
+            tvBalancePlus.setImageResource(R.drawable.bg_balance_plus_false);
+            balanceButtonChanged = true;
+        } else if (balance == 0) {
+            tvBalanceMin.setEnabled(false);
+            tvBalanceMin.setImageResource(R.drawable.bg_balance_min_false);
+            balanceButtonChanged = true;
+        } else {
+            if (balanceButtonChanged) {
+                tvBalancePlus.setEnabled(true);
+                tvBalancePlus.setImageResource(R.drawable.bg_balance_plus_selector);
+                tvBalanceMin.setEnabled(true);
+                tvBalanceMin.setImageResource(R.drawable.bg_balance_min_selector);
+                balanceButtonChanged = false;
+            }
+        }
+        tvBalanceValue.setText(String.valueOf(balance));
+        //发送指令
+        startService();
+    }
+
+    public int getBalance() {
+        return balance;
     }
 
     /**
@@ -3250,18 +3862,19 @@ public class ModeActivity extends BaseActivity {
         } else {
             tvVopValue.setText(UnitUtils.miToFt(velocity));
         }
+        calculateDistance(Math.abs(pointDistance - zero));
 
-        //GC20190709    //G?
-        if (!isReceiveData || isDatabase == true) {
+        /*//GC20190709    //GC? 怎么简化下？
+        if (!isReceiveData || isDatabase) {
         } else {
             calculateDistance(Math.abs(pointDistance - zero));
-        }
+        }*/
+
     }
 
     public void setVelocityNoCmd(int velocity) {
         //20200523  波速度修改
         this.velocity = velocity;
-
         if (Constant.CurrentUnit == MI_UNIT) {
             tvVopValue.setText(String.valueOf(velocity));
         } else {
@@ -3297,31 +3910,19 @@ public class ModeActivity extends BaseActivity {
         switch (view.getId()) {
             case R.id.ll_adjust:
                 break;
-            case R.id.tv_wave_next:
-                selectSim = getSelectSim();
-                if (selectSim < 8) {
-                    selectSim++;
-                    setSelectSim(selectSim);
-                    tvWavePre.setEnabled(true);
-                }
-                //到第8组波形，上翻按钮点击无效
-                if (selectSim == 8) {
-                    tvWaveNext.setEnabled(false);
-                }
-                break;
             case R.id.tv_wave_pre:
                 //SIM共8组，从1-8
                 selectSim = getSelectSim();
                 if (selectSim > 1) {
                     selectSim--;
                     setSelectSim(selectSim);
-                    tvWaveNext.setEnabled(true);
                 }
-                //到第1组波形，上翻按钮点击无效
-                if (selectSim == 1) {
-                    tvWavePre.setEnabled(false);
-                    tvWaveNext.setEnabled(true);
-
+                break;
+            case R.id.tv_wave_next:
+                selectSim = getSelectSim();
+                if (selectSim < 8) {
+                    selectSim++;
+                    setSelectSim(selectSim);
                 }
                 break;
             case R.id.iv_close_trigger_delay:
@@ -3391,12 +3992,18 @@ public class ModeActivity extends BaseActivity {
             case R.id.tv_250m:
                 setRange(0x99);
                 setGain(gain);
-                //切换范围时改变脉宽（未保存过脉宽且只在TDR模式下发射该命令）    //GC20200331     SIM也发送脉宽命令  //GC20200526
-                if (!hasSavedPulseWidth && ( mode == TDR || mode == SIM)) {
+                //切换范围时改变脉宽（未保存过脉宽且只在TDR模式下发射该命令）    //GC20200331
+                if (!hasSavedPulseWidth && mode == TDR) {
                     handler.postDelayed(() -> {
                         setPulseWidth(40);
                     }, 20);
                     etPulseWidth.setText(String.valueOf(40));
+                }
+                //切换范围时改变SIM的发射脉宽   //GC20200527
+                if (mode == SIM) {
+                    handler.postDelayed(() -> {
+                        setPulseWidth(320);
+                    }, 20);
                 }
                 handler.postDelayed(this::clickTest, 50);
                 tvGainAdd.setEnabled(true);
@@ -3406,11 +4013,17 @@ public class ModeActivity extends BaseActivity {
                 setRange(0x11);
                 setGain(gain);
                 //GC20200331
-                if (!hasSavedPulseWidth && ( mode == TDR || mode == SIM)) {
+                if (!hasSavedPulseWidth && mode == TDR) {
                     handler.postDelayed(() -> {
                         setPulseWidth(40);
                     }, 20);
                     etPulseWidth.setText(String.valueOf(40));
+                }
+                //GC20200527
+                if (mode == SIM) {
+                    handler.postDelayed(() -> {
+                        setPulseWidth(320);
+                    }, 20);
                 }
                 handler.postDelayed(this::clickTest, 50);
                 tvGainAdd.setEnabled(true);
@@ -3419,12 +4032,16 @@ public class ModeActivity extends BaseActivity {
             case R.id.tv_1km:
                 setRange(0x22);
                 setGain(gain);
-                //GC20200331
-                if (!hasSavedPulseWidth && ( mode == TDR || mode == SIM)) {
+                if (!hasSavedPulseWidth && mode == TDR) {
                     handler.postDelayed(() -> {
                         setPulseWidth(80);
                     }, 20);
                     etPulseWidth.setText(String.valueOf(80));
+                }
+                if (mode == SIM) {
+                    handler.postDelayed(() -> {
+                        setPulseWidth(320);
+                    }, 20);
                 }
                 handler.postDelayed(this::clickTest, 50);
                 tvGainAdd.setEnabled(true);
@@ -3433,12 +4050,16 @@ public class ModeActivity extends BaseActivity {
             case R.id.tv_2km:
                 setRange(0x33);
                 setGain(gain);
-                //GC20200331
-                if (!hasSavedPulseWidth && ( mode == TDR || mode == SIM)) {
+                if (!hasSavedPulseWidth && mode == TDR) {
                     handler.postDelayed(() -> {
                         setPulseWidth(160);
                     }, 20);
                     etPulseWidth.setText(String.valueOf(160));
+                }
+                if (mode == SIM) {
+                    handler.postDelayed(() -> {
+                        setPulseWidth(720);
+                    }, 20);
                 }
                 handler.postDelayed(this::clickTest, 50);
                 tvGainAdd.setEnabled(true);
@@ -3447,12 +4068,16 @@ public class ModeActivity extends BaseActivity {
             case R.id.tv_4km:
                 setRange(0x44);
                 setGain(gain);
-                //GC20200331
-                if (!hasSavedPulseWidth && ( mode == TDR || mode == SIM)) {
+                if (!hasSavedPulseWidth && mode == TDR) {
                     handler.postDelayed(() -> {
                         setPulseWidth(320);
                     }, 20);
                     etPulseWidth.setText(String.valueOf(320));
+                }
+                if (mode == SIM) {
+                    handler.postDelayed(() -> {
+                        setPulseWidth(2560);
+                    }, 20);
                 }
                 handler.postDelayed(this::clickTest, 50);
                 tvGainAdd.setEnabled(true);
@@ -3461,12 +4086,16 @@ public class ModeActivity extends BaseActivity {
             case R.id.tv_8km:
                 setRange(0x55);
                 setGain(gain);
-                //GC20200331
-                if (!hasSavedPulseWidth && ( mode == TDR || mode == SIM)) {
+                if (!hasSavedPulseWidth && mode == TDR) {
                     handler.postDelayed(() -> {
                         setPulseWidth(640);
                     }, 20);
                     etPulseWidth.setText(String.valueOf(640));
+                }
+                if (mode == SIM) {
+                    handler.postDelayed(() -> {
+                        setPulseWidth(3600);
+                    }, 20);
                 }
                 handler.postDelayed(this::clickTest, 50);
                 tvGainAdd.setEnabled(true);
@@ -3475,12 +4104,16 @@ public class ModeActivity extends BaseActivity {
             case R.id.tv_16km:
                 setRange(0x66);
                 setGain(gain);
-                //GC20200331
-                if (!hasSavedPulseWidth && ( mode == TDR || mode == SIM)) {
+                if (!hasSavedPulseWidth && mode == TDR) {
                     handler.postDelayed(() -> {
                         setPulseWidth(1280);
                     }, 20);
                     etPulseWidth.setText(String.valueOf(1280));
+                }
+                if (mode == SIM) {
+                    handler.postDelayed(() -> {
+                        setPulseWidth(7120);
+                    }, 20);
                 }
                 handler.postDelayed(this::clickTest, 50);
                 tvGainAdd.setEnabled(true);
@@ -3489,12 +4122,16 @@ public class ModeActivity extends BaseActivity {
             case R.id.tv_32km:
                 setRange(0x77);
                 setGain(gain);
-                //GC20200331
-                if (!hasSavedPulseWidth && ( mode == TDR || mode == SIM)) {
+                if (!hasSavedPulseWidth && mode == TDR) {
                     handler.postDelayed(() -> {
                         setPulseWidth(2560);
                     }, 20);
                     etPulseWidth.setText(String.valueOf(2560));
+                }
+                if (mode == SIM) {
+                    handler.postDelayed(() -> {
+                        setPulseWidth(10200);
+                    }, 20);
                 }
                 handler.postDelayed(this::clickTest, 50);
                 tvGainAdd.setEnabled(true);
@@ -3504,16 +4141,21 @@ public class ModeActivity extends BaseActivity {
                 setRange(0x88);
                 setGain(gain);
                 //GC20200331
-                if (!hasSavedPulseWidth && ( mode == TDR || mode == SIM)) {
+                if (!hasSavedPulseWidth && mode == TDR) {
                     handler.postDelayed(() -> {
                         setPulseWidth(5120);
                     }, 20);
                     etPulseWidth.setText(String.valueOf(5120));
                 }
+                //GC20200527
+                if (mode == SIM) {
+                    handler.postDelayed(() -> {
+                        setPulseWidth(10200);
+                    }, 20);
+                }
                 handler.postDelayed(this::clickTest, 50);
                 tvGainAdd.setEnabled(true);
                 tvGainMin.setEnabled(true);
-
                 break;
             case R.id.tv_gain_add:
                 int gain = getGain();
@@ -3521,11 +4163,15 @@ public class ModeActivity extends BaseActivity {
                     gain++;
                     //GC20190704 增益发送命令修改   (命令范围0-31阶)
                     setGain(gain);
-                    tvGainMin.setEnabled(true);
-                }
-                //增益命令到最大，按钮点击无效
-                if (gain == 31) {
-                    tvGainAdd.setEnabled(false);
+                    /*if (!gainMin) {
+                        tvGainMin.setEnabled(true);
+                        if (mode == SIM) {
+                            tvGainMin.setImageResource(R.drawable.bg_gain_min_s_selector);
+                        } else {
+                            tvGainMin.setImageResource(R.drawable.bg_gain_min_selector);
+                        }
+                        gainMin = true;
+                    }*/
                 }
                 closeAllView();
                 break;
@@ -3533,11 +4179,17 @@ public class ModeActivity extends BaseActivity {
                 gain = getGain();
                 if (gain > 0) {
                     gain--;
+                    //GC20190704 平衡发送命令修改   (命令范围0-15阶)
                     setGain(gain);
-                    tvGainAdd.setEnabled(true);
-                }
-                if (gain == 0) {
-                    tvGainMin.setEnabled(false);
+//                    if (!gainPlus) {
+//                        tvGainAdd.setEnabled(true);
+//                        if (mode == SIM) {
+//                            tvGainAdd.setImageResource(R.drawable.bg_gain_plus_s_selector);
+//                        } else {
+//                            tvGainAdd.setImageResource(R.drawable.bg_gain_plus_selector);
+//                        }
+//                        gainPlus = true;
+//                    }
                 }
                 closeAllView();
                 break;
@@ -3545,13 +4197,7 @@ public class ModeActivity extends BaseActivity {
                 int balance = getBalance();
                 if (balance < 15) {
                     balance++;
-                    //GC20190704 平衡发送命令修改   (命令范围0-15阶)
                     setBalance(balance);
-                    tvBalanceMin.setEnabled(true);
-                }
-
-                if (balance == 15) {
-                    tvBalancePlus.setEnabled(false);
                 }
                 closeAllView();
                 break;
@@ -3560,12 +4206,6 @@ public class ModeActivity extends BaseActivity {
                 if (balance > 0) {
                     balance--;
                     setBalance(balance);
-                    tvBalancePlus.setEnabled(true);
-                }
-
-                if (balance == 0) {
-                    tvBalanceMin.setEnabled(false);
-
                 }
                 closeAllView();
                 break;
@@ -3611,9 +4251,9 @@ public class ModeActivity extends BaseActivity {
                 break;
             case R.id.tv_zero:
                 closeAllView();
-                fullWave.setScrubLineReal(positionVirtual);
+                mainWave.setScrubLineReal(positionVirtual);
                 positionReal = positionVirtual;
-                //在原始数据中的位置 //GC20191218
+                //在原始数据中的位置
                 zero = pointDistance;
                 calculateDistance(0);
                 break;
@@ -3622,7 +4262,7 @@ public class ModeActivity extends BaseActivity {
                 if (positionVirtual > 0) {
                     int positionVirtualtemp = positionVirtual;
                     positionVirtualtemp -= 1;
-                    fullWave.setScrubLineVirtual(positionVirtualtemp);
+                    mainWave.setScrubLineVirtual(positionVirtualtemp);
                     pointDistance = pointDistance + ((int) positionVirtualtemp - positionVirtual) * density;
                     positionVirtual = positionVirtualtemp;
                     Log.e("【按钮调光标】", "positionVirtual" + positionVirtual);
@@ -3637,7 +4277,7 @@ public class ModeActivity extends BaseActivity {
                 if (positionVirtual < 509) {
                     int positionVirtualtemp = positionVirtual;
                     positionVirtualtemp += 1;
-                    fullWave.setScrubLineVirtual(positionVirtualtemp);
+                    mainWave.setScrubLineVirtual(positionVirtualtemp);
                     pointDistance = pointDistance + ((int) positionVirtualtemp - positionVirtual) * density;
                     positionVirtual = positionVirtualtemp;
                     calculateDistance(Math.abs(pointDistance - zero));
@@ -3646,7 +4286,6 @@ public class ModeActivity extends BaseActivity {
                 break;
             case R.id.tv_zoom_plus:
                 closeAllView();
-                //GC20190711
                 int density = getDensity();
                 if (density > 1) {
                     density = density / 2;
@@ -3702,54 +4341,69 @@ public class ModeActivity extends BaseActivity {
      * @param selectSim SIM显示波形的组数
      */
     public void setSelectSim(int selectSim) {
+        Log.e("SIM筛选", "setSelectSim");
         tvWaveText.setVisibility(View.VISIBLE);
         this.selectSim = selectSim;
+        //波形上翻下翻按钮状态变化    //GC20200604
+        if (selectSim == 1) {
+            tvWavePre.setEnabled(false);
+            tvWavePre.setImageResource(R.drawable.bg_wave_pre_s_false);
+            tvWaveNext.setEnabled(true);
+            tvWaveNext.setImageResource(R.drawable.bg_wave_next_s_selector);
+            waveButtonChanged = true;
+        } else if (selectSim == 8) {
+            tvWavePre.setEnabled(true);
+            tvWavePre.setImageResource(R.drawable.bg_wave_pre_s_selector);
+            tvWaveNext.setEnabled(false);
+            tvWaveNext.setImageResource(R.drawable.bg_wave_next_s_false);
+            waveButtonChanged = true;
+        } else {
+            if (waveButtonChanged) {
+                tvWavePre.setEnabled(true);
+                tvWavePre.setImageResource(R.drawable.bg_wave_pre_s_selector);
+                tvWaveNext.setEnabled(true);
+                tvWaveNext.setImageResource(R.drawable.bg_wave_next_s_selector);
+                waveButtonChanged = false;
+            }
+        }
         switch (selectSim) {
             case 1:
                 System.arraycopy(simDraw1, 0, waveCompare, 0, 510);
-                System.arraycopy(simDraw1Full, 0, waveCompareFull, 0, 510);
                 Constant.SimData = Constant.TempData1;
                 tvWaveValue.setText(R.string.wave_one);
                 break;
             case 2:
                 System.arraycopy(simDraw2, 0, waveCompare, 0, 510);
-                System.arraycopy(simDraw2Full, 0, waveCompareFull, 0, 510);
                 Constant.SimData = Constant.TempData2;
                 tvWaveValue.setText(R.string.wave_two);
                 break;
             case 3:
                 System.arraycopy(simDraw3, 0, waveCompare, 0, 510);
-                System.arraycopy(simDraw3Full, 0, waveCompareFull, 0, 510);
                 Constant.SimData = Constant.TempData3;
                 tvWaveValue.setText(R.string.wave_three);
                 break;
             case 4:
                 System.arraycopy(simDraw4, 0, waveCompare, 0, 510);
-                System.arraycopy(simDraw4Full, 0, waveCompareFull, 0, 510);
                 Constant.SimData = Constant.TempData4;
                 tvWaveValue.setText(R.string.wave_four);
                 break;
             case 5:
                 System.arraycopy(simDraw5, 0, waveCompare, 0, 510);
-                System.arraycopy(simDraw5Full, 0, waveCompareFull, 0, 510);
                 Constant.SimData = Constant.TempData5;
                 tvWaveValue.setText(R.string.wave_five);
                 break;
             case 6:
                 System.arraycopy(simDraw6, 0, waveCompare, 0, 510);
-                System.arraycopy(simDraw6Full, 0, waveCompareFull, 0, 510);
                 Constant.SimData = Constant.TempData6;
                 tvWaveValue.setText(R.string.wave_six);
                 break;
             case 7:
                 System.arraycopy(simDraw7, 0, waveCompare, 0, 510);
-                System.arraycopy(simDraw7Full, 0, waveCompareFull, 0, 510);
                 Constant.SimData = Constant.TempData7;
                 tvWaveValue.setText(R.string.wave_seven);
                 break;
             case 8:
                 System.arraycopy(simDraw8, 0, waveCompare, 0, 510);
-                System.arraycopy(simDraw8Full, 0, waveCompareFull, 0, 510);
                 Constant.SimData = Constant.TempData8;
                 tvWaveValue.setText(R.string.wave_eight);
                 break;
@@ -3760,10 +4414,10 @@ public class ModeActivity extends BaseActivity {
     }
 
     /**
-     * @param simZero 光标零点设置    //GC20190712
+     * @param simZero SIM光标零点自定义设置    //GC20190712
      */
     public void setSimZero(int simZero) {
-        this.simZero = simZero;
+        this.simOriginalZero = simZero;
         StateUtils.setInt(ModeActivity.this, AppConfig.CURRENT_CURSOR_POSITION, simZero);
         Toast.makeText(this, getResources().getString(R.string
                 .cursor_zero_set_success), Toast.LENGTH_SHORT).show();
@@ -3933,7 +4587,7 @@ public class ModeActivity extends BaseActivity {
             hasSavedPulseWidth = false;
         } else {
             pulseWidth = Integer.valueOf(etPulseWidth.getText().toString());
-            //已保存数据 //GC20200331
+            //已保存过脉宽 //GC20200331
             hasSavedPulseWidth = true;
         }
         // 02 本地保存波宽度信息
@@ -4072,20 +4726,21 @@ public class ModeActivity extends BaseActivity {
                         @Override
                         public void onViewClick(BindViewHolder viewHolder, View view,
                                                 TDialog tDialog) {
-                            //取消测试逻辑修正    //20200523
+                            //取消测试逻辑修正    //20200523    //GC
                             if (canClickCancelButton) {
                                 //允许点击取消测试按钮为否
                                 canClickCancelButton = false;
                                 if (!alreadyDisplayWave) {
                                     tvZoomMin.setEnabled(false);
                                     tvZoomPlus.setEnabled(false);
-                                    tvWaveNext.setEnabled(false);
                                     tvWavePre.setEnabled(false);
+                                    tvWaveNext.setEnabled(false);
+                                    //后续优化保留  //GC20200604
                                 } else {
                                     tvZoomMin.setEnabled(true);
                                     tvZoomPlus.setEnabled(true);
-                                    tvWaveNext.setEnabled(true);
                                     tvWavePre.setEnabled(true);
+                                    tvWaveNext.setEnabled(true);
                                 }
                                 tDialog.dismiss();
                                 //TODO 20200407 取消测试后，恢复测试按钮可用性
@@ -4117,12 +4772,12 @@ public class ModeActivity extends BaseActivity {
     }
 
     /**
-     * 点击比较按钮执行的方法  //GC20190703
+     * 比较按钮执行的方法  //GC20190703
      */
     public void clickCompare() {
         closeCompareView();
         if (isMemory) {
-            //GC20190703再优化
+            //再优化   //GC20190703
             if ((modeBefore == mode) && (rangeBefore == range)) {
                 isCom = !isCom;
                 myChartAdapterMainWave.setmTempArray(waveDraw);
@@ -4132,17 +4787,15 @@ public class ModeActivity extends BaseActivity {
                 myChartAdapterMainWave.setmCompareArray(waveCompareDraw);
                 myChartAdapterMainWave.notifyDataSetChanged();
             } else {
-                Toast.makeText(this, getResources().getString(R.string
-                        .You_can_not_compare), Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, getResources().getString(R.string.You_can_not_compare), Toast.LENGTH_SHORT).show();
             }
         } else {
-            Toast.makeText(this, getResources().getString(R.string
-                    .You_have_no_memory_data_can_not_compare), Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, getResources().getString(R.string.You_have_no_memory_data_can_not_compare), Toast.LENGTH_SHORT).show();
         }
     }
 
     /**
-     * 点击记忆按钮执行的方法  //GC20190703
+     * 记忆按钮执行的方法  //GC20190703
      */
     public void clickMemory() {
         if (alreadyDisplayWave) {
@@ -4152,10 +4805,11 @@ public class ModeActivity extends BaseActivity {
             //System.arraycopy(waveDraw, 0, waveCompare, 0, 510);
             waveCompare = new int[Constant.WaveData.length];
             System.arraycopy(Constant.WaveData, 0, waveCompare, 0, Constant.WaveData.length);
-            //记录记忆数据的方式范围   //GC20190703再优化
+            //记录记忆数据的方式范围   //再优化   //GC20190703
             modeBefore = mode;
             rangeBefore = range;
         }
+
     }
 
     /**

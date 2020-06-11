@@ -210,7 +210,7 @@ public class ConnectService extends Service {
                 } else {
                     isWifiConnect = false;
                     //todo 断开链接的通知
-                    //GT1 无连接第一次走这里
+                    //GT 无连接第1次走这里
                     handler.sendEmptyMessage(DEVICE_DISCONNECTED);
                     try {
                         connectThread.getOutputStream().flush();
@@ -282,7 +282,7 @@ public class ConnectService extends Service {
                     e1.printStackTrace();
                 }
                 sendBroadcast(BROADCAST_ACTION_DEVICE_CONNECT_FAILURE, null, null);
-                //GT2
+                //GT 无连接第2次走这里
                 handler.sendEmptyMessage(DEVICE_DISCONNECTED);
                 Log.e("【SOCKET连接】", "连接失败重连");
                 isConnecting = false;

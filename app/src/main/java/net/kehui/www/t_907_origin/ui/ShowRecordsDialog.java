@@ -164,7 +164,6 @@ public class ShowRecordsDialog extends BaseDialog implements View.OnClickListene
         tvNoRecords = view.findViewById(R.id.tv_no_records);
         rlHasRecords = view.findViewById(R.id.rl_has_records);
         tvCableLengthUnit = view.findViewById(R.id.tv_cable_length_unit);
-        //故障距离单位显示添加  //GC20200312
         tvFaultLocationUnit = view.findViewById(R.id.tv_fault_location_unit);
         spMode = view.findViewById(R.id.sp_mode);
         tvSelectModeText = view.findViewById(R.id.tv_selectMode);
@@ -483,7 +482,6 @@ public class ShowRecordsDialog extends BaseDialog implements View.OnClickListene
                 tvCableLength.setText(" ");
             }
             tvCableLengthUnit.setText(R.string.ft);
-            //故障距离单位显示添加  //GC20200312
             tvFaultLocationUnit.setText(R.string.ft);
         } else {
             if (data.line.equals("0") || data.line.equals("0.0")) {

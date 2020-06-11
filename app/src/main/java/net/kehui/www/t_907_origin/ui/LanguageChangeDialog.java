@@ -79,7 +79,7 @@ public class LanguageChangeDialog extends Dialog implements View.OnClickListener
         tvZh = view.findViewById(R.id.tv_zh);
         if (Constant.currentLanguage.equals("ch")) {
             tvZh.setEnabled(false);
-            //中英文显示优化    //GC20200525
+            //语言对话框显示优化    //GC20200525
             tvZh.setTextColor(getContext().getResources().getColor(R.color.blue_4EDAFC));
         }
         if (Constant.currentLanguage.equals("en")) {

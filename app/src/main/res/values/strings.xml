@@ -178,5 +178,6 @@
     <string name="back">返&#12288;&#12288;回</string>
     <string name="englishSpace">&#160;</string>
     <string name="chineseSpace">&#12288;</string>
+    <string name="testAgain">请再次测试!</string>
 
 </resources>

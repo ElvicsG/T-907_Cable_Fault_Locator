@@ -29,7 +29,10 @@ public class BaseActivity extends AppCompatActivity {
      * sparkView图形绘制部分
      */
     public MyChartAdapterBase myChartAdapterMainWave;
-    public MyChartAdapterBase myChartAdapterFullWave;
+
+    public boolean gainButtonChanged;
+    public boolean balanceButtonChanged;
+    public boolean waveButtonChanged = true;
 
     /**
      * 波形参数
@@ -46,15 +49,20 @@ public class BaseActivity extends AppCompatActivity {
     public int balance;
     public int delay;
     public int inductor;
-    public int selectSim;
-    public boolean isCom;
-    public boolean isMemory;
-    public boolean isDatabase;
-
     /**
      * 波宽度全局变量
      */
     public int pulseWidth;
+    /**
+     * 0xF7,0xF7,0xED,0xBF,0xA5,0x4D,0x00,0x00
+     *  247, 247, 237, 191, 165,  77,   0,   0
+     *  320, 320, 720,2560,3600,7120,   10200      //GC20200527    255-X/40;X为输入值  二次脉冲脉宽命令发送值
+     */
+    public int pulseWidthSim;
+    public int selectSim;
+    public boolean isCom;
+    public boolean isMemory;
+    public boolean isDatabase;
 
     /**
      * 波形原始数据数组
@@ -70,6 +78,21 @@ public class BaseActivity extends AppCompatActivity {
     public int[] simArray6;
     public int[] simArray7;
     public int[] simArray8;
+    /**
+     * SIM筛选  //GC20200529
+     */
+    public int[] overlapNum = new int[8];
+    public int[] simSum = new int[9];
+    public double[] simArray0Filter = new double[65560];
+    public double[] simArray1Filter = new double[65560];
+    public double[] simArray2Filter = new double[65560];
+    public double[] simArray3Filter = new double[65560];
+    public double[] simArray4Filter = new double[65560];
+    public double[] simArray5Filter = new double[65560];
+    public double[] simArray6Filter = new double[65560];
+    public double[] simArray7Filter = new double[65560];
+    public double[] simArray8Filter = new double[65560];
+    public boolean receiveSimOver;
 
     /**
      * 波形绘制数据数组（抽点510个）
@@ -77,8 +100,6 @@ public class BaseActivity extends AppCompatActivity {
     public int[] waveDraw;
     public int[] waveCompare;
     public int[] waveCompareDraw;
-    public int[] waveDrawFull;
-    public int[] waveCompareFull;
     public int[] simDraw1;
     public int[] simDraw2;
     public int[] simDraw3;
@@ -87,14 +108,6 @@ public class BaseActivity extends AppCompatActivity {
     public int[] simDraw6;
     public int[] simDraw7;
     public int[] simDraw8;
-    public int[] simDraw1Full;
-    public int[] simDraw2Full;
-    public int[] simDraw3Full;
-    public int[] simDraw4Full;
-    public int[] simDraw5Full;
-    public int[] simDraw6Full;
-    public int[] simDraw7Full;
-    public int[] simDraw8Full;
 
     /**
      * 不同范围和方式下，波形数据的点数、需要去掉的冗余点数、比例值
@@ -109,14 +122,21 @@ public class BaseActivity extends AppCompatActivity {
     /**
      * 光标参数
      */
+    public int simOriginalZero;
     public int zero;
     public int pointDistance;
-    public int simZero;
+    public int simStandardZero;
     public int positionReal;
     public int positionVirtual;
-    public int cursorMoveValue;
-    public int simPosition;
+    public int positionVirtualChange;
     public int positionSim;
+
+    /**
+     * 波形滑动相关
+     */
+    public int currentStart = 0;
+    public int currentMoverPosition510 = 0;
+    public int moverMoveValue = 0;
 
     /**
      * ICM自动测距参数
@@ -141,19 +161,9 @@ public class BaseActivity extends AppCompatActivity {
     public double leadLength;
     public double leadVop;
 
-    /**
-     * WiFi连接部分
-     */
-    public ConnectThread connectThread;
-    public BufferedReader br;
-    public static final int PORT = 9000;
-    public boolean isSuccessful;
-    public boolean netBoolean;
-    public boolean isFirst = true;
     public int[] wifiStream;
-
     /**
-     * APP发送命令(16进制)
+     * APP发送的命令(16进制)
      * 数据头     数据长度  指令  传输数据  校验和
      * eb90aa55     03      01      11       15
      * eb90aa55 03 01 11 15	    测试0x11
@@ -175,7 +185,6 @@ public class BaseActivity extends AppCompatActivity {
      * eb90aa55 03 05 22 2a		延时-
      * eb90aa55 03 07 11 1b  	平衡+
      * eb90aa55 03 07 22 2c		平衡-
-     * eb90aa55 03 08 11 1c		//接收到触发信号
      * eb90aa55 03 09 11 1d		//接收数据命令
      * eb90aa55 03 0a 11 1e		//关机重连
      */
@@ -187,15 +196,14 @@ public class BaseActivity extends AppCompatActivity {
     public final static int COMMAND_DELAY = 0x05;
     public final static int COMMAND_BALANCE = 0x07;
     public final static int COMMAND_RECEIVE_WAVE = 0x09;
+    /**
+     * 波宽度发送指令
+     */
+    public final static int COMMAND_PULSE_WIDTH = 0x0a;
 
     public int dataTransfer;
     public final static int TESTING = 0x11;
     public final static int CANCEL_TEST = 0x22;
-
-    /**
-     * 波宽度发送指令代码
-     */
-    public final static int COMMAND_PULSE_WIDTH = 0x0a;
 
     public final static int TDR = 0x11;
     public final static int ICM = 0x22;
@@ -214,13 +222,18 @@ public class BaseActivity extends AppCompatActivity {
     public final static int RANGE_64_KM = 0x88;
 
     /**
-     * APP接收到的命令
+     * APP接收的命令
+     * 数据头     数据长度  指令  传输数据  校验和
+     * eb90aa55     03      01      33       ..  （0x33正确 0x44错误）
+     * eb90aa55 03 08 11 1c		//接收到触发信号
      */
-    public final static int COMMAND_TRIGGER = 0x08;
-    public final static int TRIGGERED = 0x11;
+    public final static int COMMAND = 0x55;
+
     public final static int POWER_DISPLAY = 0x06;
-    public final static int RECEIVE_RIGHT = 0x33;
-    public final static int RECEIVE_WRONG = 0x44;
+    public final static int COMMAND_TRIGGER = 0x08;
+
+    public final static int TRIGGERED = 0x11;
+
 
     /**
      * APP接收到的波形数据头
@@ -238,15 +251,15 @@ public class BaseActivity extends AppCompatActivity {
     public DataDao dao;
     public int selectedId;
 
-    public static BaseActivity baseActivity;//传递给非activity的类使用
-    public static Context mContext;//传递给非activity的类使用
+    public static BaseActivity baseActivity;
+    public static Context mContext;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        //GC20200525
-        baseActivity = this;//传递给非activity的类使用
-        mContext = this.getBaseContext();//传递给非activity的类使用
+        //传递给非activity的类使用（记录显示中英文切换资源获取）  //GC20200525
+        baseActivity = this;
+        mContext = this.getBaseContext();
 
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
@@ -277,14 +290,11 @@ public class BaseActivity extends AppCompatActivity {
         selectSim = 1;
 
         dataMax = 540;
-        //GC20191219
         dataLength = 510;
         waveArray = new int[540];
         waveDraw = new int[510];
-        waveDrawFull = new int[510];
         waveCompare = new int[510];
         waveCompareDraw = new int[510];
-        waveCompareFull = new int[510];
         simDraw1 = new int[510];
         simDraw2 = new int[510];
         simDraw3 = new int[510];
@@ -293,22 +303,17 @@ public class BaseActivity extends AppCompatActivity {
         simDraw6 = new int[510];
         simDraw7 = new int[510];
         simDraw8 = new int[510];
-        simDraw1Full = new int[510];
-        simDraw2Full = new int[510];
-        simDraw3Full = new int[510];
-        simDraw4Full = new int[510];
-        simDraw5Full = new int[510];
-        simDraw6Full = new int[510];
-        simDraw7Full = new int[510];
-        simDraw8Full = new int[510];
 
+        //光标原始位置
         zero = 0;
         pointDistance = 255;
-        //光标在画布中移动的点数   //GC20191218
-        cursorMoveValue = 0;
-        //光标显示的位置（变化范围0-509）
+        //SIM标记光标（固定不变）   //GC20200330
+        simStandardZero = 12;
+        //光标画布位置（变化范围0-509）
         positionReal = 0;
         positionVirtual = 255;
+        //虚光标画布中变化的数值
+        positionVirtualChange = 0;
 
         //增益大小状态
         gainState = 0;
@@ -328,63 +333,18 @@ public class BaseActivity extends AppCompatActivity {
 
 }
 
-/*——————————其它——————————*/
-//GT 工作信息测试
-//布局运用  <!--百分比运用-->
-/*——————————其它——————————*/
-
-/*更改记录*/
-//GC20190628 光标虚化和限制范围——新加纵坐标范围响应
-//GC20190629 光标使用优化
-//GC20190703 记忆比较功能
-//GC20190704 增益、平衡、延时命令调节
-//GC20190708 ICM自动测距                ***************
-//GC20190709 距离计算，比例选择
-//GC20190711 放大缩小
-//GC20190712 光标零点设置
-//GC20190713 数据库波形显示
-//GC20190716 存储显示、放大缩小操作之后的bug修正
-
-/*——————————自动测距调整——————————*/
-//GC20191218    光标位置修正
-//GC20191219    根据虚光标的原始位置进行放大缩小
-//GC20191223    250m范围取点
-//GC20191226    250m范围距离
-//GC20191231    自动测距修改
-//GC20200103    测试缆信息添加
-//GC20200106    光标定位修改
-//GC20200109    DC方式下自动测距单独实现
-//GC20200110    击穿点判断起始位置更改
-//a待定 20190821
-/*——————————自动测距调整——————————*/
-
-//GC20200312    故障距离单位显示添加
-//GC20200313    增益显示转为百分比
-//GC20200314    模式界面电量图标同步主页界面
-//GC20200319    “等待触发”对话框重连时不消掉BUG修改
-
-//G??
-//EN20200324    发送命令和获取电量修改，增加条件限制，避免极端条件下会多次尝试连接
+//TODO 20191224  屏蔽掉不知道干啥的
+//TODO 201912241202 MIM模式下不要重置零点，因为positionReal整除会丢失精度
+//TODO 20200416
 //GC20200325    改恩诺连接条件
-
-//GC20200327    帮助功能添加
-//GC20200330    SIM标记光标添加
-//GC20200331    不同范围脉宽发射功能添加
-//GC20200424    不同模式下初始化发射的不同命令
-//GC20200428    命令控制变量修改
-//GC20200519    WIFI连接控制
-//GC20200523    界面相关
-//GC20200525    语言显示效果优化 / 记录显示效果优化
-//GC20200526    SIM方式下脉宽命令发送修改
-
-
+//GC? 与恩诺区别 //G??
+//EN20200324    发送命令和获取电量修改，增加条件限制，避免极端条件下会多次尝试连接
 
 //GN界面优化可能用到
-//TODO 20200520 滑动波形加注释
 
-//GC? 与恩诺区别
 /*————enNuo————*/
 //20191218
+//20191224
 //20200407  电量获取修改
 //20200416  未连接不执行
 //20200520  数据库相关
@@ -392,4 +352,48 @@ public class BaseActivity extends AppCompatActivity {
 //20200522  单位转化逻辑修正
 //20200523  其它优化
 
+/*——————————其它——————————*/
+//GT 调试
+//百分比运用
+/*——————————其它——————————*/
 
+/*更改记录*/
+//GC20190629 光标使用优化
+//GC20190703 记忆比较功能
+//GC20190704 增益、平衡、延时命令调节
+//GC20190708 ICM自动测距                ***************
+//GC20190709 距离计算，比例选择
+//GC20190712 光标零点设置
+//GC20190713 数据库波形显示
+
+/*——————————自动测距调整——————————*/
+//GC20191223    250m范围取点和距离计算
+//GC20191231    自动测距修改
+//GC20200103    测试缆信息添加
+//GC20200106    光标定位修改
+//GC20200109    DC方式下自动测距单独实现
+//GC20200110    击穿点判断起始位置更改
+//GC20200529    SIM自动筛选最优显示
+//GC20200601    筛选显示优化
+//GC20200606    ICM滤波、增益直流分量参数修改
+//GC20200609    SIM自动筛选判断条件增加
+
+//A20190821  a待定
+//A20200527  增益大小判断微调
+//A20200601  断线故障处理优化
+//A20200606  重合系数微调
+/*——————————自动测距调整——————————*/
+
+//GC20200313    增益显示转为百分比
+//GC20200314    模式界面电量图标同步主页界面
+//GC20200319    “等待触发”对话框重连时不消掉BUG修改
+//GC20200327    帮助功能添加
+//GC20200330    SIM标记光标添加
+//GC20200331    不同范围发射不同脉宽功能添加
+//GC20200424    不同模式下初始化发射的不同命令
+//GC20200428    连接线程的变量初始化修改
+//GC20200525    界面布局优化
+//GC20200527    SIM方式下脉宽命令发送
+//GC20200528    波形滑动区域控制
+//GC20200604    按钮状态用户交互优化      //后续优化保留  //GC20200604
+//GC20200611    缩放后移动滑块时画光标bug修正

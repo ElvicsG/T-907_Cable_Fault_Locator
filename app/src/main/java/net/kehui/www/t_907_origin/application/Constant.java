@@ -37,7 +37,13 @@ public class Constant {
     public static double CurrentLocation;
     public static double SaveLocation;
     public static int[] Para;
+    /**
+     * 非SIM波形和SIM第二条波形
+     */
     public static int[] WaveData;
+    /**
+     * SIM第二条波形  SIM共接收9条波形（1+8的组合共8组）
+     */
     public static int[] SimData;
     public static int[] TempData1;
     public static int[] TempData2;
@@ -64,17 +70,13 @@ public class Constant {
     public static boolean isTesting = false;
 
     /**
-     * 接收的非SIM波形数据长度    //GC20200428
+     * 接收的非SIM波形数据长度、单条SIM波形数据长度    //GC20200428    //GC? 与恩诺不同
      */
     public static int waveLen = 549;
+    public static int waveSimLen = 549;
 
     /**
-     * 接收的SIM波形数据长度   //20200520
-     */
-    public static int waveSimLen = 0;
-
-    /**
-     * 是否需要补齐波形数据    //GC20200428   //GC?
+     * 是否需要补齐波形数据    //GC20200428   //GC? 与恩诺不同
      */
     public static boolean needAddData = false;
 
