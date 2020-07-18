@@ -56,13 +56,15 @@ public class BaseActivity extends AppCompatActivity {
     /**
      * 0xF7,0xF7,0xED,0xBF,0xA5,0x4D,0x00,0x00
      *  247, 247, 237, 191, 165,  77,   0,   0
-     *  320, 320, 720,2560,3600,7120,   10200      //GC20200527    255-X/40;X为输入值  二次脉冲脉宽命令发送值
+     *  320, 320, 720,2560,3600,7120,   10200      //GC20200527    255-X/40;X为输入值  二次脉冲脉宽命令发送值 （按照这个比例选择pulseRemove）
      */
     public int pulseWidthSim;
     public int selectSim;
     public boolean isCom;
     public boolean isMemory;
     public boolean isDatabase;
+    public int[] pulseRemove = {75, 75, 75, 169, 600, 844, 1669, 2391, 2391};
+
 
     /**
      * 波形原始数据数组
@@ -278,13 +280,12 @@ public class BaseActivity extends AppCompatActivity {
     private void initParameter() {
         mode = TDR;
         range = RANGE_500;
-        rangeState = 0;
+        rangeState = 1;
         gain = 13;
         velocity = 172;
         density = 1;
         densityMax = 1;
         balance = 5;
-        delay = 0;
         inductor = 3;
         //二次脉冲多组数据选择
         selectSim = 1;
@@ -307,8 +308,6 @@ public class BaseActivity extends AppCompatActivity {
         //光标原始位置
         zero = 0;
         pointDistance = 255;
-        //SIM标记光标（固定不变）   //GC20200330
-        simStandardZero = 12;
         //光标画布位置（变化范围0-509）
         positionReal = 0;
         positionVirtual = 255;
@@ -397,3 +396,11 @@ public class BaseActivity extends AppCompatActivity {
 //GC20200528    波形滑动区域控制
 //GC20200604    按钮状态用户交互优化      //后续优化保留  //GC20200604
 //GC20200611    缩放后移动滑块时画光标bug修正
+//GC20200612    SIM标记光标（可以自定义）
+//GC20200613    延时修改、按钮状态
+//GC20200630    离线状态按钮可操作调整
+//GC20200716    添加版本号显示
+
+//GT20200619    每个点高度显示
+//GT20200629
+

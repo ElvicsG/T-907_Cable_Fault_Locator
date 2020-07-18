@@ -552,6 +552,7 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
+                    android:layout_marginLeft="@dimen/dp_40"
                     android:gravity="center"
                     android:orientation="horizontal">
 
@@ -597,6 +598,7 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
+                    android:layout_marginRight="@dimen/dp_40"
                     android:gravity="center"
                     android:orientation="horizontal">
 
@@ -609,11 +611,13 @@
 
                 <!--协助-->
                 <LinearLayout
+                    android:id="@+id/ll_remote"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:gravity="center"
-                    android:orientation="horizontal">
+                    android:orientation="horizontal"
+                    tools:visibility="gone">
 
                     <ImageView
                         android:id="@+id/btn_remote"

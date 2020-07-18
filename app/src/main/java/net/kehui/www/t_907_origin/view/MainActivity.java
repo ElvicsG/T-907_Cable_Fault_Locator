@@ -13,11 +13,11 @@ import android.text.Editable;
 import android.text.TextUtils;
 import android.text.TextWatcher;
 import android.util.Log;
-import android.view.Gravity;
 import android.view.View;
 import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
@@ -26,20 +26,18 @@ import android.widget.Toast;
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.timmy.tdialog.TDialog;
-import com.timmy.tdialog.base.BindViewHolder;
-import com.timmy.tdialog.listener.OnBindViewListener;
 
-import net.kehui.www.t_907_origin.base.BaseActivity;
 import net.kehui.www.t_907_origin.ConnectService;
 import net.kehui.www.t_907_origin.R;
 import net.kehui.www.t_907_origin.application.AppConfig;
 import net.kehui.www.t_907_origin.application.Constant;
 import net.kehui.www.t_907_origin.application.MyApplication;
+import net.kehui.www.t_907_origin.base.BaseActivity;
 import net.kehui.www.t_907_origin.entity.ParamInfo;
 import net.kehui.www.t_907_origin.ui.AppUpdateDialog;
+import net.kehui.www.t_907_origin.ui.HelpCenterDialog;
 import net.kehui.www.t_907_origin.ui.HelpHomeDialog;
 import net.kehui.www.t_907_origin.ui.LanguageChangeDialog;
-import net.kehui.www.t_907_origin.ui.HelpCenterDialog;
 import net.kehui.www.t_907_origin.ui.ShowRecordsDialog;
 import net.kehui.www.t_907_origin.util.AppUtils;
 import net.kehui.www.t_907_origin.util.StateUtils;
@@ -70,8 +68,8 @@ import okhttp3.Request;
 import okhttp3.Response;
 
 import static net.kehui.www.t_907_origin.application.Constant.CurrentUnit;
-import static net.kehui.www.t_907_origin.application.Constant.MI_UNIT;
 import static net.kehui.www.t_907_origin.application.Constant.FT_UNIT;
+import static net.kehui.www.t_907_origin.application.Constant.MI_UNIT;
 
 /**
  * @author JWJ
@@ -122,6 +120,8 @@ public class MainActivity extends BaseActivity {
     ImageView ivBatteryStatus;
     @BindView(R.id.tv_msg)
     TextView tvMsg;
+    @BindView(R.id.ll_remote)
+    LinearLayout llRemote;
 
     private int unit;
     private String version = "1";
@@ -193,6 +193,8 @@ public class MainActivity extends BaseActivity {
         setContentView(R.layout.activity_main);
         ButterKnife.bind(this);
 
+        //去掉协助  //GC20200716
+        llRemote.setVisibility(View.GONE);
         //启动主服务
         startMainService();
 //        ConnectService.needConnect = true;
@@ -465,7 +467,7 @@ public class MainActivity extends BaseActivity {
     }
 
     /**
-     *通过服务发送获取电量指令
+     * 通过服务发送获取电量指令
      */
     public void startService() {
         Intent intent = new Intent(MainActivity.this, ConnectService.class);
@@ -845,7 +847,7 @@ public class MainActivity extends BaseActivity {
     }
 
     /**
-     *隐藏虚拟按键，暂时用不到。
+     * 隐藏虚拟按键，暂时用不到。
      */
     protected void hideBottomUIMenu() {
         //隐藏虚拟按键，并且全屏

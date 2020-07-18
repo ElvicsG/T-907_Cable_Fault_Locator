@@ -38,7 +38,7 @@ public class Constant {
     public static double SaveLocation;
     public static int[] Para;
     /**
-     * 非SIM波形和SIM第二条波形
+     * 非SIM波形和SIM第一条波形
      */
     public static int[] WaveData;
     /**
