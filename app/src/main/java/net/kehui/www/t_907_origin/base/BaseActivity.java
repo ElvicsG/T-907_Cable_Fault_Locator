@@ -64,8 +64,18 @@ public class BaseActivity extends AppCompatActivity {
     public boolean isMemory;
     public boolean isDatabase;
     public int[] pulseRemove = {75, 75, 75, 169, 600, 844, 1669, 2391, 2391};
+    public int[] pulsetdrRemove = {10,10,16,24,36,72,144,288,576};
+    public int g;  // 低压脉冲极值最大或最小点
+    public int u;  //低压脉冲 曲线拟合脉冲起始点
+    public int autoLocation; //低压脉冲故障点位置
 
-
+    public int[] search_start_list = {1,1,400,800,1600,3200,6400,12800,25600};//sc TDR自动测试使用
+    public int[] search_end_list = {251,501,1000,2000,4000,8000,16000,32000,64000};//sc TDR自动测试使用
+    public int[] gain_value_list = {13,13,13,10,10,10,9,9,9};
+    public int step = 8;
+    public int count = 8;
+    public boolean needChangeRange = true;
+    public boolean isLongClick;
     /**
      * 波形原始数据数组
      */
@@ -80,6 +90,7 @@ public class BaseActivity extends AppCompatActivity {
     public int[] simArray6;
     public int[] simArray7;
     public int[] simArray8;
+    public int[] simArray;
     /**
      * SIM筛选  //GC20200529
      */
@@ -156,6 +167,11 @@ public class BaseActivity extends AppCompatActivity {
      * ICM自动测距参数    //GC20191231
      */
     public boolean breakDown;
+
+    /**
+     * 平衡优化    //jk20200722
+     */
+    public int balanceState;
 
     /**
      * 测试缆信息添加    //GC20200103
@@ -286,6 +302,10 @@ public class BaseActivity extends AppCompatActivity {
         density = 1;
         densityMax = 1;
         balance = 5;
+        /*if(isLongClick = false){                   //jk20200716   平衡自动调整时平衡初值改变
+        balance = 5;}else if(isLongClick = true){
+            balance = 8;
+        }*/
         inductor = 3;
         //二次脉冲多组数据选择
         selectSim = 1;
@@ -316,6 +336,7 @@ public class BaseActivity extends AppCompatActivity {
 
         //增益大小状态
         gainState = 0;
+        balanceState = 0;//jk20200722  平衡状态
         //故障击穿时刻对应的那一点
         breakdownPosition = 0;
         //击穿点
@@ -404,3 +425,6 @@ public class BaseActivity extends AppCompatActivity {
 //GT20200619    每个点高度显示
 //GT20200629
 
+//jk20200715    低压脉冲长按自动测距
+//jk (后跟时间) 低压脉冲自动测距   超短距离需要优化
+//jk20200714sy  低压脉冲光标、距离修改测试、自动增益
