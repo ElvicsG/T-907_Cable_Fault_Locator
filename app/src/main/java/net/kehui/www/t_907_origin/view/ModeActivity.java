@@ -55,6 +55,8 @@ import butterknife.OnLongClick;
 import static net.kehui.www.t_907_origin.application.Constant.DISPLAY_ACTION;
 import static net.kehui.www.t_907_origin.application.Constant.MI_UNIT;
 import static net.kehui.www.t_907_origin.application.Constant.FT_UNIT;
+import static net.kehui.www.t_907_origin.application.Constant.SimData;
+import static net.kehui.www.t_907_origin.application.Constant.WaveData;
 import static net.kehui.www.t_907_origin.application.Constant.batteryValue;
 import static net.kehui.www.t_907_origin.application.Constant.hasSavedPulseWidth;
 import static net.kehui.www.t_907_origin.application.Constant.waveLen;
@@ -76,8 +78,8 @@ public class ModeActivity extends BaseActivity {
     /**
      * 当前点高度 //GT20200619
      */
-//    @BindView(R.id.tv_height)
-//    TextView tvHeight;
+    /*@BindView(R.id.tv_height)
+    TextView tvHeight;*/
     /**
      * 自动测距结果 //GC20190708
      */
@@ -927,7 +929,12 @@ public class ModeActivity extends BaseActivity {
                         //变化后虚光标在原始数据中的位置
                         pointDistance = pointDistance + positionVirtualChange * density;
                         //GT20200619
-                        /*int height = Constant.WaveData[pointDistance];
+                        /*int height;
+                        if (mode == SIM) {
+                            height = Constant.SimData[pointDistance];
+                        } else {
+                            height = Constant.WaveData[pointDistance];
+                        }
                         Log.e("【高度】", "当前点高度" + height);
                         tvHeight.setText("高度" + height);*/
                         //虚光标在画布中的位置
@@ -1457,11 +1464,37 @@ public class ModeActivity extends BaseActivity {
             handler.postDelayed(ModeActivity.this::clickTest, 100);
             needChangeRange = false;
         }
+
+        /*if((rangeState!=1)&&(fs1 >= 1)) {
+            range = 0x11;
+            if (!hasSavedPulseWidth) {
+                pulseWidth = 40;
+                etPulseWidth.setText(String.valueOf(40));
+            }
+            setPulseWidth(pulseWidth);
+            selectWaveLength();
+            setRange(range);
+            balance=8;
+            setBalance(balance);
+            handler.postDelayed(ModeActivity.this::clickTest, 100);
+            fs1=0;
+        }
+        if((rangeState==1)&&(fs >= 1)){
+            balance=8;
+            setBalance(balance);
+            gain=13;
+            setGain(gain);
+            handler.postDelayed(ModeActivity.this::clickTest, 100);
+            // Log.e("1", " /ces = " );
+            fs=0;
+        }*/
+
         //2.平衡
         while ((count >= 1)) {
-            count = count - 1;
-            if (step != 1) {
-                step = step / 2;
+            count = count -1;
+            step = step / 2;
+            if(step <=1){
+                step=1;
             }
             findExtremePoint2();
             banlanceAutoTdr();
@@ -1469,8 +1502,8 @@ public class ModeActivity extends BaseActivity {
                 case 0:
                     //平衡调整结束
                     rangeJudgement();
-                    step = 8;   //jk20200716    重置
-                    count = 8;
+//                    step = 8;   //jk20200716    重置
+//                    count = 8;
                     break;
                 case 1:
                     //波形波头偏下，平衡需要减小，减小后波头上升
@@ -1519,6 +1552,11 @@ public class ModeActivity extends BaseActivity {
         }
         tdrCurveFitting();
         tdtAutoCursor();
+        isLongClick = false;  //jk20200716    重置
+        step = 8;   //jk20200716    重置
+        count =8;
+        fs=1;
+        fs1=1;
         needChangeRange = true;
 
     }
@@ -1529,6 +1567,12 @@ public class ModeActivity extends BaseActivity {
     private void tdrAutoTest() {
         tdrCurveFitting();
         tdtAutoCursor();
+
+        isLongClick = false;  //jk20200716    重置
+        step = 8;   //jk20200716    重置
+        count =8;
+        fs=1;
+        fs1=1;
 
     }
 
@@ -1717,8 +1761,9 @@ public class ModeActivity extends BaseActivity {
 
                         for (int i3 = k + 1; i3 < 4; i3++) {
                             double Mik = a[i3][k] / a[k][k];
-                            for (int j = k; j < 4; j++)
+                            for (int j = k; j < 4; j++) {
                                 a[i3][j] -= Mik * a[k][j];
+                            }
                             b[i3] -= Mik * b[k];
                         }
                     }
@@ -1819,8 +1864,9 @@ public class ModeActivity extends BaseActivity {
 
                     for (int i = 2; i >= 0; i--) {
                         double sum = 0;
-                        for (int j = i + 1; j < 4; j++)
+                        for (int j = i + 1; j < 4; j++) {
                             sum += a[i][j] * b[j];
+                        }
                         b[i] = (b[i] - sum) / a[i][i];
                     }
 
@@ -3966,7 +4012,6 @@ public class ModeActivity extends BaseActivity {
      * 相关计算
      */
     int n,n1,n2,n3,n4,n5,n6,n7,n8;
-
     public void simRelevantJudgment() {
         simFilter();
         int selectWaveNum = 1;
@@ -4168,49 +4213,53 @@ public class ModeActivity extends BaseActivity {
         switch(selectWaveNum) {
             case 1:
                 sim_g = min1Pos;
-                sim_u = n1;
+                sim_u = n1-20;
                 simArray = simArray1;
                 break;
             case 2:
                 sim_g = min2Pos;
-                sim_u = n2;
+                sim_u = n2-20;
                 simArray = simArray2;
                 break;
             case 3:
                 sim_g = min3Pos;
-                sim_u = n3;
+                sim_u = n3-20;
                 simArray = simArray3;
                 break;
             case 4:
                 sim_g = min4pos;
-                sim_u = n4;
+                sim_u = n4-20;
                 simArray = simArray4;
                 break;
             case 5:
                 sim_g = min5Pos;
-                sim_u = n5;
+                sim_u = n5-20;
                 simArray = simArray5;
                 break;
             case 6:
                 sim_g = min6Pos;
-                sim_u = n6;
+                sim_u = n6-20;
                 simArray = simArray6;
                 break;
             case 7:
                 sim_g = min7Pos;
-                sim_u = n7;
+                sim_u = n7-20;
                 simArray = simArray7;
                 break;
             case 8:
                 sim_g = min8Pos;
-                sim_u = n8;
+                sim_u = n8-20;
                 simArray = simArray8;
                 break;
             default:
                 break;
         }
-
-        double[] simArray1_8 = new double[60050];
+        if(sim_u < 0){
+            sim_u = 0;
+        }
+        Log.e("SIM", "sim_u"+sim_u);
+        Log.e("SIM", "sim_g"+sim_g);
+        int[] simArray1_8 = new int[60050];
         for(int i = sim_u; i < sim_g; i++){
             //133需要更改
             simArray1_8[i] = simArray[i] - 133;
@@ -4295,16 +4344,22 @@ public class ModeActivity extends BaseActivity {
         }
         for(int i=0; i<sim_g-sim_u;i++){
             if ((((sim_c1[i]) <= 0) && ((sim_c1[i + 1]) > 0)) || ((sim_c1[i]) >= 0) && ((sim_c1[i + 1]) < 0)){
-                sim_point8 = i + sim_u + 1;
-                Log.e("SIMc2", " /i = " + i);
+                int x = waveArray[i] - 133 - simArray1_8[i];
+                //GC20200817    断线二次脉冲处理
+                if (x <= 10) {
+                    sim_point8 = i + sim_u + 1;
+                    Log.e("SIMc2", " /i = " + i);
+                }
             }else{
                 for (int f = 0; f < g - u - 1; f++) {
                     if ((((sim_c1[f]) <= 3) && ((sim_c1[f + 1]) > 3)) || (((sim_c1[f]) >= 3) && ((sim_c1[f + 1]) < 3))) {
-                        // Log.e("2", " /zou ");
-                        int z1 = f;
-                        // printf("z=%d\n", z);
-                        sim_point8 = z1 + sim_u + 1;
-                         Log.e("SIMc2", " /z1 = " + z1);
+                        int x = waveArray[i] - 133 - simArray1_8[i];
+                        if (x <= 10) {
+                            int z1 = f;
+                            // printf("z=%d\n", z);
+                            sim_point8 = z1 + sim_u + 1;
+                            Log.e("SIMc2", " /z1 = " + z1);
+                        }
                     }
                 }
             }
@@ -5071,9 +5126,19 @@ public class ModeActivity extends BaseActivity {
             case R.id.tv_home:
                 finish();
                 break;
+            case R.id.tv_zero:
+                //零点切换  //GC20200612
+                closeAllView();
+                mainWave.setScrubLineReal(positionVirtual);
+                positionReal = positionVirtual;
+                //在原始数据中的位置
+                zero = pointDistance;
+                calculateDistance(0);
+                break;
             case R.id.tv_cursor_min:
                 closeAllView();
                 if (positionVirtual > 0) {
+
                     int positionVirtualtemp = positionVirtual;
                     positionVirtualtemp -= 1;
                     mainWave.setScrubLineVirtual(positionVirtualtemp);
@@ -5085,9 +5150,14 @@ public class ModeActivity extends BaseActivity {
                     }
                     calculateDistance(Math.abs(pointDistance - zero));
                     //GT20200619
-//                    int height = Constant.WaveData[pointDistance];
-//                    Log.e("【高度】", "当前点高度" + height);
-//                    tvHeight.setText("高度" + height);
+                    /*int height;
+                    if (mode == SIM) {
+                        height = Constant.SimData[pointDistance];
+                    } else {
+                        height = Constant.WaveData[pointDistance];
+                    }
+                    Log.e("【高度】", "当前点高度" + height);
+                    tvHeight.setText("高度" + height);*/
                 }
                 break;
             case R.id.tv_cursor_plus:
@@ -5100,9 +5170,14 @@ public class ModeActivity extends BaseActivity {
                     positionVirtual = positionVirtualtemp;
                     calculateDistance(Math.abs(pointDistance - zero));
                     //GT20200619
-//                    int height = Constant.WaveData[pointDistance];
-//                    Log.e("【高度】", "当前点高度" + height);
-//                    tvHeight.setText("高度" + height);
+                    /*int height;
+                    if (mode == SIM) {
+                        height = Constant.SimData[pointDistance];
+                    } else {
+                        height = Constant.WaveData[pointDistance];
+                    }
+                    Log.e("【高度】", "当前点高度" + height);
+                    tvHeight.setText("高度" + height);*/
                 }
                 break;
             case R.id.tv_zoom_plus:
@@ -5467,20 +5542,15 @@ public class ModeActivity extends BaseActivity {
             case R.id.tv_range:
                 showRangeView();
                 break;
-            case R.id.tv_zero:
-                //零点切换  //GC20200612
-                closeAllView();
-                mainWave.setScrubLineReal(positionVirtual);
-                positionReal = positionVirtual;
-                //在原始数据中的位置
-                zero = pointDistance;
-                calculateDistance(0);
-                break;
             case R.id.tv_test:
                 isReceiveData = true;
                 clickTest();
-                //jk20200716
-                isLongClick = false;
+                isLongClick = false;  //jk20200716
+                step = 8;   //jk20200716
+                count =8;
+                fs=1;
+                fs1=1;
+                //balance =5;
                 break;
             case R.id.tv_help:
                 closeAllView();

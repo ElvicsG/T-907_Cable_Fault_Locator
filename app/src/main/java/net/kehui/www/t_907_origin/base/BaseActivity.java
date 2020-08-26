@@ -64,7 +64,7 @@ public class BaseActivity extends AppCompatActivity {
     public boolean isMemory;
     public boolean isDatabase;
     public int[] pulseRemove = {75, 75, 75, 169, 600, 844, 1669, 2391, 2391};
-    public int[] pulsetdrRemove = {10,10,16,24,36,72,144,288,576};
+    public int[] pulsetdrRemove = {20,20,36,34,46,82,144,288,576};
     public int g;  // 低压脉冲极值最大或最小点
     public int u;  //低压脉冲 曲线拟合脉冲起始点
     public int autoLocation; //低压脉冲故障点位置
@@ -74,8 +74,11 @@ public class BaseActivity extends AppCompatActivity {
     public int[] gain_value_list = {13,13,13,10,10,10,9,9,9};
     public int step = 8;
     public int count = 8;
+    public int fs = 1;
+    public int fs1 = 1;
     public boolean needChangeRange = true;
     public boolean isLongClick;
+
     /**
      * 波形原始数据数组
      */
@@ -428,3 +431,5 @@ public class BaseActivity extends AppCompatActivity {
 //jk20200715    低压脉冲长按自动测距
 //jk (后跟时间) 低压脉冲自动测距   超短距离需要优化
 //jk20200714sy  低压脉冲光标、距离修改测试、自动增益
+//jk20200804    二次脉冲光标定位
+//GC20200817    断线二次脉冲处理
