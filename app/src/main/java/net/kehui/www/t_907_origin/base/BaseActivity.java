@@ -64,7 +64,7 @@ public class BaseActivity extends AppCompatActivity {
     public boolean isMemory;
     public boolean isDatabase;
     public int[] pulseRemove = {75, 75, 75, 169, 600, 844, 1669, 2391, 2391};
-    public int[] pulsetdrRemove = {20,20,36,34,46,82,144,288,576};
+    public int[] pulsetdrRemove = {20,20,36,64,76,92,144,288,576};
     public int g;  // 低压脉冲极值最大或最小点
     public int u;  //低压脉冲 曲线拟合脉冲起始点
     public int autoLocation; //低压脉冲故障点位置
@@ -73,11 +73,12 @@ public class BaseActivity extends AppCompatActivity {
     public int[] search_end_list = {251,501,1000,2000,4000,8000,16000,32000,64000};//sc TDR自动测试使用
     public int[] gain_value_list = {13,13,13,10,10,10,9,9,9};
     public int step = 8;
-    public int count = 8;
-    public int fs = 1;
-    public int fs1 = 1;
-    public boolean needChangeRange = true;
+    public int count = 6;
+    public int balanceState;
     public boolean isLongClick;
+    public boolean longTestInit;
+    public boolean balanceIsReady;
+    public boolean rangeIsReady;
 
     /**
      * 波形原始数据数组
@@ -170,11 +171,6 @@ public class BaseActivity extends AppCompatActivity {
      * ICM自动测距参数    //GC20191231
      */
     public boolean breakDown;
-
-    /**
-     * 平衡优化    //jk20200722
-     */
-    public int balanceState;
 
     /**
      * 测试缆信息添加    //GC20200103
@@ -339,7 +335,8 @@ public class BaseActivity extends AppCompatActivity {
 
         //增益大小状态
         gainState = 0;
-        balanceState = 0;//jk20200722  平衡状态
+        //平衡状态
+        balanceState = 0;
         //故障击穿时刻对应的那一点
         breakdownPosition = 0;
         //击穿点
@@ -425,11 +422,14 @@ public class BaseActivity extends AppCompatActivity {
 //GC20200630    离线状态按钮可操作调整
 //GC20200716    添加版本号显示
 
-//GT20200619    每个点高度显示
-//GT20200629
-
-//jk20200715    低压脉冲长按自动测距
-//jk (后跟时间) 低压脉冲自动测距   超短距离需要优化
-//jk20200714sy  低压脉冲光标、距离修改测试、自动增益
-//jk20200804    二次脉冲光标定位
 //GC20200817    断线二次脉冲处理
+//GC20200916    低压脉冲长按自动测试逻辑改进
+
+//jk20200714    低压脉冲光标、距离修改测试、自动增益
+//jk20200715    低压脉冲测试按键长按响应添加
+//jk20200716    平衡自动调整
+//jk20200804    二次脉冲光标定位
+//jk20200904    更改起始判断
+
+//GT20200619    每个点高度显示
+//GT20200629    数据库打开算法结果显示调试
