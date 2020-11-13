@@ -1850,37 +1850,39 @@ public class ModeActivity extends BaseActivity {
     }
 
     /**
-     * TDR长按测试按键，调整平衡、范围、增益后再自动定位  //GC20200916
+     * TDR长按测试按键，初始化到500m范围，寻找合适的平衡、范围、增益后再自动定位  //GC20200916
      * 步骤1：初始化到500m范围和平衡中间档位，获取波形数据用作后续运算判断
      */
     private void longTestInit() {
-        //切换到500m范围
+        //初始化到500m范围
         if (range == RANGE_500) {
             gain = 13;
             setGain(gain);
         } else {
-            range = RANGE_500;
+            setRange(0x11);
+            setGain(gain);
             if (!hasSavedPulseWidth) {
                 pulseWidth = 40;
                 etPulseWidth.setText(String.valueOf(40));
             }
             setPulseWidth(pulseWidth);
-            setRange(range);
         }
-        //切换到平衡中间档位（0-15）
+        //初始化到平衡中间档位（0-15）
         balance = 8;
         setBalance(balance);
-        handler.postDelayed(ModeActivity.this::clickTest, 100);
         longTestInit = true;
+        handler.postDelayed(ModeActivity.this::clickTest, 100);
 
     }
 
     /**
-     * 步骤2：对平衡判断6次 //GC20200916
+     * 低压脉冲长按自动测试  //GC20200917
      */
-    private void selectBalance() {
+    private void tdrAutoTestLong() {
+        //步骤2：寻找合适的平衡档位，对平衡判断6次
         while ((count > 0)) {
             count--;
+            Log.e("tdr", "count" + count);
             step = step / 2;
             if(step <= 1){
                 step = 1;
@@ -1890,10 +1892,84 @@ public class ModeActivity extends BaseActivity {
             balanceAutoTdr();
             switch (balanceState){
                 case 0:
-                    //平衡调整结束 重置参数
-                    step = 8;
-                    count = 6;
-                    balanceIsReady = true;
+                    handler.postDelayed(ModeActivity.this::clickTest, 100);
+                    return;
+                case 1:
+                    //波形波头偏下，平衡需要减小，减小后波头上升
+                    balanceState = 0;
+                    balance = balance - step;
+                    if(balance <0) {
+                        balance = 0;
+                    }
+                    setBalance(balance);
+                    handler.postDelayed(ModeActivity.this::clickTest, 100);
+                    return;
+                case 2:
+                    balanceState = 0;
+                    balance = balance + step;
+                    if(balance >15){
+                        balance = 15;
+                    }
+                    setBalance(balance);
+                    handler.postDelayed(ModeActivity.this::clickTest, 100);
+                    return;
+                default:
+                    break;
+            }
+        }
+        //步骤3：寻找合适的范围
+        selectRange();
+        //步骤4：寻找合适的增益
+        gainJudgmentTdr();
+        switch (gainState) {
+            case 0:
+                //增益调整结束，给出最终结果
+                tvInformation.setText("");
+                break;
+            case 1:
+                tvInformation.setText("");
+                gainState = 0;
+                gain = gain - 1;
+                setGain(gain);
+                handler.postDelayed(ModeActivity.this::clickTest, 100);
+                return;
+            case 2:
+                tvInformation.setText("");
+                gainState = 0;
+                gain = gain + 1;
+                setGain(gain);
+                handler.postDelayed(ModeActivity.this::clickTest, 100);
+                return;
+            default:
+                break;
+        }
+        //给出自动测距结果
+        tdrCurveFitting();
+        tdtAutoCursor();
+
+        //平衡调整结束 重置参数
+        step = 8;
+        count = 6;
+        isLongClick = false;  //长按测试重置
+    }
+
+    /**
+     * 步骤2：寻找合适的平衡档位    //GC20200916
+     */
+    private void selectBalance() {
+        //对平衡判断6次
+        while ((count > 0)) {
+            count--;
+//            Log.e("tdr", "count" + count);
+            step = step / 2;
+            if(step <= 1){
+                step = 1;
+            }
+            //寻找发射脉冲的极大、极小值，用作判断平衡的状态
+            findStartExtremePoint();
+            balanceAutoTdr();
+            switch (balanceState){
+                case 0:
                     break;
                 case 1:
                     //波形波头偏下，平衡需要减小，减小后波头上升
@@ -1918,30 +1994,38 @@ public class ModeActivity extends BaseActivity {
                     break;
             }
         }
+        //平衡调整结束 重置参数
+        step = 8;
+        count = 6;
+        balanceIsReady = true;
+        handler.postDelayed(ModeActivity.this::clickTest, 100);
 
     }
 
     /**
-     * 步骤3：切换范围
+     * 步骤3：寻找合适的范围
      */
     int rangeCount = 1;
     private void selectRange() {
         int i;
         int max1 = 0;
         int sub1;
-        //计算波形有效数据的极值   //jk20200904 更改起始判断位置，从第225个点开始判断
-        for (i = pulsetdrRemove[rangeState] + 100; i < dataMax - removeTdrSim[rangeState]; i++) {
+        //计算波形有效数据的极值   //jk20200904 更改起始判断位置，从第120个点开始判断
+        for (i = pulselongtdrRemove[rangeState] + 5; i < dataMax - removeTdrSim[rangeState]-30; i++) {  //jk20200917
             sub1 = waveArray[i] - 133;
             if (Math.abs(sub1) > max1) {
                 max1 = Math.abs(sub1);
             }
         }
         //找到的最大极值小于11，认为没有全长反射，就增大一个范围继续测试
-        if(max1 <= 11) {
+//        if(max1 <= 11) {
+        if(max1 <= 5) {
             rangeCount++;
+            Log.e("tdr", "rangeCount" + rangeCount);
             switch (rangeCount) {
                 case 2 :
                     setRange(0x22);
+                    setGain(gain);
                     if (!hasSavedPulseWidth && mode == TDR) {
                         handler.postDelayed(() -> {
                             pulseWidth = 80;
@@ -1953,6 +2037,7 @@ public class ModeActivity extends BaseActivity {
                     return;
                 case 3 :
                     setRange(0x33);
+                    setGain(gain);
                     if (!hasSavedPulseWidth && mode == TDR) {
                         handler.postDelayed(() -> {
                             pulseWidth = 160;
@@ -1964,6 +2049,7 @@ public class ModeActivity extends BaseActivity {
                     return;
                 case 4 :
                     setRange(0x44);
+                    setGain(gain);
                     if (!hasSavedPulseWidth && mode == TDR) {
                         handler.postDelayed(() -> {
                             pulseWidth = 320;
@@ -1975,6 +2061,7 @@ public class ModeActivity extends BaseActivity {
                     return;
                 case 5 :
                     setRange(0x55);
+                    setGain(gain);
                     if (!hasSavedPulseWidth && mode == TDR) {
                         handler.postDelayed(() -> {
                             pulseWidth = 640;
@@ -1986,6 +2073,7 @@ public class ModeActivity extends BaseActivity {
                     return;
                 case 6 :
                     setRange(0x66);
+                    setGain(gain);
                     if (!hasSavedPulseWidth && mode == TDR) {
                         handler.postDelayed(() -> {
                             pulseWidth = 1280;
@@ -1997,6 +2085,7 @@ public class ModeActivity extends BaseActivity {
                     return;
                 case 7 :
                     setRange(0x77);
+                    setGain(gain);
                     if (!hasSavedPulseWidth && mode == TDR) {
                         handler.postDelayed(() -> {
                             pulseWidth = 2560;
@@ -2008,6 +2097,7 @@ public class ModeActivity extends BaseActivity {
                     return;
                 case 8 :
                     setRange(0x88);
+                    setGain(gain);
                     if (!hasSavedPulseWidth && mode == TDR) {
                         handler.postDelayed(() -> {
                             pulseWidth = 5120;
@@ -2015,23 +2105,25 @@ public class ModeActivity extends BaseActivity {
                         }, 20);
                         etPulseWidth.setText(String.valueOf(5120));
                     }
-                    handler.postDelayed(ModeActivity.this::clickTest, 100);
+                    //G?
                     rangeCount = 1;
                     rangeIsReady = true;
+                    handler.postDelayed(ModeActivity.this::clickTest, 100);
                     break;
                 default:
                     break;
             }
 
-        } else {
-            rangeCount = 1;
-            rangeIsReady = true;
         }
+        //范围调整结束
+        rangeCount = 1;
+        rangeIsReady = true;
+        handler.postDelayed(ModeActivity.this::clickTest, 100);
 
     }
 
     /**
-     * 步骤4：选择增益，给出自动测距结果
+     * 步骤4：寻找合适的增益，给出自动测距结果
      */
     private void selectGain() {
         gainJudgmentTdr();
@@ -2041,12 +2133,14 @@ public class ModeActivity extends BaseActivity {
                 tvInformation.setText("");
                 break;
             case 1:
+                tvInformation.setText("");
                 gainState = 0;
                 gain = gain - 1;
                 setGain(gain);
                 handler.postDelayed(ModeActivity.this::clickTest, 100);
                 return;
             case 2:
+                tvInformation.setText("");
                 gainState = 0;
                 gain = gain + 1;
                 setGain(gain);
@@ -2060,81 +2154,10 @@ public class ModeActivity extends BaseActivity {
 
         //长按测试重置
         isLongClick = false;
+        longTestInit = false;
+        balanceIsReady = false;
+        rangeIsReady = false;
 
-    }
-
-    /**
-     * 低压脉冲长按自动测试  //jk20200715
-     */
-    private void tdrAutoTestLong() {
-        //过程2：对平衡判断6次
-        while ((count > 0)) {
-            count--;
-            step = step / 2;
-            if(step <= 1){
-                step = 1;
-            }
-            //寻找发射脉冲的极大、极小值，用作判断平衡的状态
-            findStartExtremePoint();
-            balanceAutoTdr();
-            switch (balanceState){
-                case 0:
-                    //平衡调整结束
-                    rangeJudgement();
-//                    step = 8;   //jk20200716    重置
-//                    count = 6;
-                    break;
-                case 1:
-                    //波形波头偏下，平衡需要减小，减小后波头上升
-                    balanceState = 0;
-                    balance = balance - step;
-                    if(balance <0) {
-                        balance = 0;
-                    }
-                    setBalance(balance);
-                    handler.postDelayed(ModeActivity.this::clickTest, 100);
-                    return;
-                case 2:
-                    balanceState = 0;
-                    balance = balance + step;
-                    if(balance >15){
-                        balance = 15;
-                    }
-                    setBalance(balance);
-                    handler.postDelayed(ModeActivity.this::clickTest, 100);
-                    return;
-                default:
-                    break;
-            }
-        }
-        //3.增益
-        gainJudgmentTdr();
-        switch (gainState) {
-            case 0:
-                //增益调整结束，给出最终结果
-                tvInformation.setText("");
-                break;
-            case 1:
-                gainState = 0;
-                gain = gain - 1;
-                setGain(gain);
-                handler.postDelayed(ModeActivity.this::clickTest, 100);
-                return;
-            case 2:
-                gainState = 0;
-                gain = gain + 1;
-                setGain(gain);
-                handler.postDelayed(ModeActivity.this::clickTest, 100);
-                return;
-            default:
-                break;
-        }
-        tdrCurveFitting();
-        tdtAutoCursor();
-
-        step = 8;   //平衡调节重置
-        count = 6;
-        isLongClick = false;  //长按测试重置
     }
 
     /**
@@ -2169,8 +2192,8 @@ public class ModeActivity extends BaseActivity {
         }
         if (maxNum == 0) {
             Log.e("tdr", "发射没有极大值");
-            // tvInformation.setVisibility(View.VISIBLE);
-            //tvInformation.setText(getResources().getString(R.string.testAgain));
+//            tvInformation.setVisibility(View.VISIBLE);
+//            tvInformation.setText(getResources().getString(R.string.testAgain));
         }else {
             for (int k = 0; k < maxNum; k++) {
                 if (maxData[k] >= max) {
@@ -2288,7 +2311,7 @@ public class ModeActivity extends BaseActivity {
                 max = Math.abs(sub);
             }
         }
-        if (max <= 49) {//if (max <= 45) {     //jk20200824
+        if (max <= 40) {//if (max <= 45) {     //jk20200824
             gainState = 2;
             return;
         }
@@ -2326,103 +2349,6 @@ public class ModeActivity extends BaseActivity {
             }
         }
 
-    }
-
-    /**
-     * 低压脉冲范围判断   //jk20200716  changshi阶段   从500开始
-     */
-    void rangeJudgement() {
-        int i;
-        int max1 = 0;
-        int sub1;
-        //计算波形有效数据的极值   //jk20200904 更改起始判断位置，从第225个点开始判断
-        for (i = pulsetdrRemove[rangeState] + 100; i < dataMax - removeTdrSim[rangeState]; i++) {
-            sub1 = waveArray[i] - 133;
-            if (Math.abs(sub1) > max1) {
-                max1 = Math.abs(sub1);
-            }
-        }
-        //找到的最大极值小于11，认为没有全长反射，就增大一个范围继续测试
-        if(max1 <= 11) {
-            if (rangeState == 1) {
-                setRange(0x22);
-                if (!hasSavedPulseWidth && mode == TDR) {
-                    handler.postDelayed(() -> {
-                        pulseWidth = 80;
-                        setPulseWidth(80);
-                    }, 20);
-                    etPulseWidth.setText(String.valueOf(80));
-                }
-                handler.postDelayed(ModeActivity.this::clickTest, 100);
-            }
-            if (rangeState == 2) {
-                setRange(0x33);
-                if (!hasSavedPulseWidth && mode == TDR) {
-                    handler.postDelayed(() -> {
-                        pulseWidth = 160;
-                        setPulseWidth(160);
-                    }, 20);
-                    etPulseWidth.setText(String.valueOf(160));
-                }
-                handler.postDelayed(ModeActivity.this::clickTest, 100);
-            }
-            if (rangeState == 3) {
-                setRange(0x44);
-                if (!hasSavedPulseWidth && mode == TDR) {
-                    handler.postDelayed(() -> {
-                        pulseWidth = 320;
-                        setPulseWidth(320);
-                    }, 20);
-                    etPulseWidth.setText(String.valueOf(320));
-                }
-                handler.postDelayed(ModeActivity.this::clickTest, 100);
-            }
-            if (rangeState == 4) {
-                setRange(0x55);
-                if (!hasSavedPulseWidth && mode == TDR) {
-                    handler.postDelayed(() -> {
-                        pulseWidth = 640;
-                        setPulseWidth(640);
-                    }, 20);
-                    etPulseWidth.setText(String.valueOf(640));
-                }
-                handler.postDelayed(ModeActivity.this::clickTest, 100);
-            }
-            if (rangeState == 5) {
-                setRange(0x66);
-                if (!hasSavedPulseWidth && mode == TDR) {
-                    handler.postDelayed(() -> {
-                        pulseWidth = 1280;
-                        setPulseWidth(1280);
-                    }, 20);
-                    etPulseWidth.setText(String.valueOf(1280));
-                }
-                handler.postDelayed(ModeActivity.this::clickTest, 100);
-            }
-            if (rangeState == 6) {
-                setRange(0x77);
-                if (!hasSavedPulseWidth && mode == TDR) {
-                    handler.postDelayed(() -> {
-                        pulseWidth = 2560;
-                        setPulseWidth(2560);
-                    }, 20);
-                    etPulseWidth.setText(String.valueOf(2560));
-                }
-                handler.postDelayed(ModeActivity.this::clickTest, 100);
-            }
-            if (rangeState == 7) {
-                setRange(0x88);
-                if (!hasSavedPulseWidth && mode == TDR) {
-                    handler.postDelayed(() -> {
-                        pulseWidth = 5120;
-                        setPulseWidth(5120);
-                    }, 20);
-                    etPulseWidth.setText(String.valueOf(5120));
-                }
-                handler.postDelayed(ModeActivity.this::clickTest, 100);
-            }
-        }
-        selectWaveLength();
     }
 
     /**
@@ -2509,7 +2435,7 @@ public class ModeActivity extends BaseActivity {
         Log.e("b", " /波形 " +b);
          Log.e("min1", " /zhi " +min1);
         // Log.e("minpos", " /zhi " + minPos);
-        if(a<=b && min1 <=100 ){       //jk20200714
+        if(a<=b && min1 <=105 ){       //jk20200714
             point_x();
             // b_pos=b2_pos;
             //  Log.e("1", " /波形向下 " );

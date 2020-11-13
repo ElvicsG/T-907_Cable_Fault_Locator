@@ -107,7 +107,7 @@
     <string name="gain_too_high">增益过大</string>
     <string name="gain_too_low">增益过小</string>
     <string name="break_down">击穿！</string>
-    <string name="not_break_down">不击穿！</string>
+    <string name="not_break_down">未击穿！</string>
     <string name="auto_fault_distance">自动测距：</string>
     <string name="cursor_zero_set_success">光标零点设置成功！</string>
     <string name="connect_success">T-907连接成功！</string>

@@ -64,9 +64,10 @@ public class BaseActivity extends AppCompatActivity {
     public boolean isMemory;
     public boolean isDatabase;
     public int[] pulseRemove = {75, 75, 75, 169, 600, 844, 1669, 2391, 2391};
-    public int[] pulsetdrRemove = {20,20,36,64,76,92,144,288,576};
-    public int g;  // 低压脉冲极值最大或最小点
-    public int u;  //低压脉冲 曲线拟合脉冲起始点
+    public int[] pulsetdrRemove = {10,10,36,64,76,92,144,288,576};
+    public int[] pulselongtdrRemove = {20,20,36,64,76,92,144,288,576};
+    public int g;  //低压脉冲极值最大或最小点
+    public int u;  //低压脉冲曲线拟合脉冲起始点
     public int autoLocation; //低压脉冲故障点位置
 
     public int[] search_start_list = {1,1,400,800,1600,3200,6400,12800,25600};//sc TDR自动测试使用
