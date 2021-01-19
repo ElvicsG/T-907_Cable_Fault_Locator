@@ -323,11 +323,11 @@ public class ModeActivity extends BaseActivity {
                 break;
             case DISPLAY_DATABASE:
                 //数据库打开算法结果显示调试 //GT20200629
-                if ((mode == ICM) ){
+               /* if ((mode == ICM) ){
                     icmAutoTest();
                 } else if((mode == ICM_DECAY)){
                     icmAutoTestDC();
-                }
+                }*/  //jk20201023
                 //显示记录波形
                 setDateBaseParameter();
                 try {
@@ -1505,7 +1505,7 @@ public class ModeActivity extends BaseActivity {
         double[] waveArray1 = new double[60050];
             //以高度128为零点
             for (int j = u; j < g; j++) {
-                waveArray1[j] = waveArray[j] - 128;
+                waveArray1[j] = waveArray[j] - 133;  //jk20201022 以高度133为零点
             }
             //曲线拟合部分
             double[] X = new double[1000];
@@ -1813,6 +1813,10 @@ public class ModeActivity extends BaseActivity {
             } else {
                 autoLocation = point3;
             }
+            //jk20200923
+            if (autoLocation <= 2) {
+                autoLocation = 0;
+            }
             Log.e("4", " /光标位置 = " + autoLocation);
 
         }
@@ -2017,7 +2021,7 @@ public class ModeActivity extends BaseActivity {
                 max1 = Math.abs(sub1);
             }
         }
-        //找到的最大极值小于11，认为没有全长反射，就增大一个范围继续测试
+        //找到的最大极值小于5，认为没有全长反射，就增大一个范围继续测试
 //        if(max1 <= 11) {
         if(max1 <= 5) {
             rangeCount++;
@@ -2277,11 +2281,12 @@ public class ModeActivity extends BaseActivity {
         }
         sum_num = sum_num / 6;
 
+        //GC20201113    中间值取值修改
         for (int i = 0; i <= j; i++) {
-            if (waveArray[i] < 132) {    //取128
-                temp1 = temp1 + (132 - waveArray[i]);
+            if (waveArray[i] < 134) {    //取128
+                temp1 = temp1 + (134 - waveArray[i]);
             } else {
-                temp2 = temp2 + (waveArray[i] - 132);
+                temp2 = temp2 + (waveArray[i] - 134);
             }
         }
 
@@ -2337,7 +2342,7 @@ public class ModeActivity extends BaseActivity {
                 max = Math.abs(sub);
             }
         }
-        if (max <= 30) {//if (max <= 45) {
+        if (max <= 25) {//if (max <= 45) {
             gainState = 2;
             return;
         }
@@ -2670,7 +2675,7 @@ public class ModeActivity extends BaseActivity {
                 max = Math.abs(sub);
             }
         }
-        if (max <= 39) {// if (max <= 42) {
+        if (max <= 25) {// if (max <= 42) {
             //判断增益过小——如果最大值小于 15% 38
             gainState = 2;
             return;
@@ -4425,7 +4430,7 @@ public class ModeActivity extends BaseActivity {
             //133需要更改
            // simArray1_8[i] = simArray[i] - 133;
             //simArray1_8[i] = simArray[i] - 130;   //jk20200908
-            simArray1_8[i] = simArray[i] - 134;
+            simArray1_8[i] = simArray[i] - 133;
         }
 
         double[] X = new double[1000];

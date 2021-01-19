@@ -64,10 +64,10 @@ public class BaseActivity extends AppCompatActivity {
     public boolean isMemory;
     public boolean isDatabase;
     public int[] pulseRemove = {75, 75, 75, 169, 600, 844, 1669, 2391, 2391};
-    public int[] pulsetdrRemove = {10,10,36,64,76,92,144,288,576};
-    public int[] pulselongtdrRemove = {20,20,36,64,76,92,144,288,576};
-    public int g;  //低压脉冲极值最大或最小点
-    public int u;  //低压脉冲曲线拟合脉冲起始点
+    public int[] pulsetdrRemove = {22,24,36,64,76,92,144,288,576};
+    public int[] pulselongtdrRemove = {40,40,56,64,76,92,144,288,576};
+    public int g;  // 低压脉冲极值最大或最小点
+    public int u;  //低压脉冲 曲线拟合脉冲起始点
     public int autoLocation; //低压脉冲故障点位置
 
     public int[] search_start_list = {1,1,400,800,1600,3200,6400,12800,25600};//sc TDR自动测试使用
@@ -434,3 +434,10 @@ public class BaseActivity extends AppCompatActivity {
 
 //GT20200619    每个点高度显示
 //GT20200629    数据库打开算法结果显示调试
+
+//GC20201113    改动记录
+//jk20201023 数据库屏蔽
+//jk20201022 以高度133为零点
+//jk20200923 强制归零
+//GC20201113    中间值取值修改
+
